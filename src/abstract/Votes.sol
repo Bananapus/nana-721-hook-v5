@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.6.0) (governance/utils/Votes.sol)
-pragma solidity ^0.8.0;
+pragma solidity 0.8.23;
 
-import { Checkpoints } from "@openzeppelin/contracts/utils/Checkpoints.sol";
+import {Checkpoints} from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
 
 /**
  * @dev This is a base abstract contract that tracks voting units, which are a measure of voting power that can be
@@ -25,7 +25,7 @@ import { Checkpoints } from "@openzeppelin/contracts/utils/Checkpoints.sol";
  * _Available since v4.5._
  */
 abstract contract Votes {
-    using Checkpoints for Checkpoints.History;
+    using Checkpoints for Checkpoints.History; // TODO: Use the newer Checkpoints.Trace
 
     error SIGNATURE_EXPIRED();
     error BLOCK_NOT_YET_MINED();
