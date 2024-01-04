@@ -17,7 +17,7 @@ import {JB721Hook} from "./abstract/JB721Hook.sol";
 import {IJB721TiersHook} from "./interfaces/IJB721TiersHook.sol";
 import {IJB721TokenUriResolver} from "./interfaces/IJB721TokenUriResolver.sol";
 import {IJB721TiersHookStore} from "./interfaces/IJB721TiersHookStore.sol";
-import {JBNFTPermissionIds} from "./libraries/JBNFTPermissionIds.sol";
+import {JB721PermissionIds} from "./libraries/JB721PermissionIds.sol";
 import {JBIpfsDecoder} from "./libraries/JBIpfsDecoder.sol";
 import {JB721TiersRulesetMetadataResolver} from "./libraries/JB721TiersRulesetMetadataResolver.sol";
 import {JB721TierConfig} from "./structs/JB721TierConfig.sol";
@@ -292,7 +292,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         returns (uint256[] memory tokenIds)
     {
         // Enforce permissions.
-        _requirePermissionFrom({account: owner(), projectId: projectId, permissionId: JBNFTPermissionIds.MINT});
+        _requirePermissionFrom({account: owner(), projectId: projectId, permissionId: JB721PermissionIds.MINT});
 
         // Record the mint. The token IDs returned correspond to the tiers passed in.
         (tokenIds,) = STORE.recordMint(
@@ -350,7 +350,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
     /// @param tierIdsToRemove The tiers to remove, as an array of tier IDs.
     function adjustTiers(JB721TierConfig[] calldata tiersToAdd, uint256[] calldata tierIdsToRemove) external override {
         // Enforce permissions.
-        _requirePermissionFrom({account: owner(), projectId: projectId, permissionId: JBNFTPermissionIds.ADJUST_TIERS});
+        _requirePermissionFrom({account: owner(), projectId: projectId, permissionId: JB721PermissionIds.ADJUST_TIERS});
 
         // Get a reference to the number of tiers being added.
         uint256 numberOfTiersToAdd = tiersToAdd.length;
@@ -408,7 +408,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         _requirePermissionFrom({
             account: owner(),
             projectId: projectId,
-            permissionId: JBNFTPermissionIds.UPDATE_METADATA
+            permissionId: JB721PermissionIds.UPDATE_METADATA
         });
 
         if (bytes(baseUri).length != 0) {
