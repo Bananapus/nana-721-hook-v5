@@ -39,11 +39,7 @@ import "forge-std/Test.sol";
 
 import "./AccessJBLib.sol";
 
-<<<<<<< HEAD
 import "src/structs/JBPayDataHookRulesetMetadata.sol";
-=======
-import "./../../structs/JBPayDataSourceFundingCycleMetadata.sol";
->>>>>>> intermediate
 
 // Base contract for Juicebox system tests.
 //
