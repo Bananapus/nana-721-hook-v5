@@ -116,19 +116,19 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
             abi.encodeCall(IJBRulesets.currentOf, projectId),
             abi.encode(
                 JBRuleset({
-                    number: 1,
-                    rulesetId: block.timestamp,
-                    basedOn: 0,
+                    cycleNumber: 1,
+                    id: block.timestamp,
+                    basedOnId: 0,
                     start: block.timestamp,
                     duration: 600,
                     weight: 10e18,
-                    discountRate: 0,
-                    ballot: IJBRulesetApprovalHook(address(0)),
+                    decayRate: 0,
+                    approvalHook: IJBRulesetApprovalHook(address(0)),
                     metadata: JBRulesetMetadataResolver.packFundingCycleMetadata(
                         JBRulesetMetadata({
                             reservedRate: 5000, //50%
                             redemptionRate: 5000, //50%
-                            baseCurrency: 0,
+                            baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
                             pausePay: false,
                             pauseCreditTransfers: false,
                             allowOwnerMinting: true,

@@ -144,7 +144,7 @@ contract UnitTestSetup is Test {
             useVotingUnits: true
         });
 
-        // Create 10 tiers, each with 100 tokens available to mint
+        // Create 10 tiers, each with 100 NFTs available to mint.
         for (uint256 i; i < 10; i++) {
             tiers.push(
                 JB721TierConfig({
@@ -167,19 +167,19 @@ contract UnitTestSetup is Test {
             abi.encodeCall(IJBRulesets.currentOf, projectId),
             abi.encode(
                 JBRuleset({
-                    number: 1,
-                    rulesetId: block.timestamp,
-                    basedOn: 0,
+                    cycleNumber: 1,
+                    id: block.timestamp,
+                    basedOnId: 0,
                     start: block.timestamp,
                     duration: 600,
                     weight: 10e18,
-                    discountRate: 0,
-                    ballot: IJBRulesetApprovalHook(address(0)),
+                    decayRate: 0,
+                    approvalHook: IJBRulesetApprovalHook(address(0)),
                     metadata: JBRulesetMetadataResolver.packFundingCycleMetadata(
                         JBRulesetMetadata({
                             reservedRate: 5000, //50%
                             redemptionRate: 5000, //50%
-                            baseCurrency: 0,
+                            baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
                             pausePay: false,
                             pauseCreditTransfers: false,
                             allowOwnerMinting: true,
@@ -203,7 +203,7 @@ contract UnitTestSetup is Test {
 
         vm.mockCall(
             mockJBDirectory,
-            abi.encodeWithSelector(IJBPermissioned.operatorStore.selector),
+            abi.encodeWithSelector(IJBPermissioned.PERMISSIONS.selector),
             abi.encode(mockJBPermissions)
         );
 
@@ -221,7 +221,7 @@ contract UnitTestSetup is Test {
 
         store = new JB721TiersHookStore();
 
-        JBDeploy721TiersHookConfig memory hookData = JBDeploy721TiersHookConfig(
+        JBDeploy721TiersHookConfig memory hookConfig = JBDeploy721TiersHookConfig(
             name,
             symbol,
             IJBRulesets(mockJBRulesets),
@@ -240,7 +240,7 @@ contract UnitTestSetup is Test {
             JB721GovernanceType.NONE
         );
 
-        hook = JB721TiersHook(address(jbHookDeployer.deployHookFor(projectId, hookData)));
+        hook = JB721TiersHook(address(jbHookDeployer.deployHookFor(projectId, hookConfig)));
         hook.transferOwnership(owner);
 
         metadataHelper = new MetadataResolverHelper();
@@ -323,27 +323,27 @@ contract UnitTestSetup is Test {
         return (tierId * 1_000_000_000) + tokenNumber;
     }
 
-    // Check if every elements from smol is in bigg
+    // Check if every elements from smol is in bigg.
     function _isIn(JB721Tier[] memory smol, JB721Tier[] memory bigg) internal returns (bool) {
-        // Cannot be oversized
+        // smol cannot be bigger than bigg.
         if (smol.length > bigg.length) {
             emit log("_isIn: smol too big");
             return false;
         }
         if (smol.length == 0) return true;
         uint256 count;
-        // Iterate on every smol elements
+        // Iterate on every smol element.
         for (uint256 smolIter; smolIter < smol.length; smolIter++) {
             // Compare it with every bigg element until...
             for (uint256 biggIter; biggIter < bigg.length; biggIter++) {
-                // ... the same element is found -> break to go to the next smol element
+                // ... the same element is found, then break to go to the next smol element.
                 if (_compareTiers(smol[smolIter], bigg[biggIter])) {
-                    count += smolIter + 1; // 1-indexed, as the length
+                    count += smolIter + 1; // 1-indexed, as the length.
                     break;
                 }
             }
         }
-        // Insure all the smoll indexes have been iterated on (ie we've seen (smoll.length)! elements)
+        // Ensure that all the smol indexes have been iterated on (i.e. we've seen (smol.length)! elements).
         if (count == (smol.length * (smol.length + 1)) / 2) {
             return true;
         } else {
