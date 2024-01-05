@@ -1,28 +1,18 @@
 [profile.default]
 solc = '0.8.23'
-evm_version = 'paris' # Required for L2s (Optimism, Arbitrum, etc.)
-# grant access to the deployment addresses for the registry test:
-fs_permissions = [{ access = "read", path = "./lib/juice-address-registry/broadcast/Deploy.s.sol"}]
-gas_reports_ignore = [
-    "JBTokens",
-    "JBSplits",
-    "JBTerminalStore",
-    "JBProjects",
-    "JBRulesets",
-    "JBMultiTerminal",
-    "JBDirectory",
-    "JBController",
-    "AccessJBLib",
-    "JBIpfsDecoder",
-    "ForTest_JB721TiersHook",
-    "ForTest_JB721TiersHookStore",
-    "JB721TiersHookStore",
-]
-optimizer_runs = 200
-block_timestamp = 1674745056
+vm_version = 'paris'                   # Required for L2s (Optimism, Arbitrum, etc.)
+sizes = true
+verbosity = 3                           # display errors
+optimizer_runs = 100000000
+block_number = 14126430
+block_timestamp = 1643802347
+runs = 4096
+fs_permissions = [{ access = "read", path = "lib/juice-contracts-v4/broadcast/Deploy.s.sol" }] # Get the deployment addresses to base the hook on.
+
+[invariant] 
+fail_on_revert = false
 
 [fmt]
 number_underscore = "thousands"
 multiline_func_header = "all"
 wrap_comments = true
-
