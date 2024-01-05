@@ -126,30 +126,24 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     ballot: IJBRulesetApprovalHook(address(0)),
                     metadata: JBRulesetMetadataResolver.packFundingCycleMetadata(
                         JBRulesetMetadata({
-                            global: JBGlobalFundingCycleMetadata({
-                                allowSetTerminals: false,
-                                allowSetController: false,
-                                pauseTransfers: false
-                            }),
                             reservedRate: 5000, //50%
                             redemptionRate: 5000, //50%
-                            ballotRedemptionRate: 5000,
+                            baseCurrency: 0,
                             pausePay: false,
-                            pauseDistributions: false,
-                            pauseRedeem: false,
-                            pauseBurn: false,
-                            allowMinting: true,
+                            pauseCreditTransfers: false,
+                            allowOwnerMinting: true,
                             allowTerminalMigration: false,
+                            allowSetTerminals: false,
                             allowControllerMigration: false,
+                            allowSetController: false,
                             holdFees: false,
-                            preferClaimedTokenOverride: false,
-                            useTotalOverflowForRedemptions: false,
-                            useDataSourceForPay: true,
-                            useDataSourceForRedeem: true,
-                            dataSource: address(0),
+                            useTotalSurplusForRedemptions: false,
+                            useDataHookForPay: true,
+                            useDataHookForRedeem: true,
+                            dataHook: address(0),
                             metadata: 2 // == 010_2
                         })
-                        )
+                    )
                 })
             )
         );

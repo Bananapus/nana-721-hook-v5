@@ -1,3 +1,1 @@
-@prb/math/=lib/juice-contracts-v4/lib/prb-math/
-@openzeppelin/=lib/openzeppelin-contracts/
 lib/openzeppelin-contracts/=lib/openzeppelin-contracts/

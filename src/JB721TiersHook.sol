@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {mulDiv} from "@prb/math/src/Common.sol";
+import {mulDiv} from "lib/prb-math/src/Common.sol";
 import {IJBPermissions} from "lib/juice-contracts-v4/src/interfaces/IJBPermissions.sol";
 import {JBOwnable} from "lib/juice-ownable/src/JBOwnable.sol";
 import {JBRulesetMetadataResolver} from "lib/juice-contracts-v4/src/libraries/JBRulesetMetadataResolver.sol";
@@ -99,7 +99,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         if (storedFirstOwner != address(0)) return storedFirstOwner;
 
         // Otherwise, the first owner must be the current owner.
-        return _owners[tokenId];
+        return _ownerOf(tokenId);
     }
 
     /// @notice Context for the pricing of this hook's tiers.
@@ -502,7 +502,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
                     value = mulDiv(
                         context.amount.value,
                         10 ** pricingDecimals,
-                        prices.priceFor(context.amount.currency, pricingCurrency, context.amount.decimals)
+                        prices.pricePerUnitOf({ projectId: projectId, pricingCurrency: context.amount.currency, unitCurrency: pricingCurrency, decimals: context.amount.decimals})
                     );
                 } else {
                     return;
@@ -532,7 +532,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         bool allowOverspending;
 
         // Resolve the metadata.
-        (bool found, bytes memory metadata) = JBMetadataResolver.getMetadata(metadataPayHookId, context.payerMetadata);
+        (bool found, bytes memory metadata) = JBMetadataResolver.getDataFor(metadataPayHookId, context.payerMetadata);
 
         if (found) {
             // Keep a reference to the IDs of the tier be to minted.
@@ -639,15 +639,17 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
     }
 
     /// @notice Before transferring an NFT, register its first owner (if necessary).
-    /// @param from The address the NFT is being transferred from.
     /// @param to The address the NFT is being transferred to.
     /// @param tokenId The token ID of the NFT being transferred.
-    function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal virtual override {
+    function _update(address to, uint256 tokenId, address auth) internal virtual override returns (address from) {
+        // Get a reference to the tier.
+        JB721Tier memory tier = STORE.tierOfTokenId(address(this), tokenId, false);
+
+        // Keep a reference to where the token is coming from.        
+        from = _ownerOf(tokenId);
+
         // Transfers must not be paused (when not minting or burning).
         if (from != address(0)) {
-            // Get a reference to the tier.
-            JB721Tier memory tier = STORE.tierOfTokenId(address(this), tokenId, false);
-
             // If transfers are pausable, check if they're paused.
             if (tier.transfersPausable) {
                 // Get a reference to the project's current ruleset.
@@ -664,24 +666,13 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
             if (_firstOwnerOf[tokenId] == address(0)) _firstOwnerOf[tokenId] = from;
         }
 
-        super._beforeTokenTransfer(from, to, tokenId);
-    }
-
-    /// @notice After transferring an NFT, transfer its voting units.
-    /// @param from The address the NFT is being transferred from.
-    /// @param to The address the NFT is being transferred to.
-    /// @param tokenId The token ID of the NFT being transferred.
-    function _afterTokenTransfer(address from, address to, uint256 tokenId) internal virtual override {
-        // Get a reference to the tier.
-        JB721Tier memory tier = STORE.tierOfTokenId(address(this), tokenId, false);
+        super._update(to, tokenId, auth);
 
         // Record the transfer.
         STORE.recordTransferForTier(tier.id, from, to);
 
         // Handle any other accounting (e.g. transfer voting units in the `JBGoverned721TiersHook`).
         _afterTokenTransferAccounting(from, to, tokenId, tier);
-
-        super._afterTokenTransfer(from, to, tokenId);
     }
 
     /// @notice After transferring an NFT, handle any other accounting. This lets us use `tier` without fetching it

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {mulDiv} from "@prb/math/src/Common.sol";
-import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
-import {IERC2981} from "@openzeppelin/contracts/interfaces/IERC2981.sol";
+import {mulDiv} from "lib/prb-math/src/Common.sol";
+import {IERC165} from "lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
+import {IERC2981} from "lib/openzeppelin-contracts/contracts/interfaces/IERC2981.sol";
 import {IJBRulesetDataHook} from "lib/juice-contracts-v4/src/interfaces/IJBRulesetDataHook.sol";
 import {IJBDirectory} from "lib/juice-contracts-v4/src/interfaces/IJBDirectory.sol";
 import {IJBPayHook} from "lib/juice-contracts-v4/src/interfaces/IJBPayHook.sol";
@@ -18,8 +18,8 @@ import {JBPayHookSpecification} from "lib/juice-contracts-v4/src/structs/JBPayHo
 import {JBRedeemHookSpecification} from "lib/juice-contracts-v4/src/structs/JBRedeemHookSpecification.sol";
 import {JBMetadataResolver} from "lib/juice-contracts-v4/src/libraries/JBMetadataResolver.sol";
 
-import {IJB721Hook} from "../interfaces/IJB721Hook.sol";
 import {ERC721} from "./ERC721.sol";
+import {IJB721Hook} from "../interfaces/IJB721Hook.sol";
 
 /// @title JB721Hook
 /// @notice When a project which uses this hook is paid, this hook may mint NFTs to the payer, depending on this hook's
@@ -67,7 +67,6 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     /// @dev Sets this contract as the pay hook. Part of `IJBRulesetDataHook`.
     /// @param context The payment context passed to this contract by the `pay(...)` function.
     /// @return weight The new `weight` to use, overriding the ruleset's `weight`.
-    /// @return memo A memo to be forwarded to the event.
     /// @return hookSpecifications The amount and data to send to pay hooks (this contract) instead of adding to the
     /// terminal's balance.
     function beforePayRecordedWith(JBBeforePayRecordedContext calldata context)
@@ -75,11 +74,10 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         view
         virtual
         override
-        returns (uint256 weight, string memory memo, JBPayHookSpecification[] memory hookSpecifications)
+        returns (uint256 weight, JBPayHookSpecification[] memory hookSpecifications)
     {
         // Forward the received weight and memo, and use this contract as the only pay hook.
         weight = context.weight;
-        memo = context.memo;
         hookSpecifications = new JBPayHookSpecification[](1);
         hookSpecifications[0] = JBPayHookSpecification(this, 0, bytes(""));
     }
@@ -91,7 +89,6 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     /// `useDataHookForRedeem` set to `true`.
     /// @param context The redemption context passed to this contract by the `redeemTokensOf(...)` function.
     /// @return reclaimAmount Amount to be reclaimed, overriding the terminal's logic.
-    /// @return memo A memo to be forwarded to the event.
     /// @return hookSpecifications The amount and data to send to redeem hooks (this contract) instead of returning to
     /// the beneficiary.
     function beforeRedeemRecordedWith(JBBeforeRedeemRecordedContext calldata context)
@@ -99,13 +96,13 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         view
         virtual
         override
-        returns (uint256 reclaimAmount, string memory memo, JBRedeemHookSpecification[] memory hookSpecifications)
+        returns (uint256 reclaimAmount, JBRedeemHookSpecification[] memory hookSpecifications)
     {
         // Make sure (fungible) project tokens aren't also being redeemed.
-        if (context.tokenCount > 0) revert UNEXPECTED_TOKEN_REDEEMED();
+        if (context.redeemCount > 0) revert UNEXPECTED_TOKEN_REDEEMED();
 
         // Fetch the redeem hook metadata using the corresponding metadata ID.
-        (bool found, bytes memory metadata) = JBMetadataResolver.getMetadata(metadataRedeemHookId, context.metadata);
+        (bool found, bytes memory metadata) = JBMetadataResolver.getDataFor(metadataRedeemHookId, context.metadata);
 
         // Use this contract as the only redeem hook.
         hookSpecifications = new JBRedeemHookSpecification[](1);
@@ -129,7 +126,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         // These conditions are all part of the same curve. Edge conditions are separated because fewer operation are
         // necessary.
         if (context.redemptionRate == JBConstants.MAX_REDEMPTION_RATE) {
-            return (base, context.memo, hookSpecifications);
+            return (base, hookSpecifications);
         }
 
         // Return the weighted surplus, and this contract as the redeem hook (so that the tokens can be burned).
@@ -140,7 +137,6 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
                     + mulDiv(redemptionWeight, JBConstants.MAX_REDEMPTION_RATE - context.redemptionRate, total),
                 JBConstants.MAX_REDEMPTION_RATE
                 ),
-            context.memo,
             hookSpecifications
         );
     }
@@ -248,7 +244,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
 
         // Fetch the redeem hook metadata using the corresponding metadata ID.
         (bool found, bytes memory metadata) =
-            JBMetadataResolver.getMetadata(metadataRedeemHookId, context.redeemerMetadata);
+            JBMetadataResolver.getDataFor(metadataRedeemHookId, context.redeemerMetadata);
 
         uint256[] memory decodedTokenIds;
 
@@ -267,7 +263,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
             tokenId = decodedTokenIds[i];
 
             // Make sure the token's owner is correct.
-            if (_owners[tokenId] != context.holder) revert UNAUTHORIZED_TOKEN(tokenId);
+            if (_ownerOf(tokenId) != context.holder) revert UNAUTHORIZED_TOKEN(tokenId);
 
             // Burn the token.
             _burn(tokenId);

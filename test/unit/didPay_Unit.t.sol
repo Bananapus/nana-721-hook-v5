@@ -19,7 +19,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         defaultTierConfig.initialSupply = uint32(_initialSupply);
         defaultTierConfig.reserveFrequency = uint16(_reserveFrequency);
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(1); // 1 tier
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(1); // 1 tier
 
         // Mock the directory call
         mockAndExpect(
@@ -1079,27 +1079,21 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     ballot: IJBRulesetApprovalHook(address(0)),
                     metadata: JBRulesetMetadataResolver.packFundingCycleMetadata(
                         JBRulesetMetadata({
-                            global: JBGlobalFundingCycleMetadata({
-                                allowSetTerminals: false,
-                                allowSetController: false,
-                                pauseTransfers: false
-                            }),
                             reservedRate: 5000, //50%
                             redemptionRate: 5000, //50%
-                            ballotRedemptionRate: 5000,
+                            baseCurrency: 0,
                             pausePay: false,
-                            pauseDistributions: false,
-                            pauseRedeem: false,
-                            pauseBurn: false,
-                            allowMinting: true,
+                            pauseCreditTransfers: false,
+                            allowOwnerMinting: true,
                             allowTerminalMigration: false,
+                            allowSetTerminals: false,
                             allowControllerMigration: false,
+                            allowSetController: false,
                             holdFees: false,
-                            preferClaimedTokenOverride: false,
-                            useTotalOverflowForRedemptions: false,
-                            useDataSourceForPay: true,
-                            useDataSourceForRedeem: true,
-                            dataSource: address(_hook),
+                            useTotalSurplusForRedemptions: false,
+                            useDataHookForPay: true,
+                            useDataHookForRedeem: true,
+                            dataHook: address(_hook),
                             metadata: 1 // 001_2
                         })
                         )

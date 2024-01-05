@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+import {Clones} from "lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
 import {IJBAddressRegistry} from "lib/juice-address-registry/src/interfaces/IJBAddressRegistry.sol";
 import {IJBDirectory} from "lib/juice-contracts-v4/src/interfaces/IJBDirectory.sol";
 import {JBOwnable} from "lib/juice-ownable/src/JBOwnable.sol";
@@ -92,8 +92,8 @@ contract JB721TiersHookDeployer is IJB721TiersHookDeployer {
             deployTiersHookConfig.baseUri,
             deployTiersHookConfig.tokenUriResolver,
             deployTiersHookConfig.contractUri,
-            deployTiersHookConfig.tiersconfig,
-            deployTiersHookConfig.STORE,
+            deployTiersHookConfig.tiersConfig,
+            deployTiersHookConfig.store,
             deployTiersHookConfig.flags
         );
 

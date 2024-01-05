@@ -170,38 +170,23 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
     )
         internal
     {
-        controller.launchProjectFor(
-            owner,
-            launchProjectConfig.projectMetadata,
-            launchProjectConfig.config,
-            JBRulesetMetadata({
-                global: launchProjectConfig.metadata.global,
-                reservedRate: launchProjectConfig.metadata.reservedRate,
-                redemptionRate: launchProjectConfig.metadata.redemptionRate,
-                ballotRedemptionRate: launchProjectConfig.metadata.ballotRedemptionRate,
-                pausePay: launchProjectConfig.metadata.pausePay,
-                pauseDistributions: launchProjectConfig.metadata.pauseDistributions,
-                pauseRedeem: launchProjectConfig.metadata.pauseRedeem,
-                pauseBurn: launchProjectConfig.metadata.pauseBurn,
-                allowMinting: launchProjectConfig.metadata.allowMinting,
-                allowTerminalMigration: launchProjectConfig.metadata.allowTerminalMigration,
-                allowControllerMigration: launchProjectConfig.metadata.allowControllerMigration,
-                holdFees: launchProjectConfig.metadata.holdFees,
-                preferClaimedTokenOverride: launchProjectConfig.metadata.preferClaimedTokenOverride,
-                useTotalOverflowForRedemptions: launchProjectConfig.metadata.useTotalOverflowForRedemptions,
-                // Use the data hook upon payments.
-                useDataSourceForPay: true,
-                useDataSourceForRedeem: launchProjectConfig.metadata.useDataSourceForRedeem,
-                // Use the provided data hook.
-                dataSource: address(dataHook),
-                metadata: launchProjectConfig.metadata.metadata
-            }),
-            launchProjectConfig.mustStartAtOrAfter,
-            launchProjectConfig.splitGroups,
-            launchProjectConfig.fundAccessLimitGroups,
-            launchProjectConfig.terminals,
-            launchProjectConfig.memo
-        );
+        // Keep a reference to how many ruleset configurations there are.
+        uint256 numberOfRulesetConfigurations = launchProjectConfig.rulesetConfigurations.length; 
+
+        // Set the data hook to be active for pay transactions for each ruleset configuration.
+        for (uint256 i; i < numberOfRulesetConfigurations; i++) {
+            launchProjectConfig.rulesetConfigurations[i].metadata.useDataHookForPay = true;
+            launchProjectConfig.rulesetConfigurations[i].metadata.dataHook = address(dataHook);
+        }
+
+        // Launch the project.
+        controller.launchProjectFor({
+            owner: owner,
+            projectMetadata: launchProjectConfig.projectMetadata,
+            rulesetConfigurations: launchProjectConfig.rulesetConfigurations,
+            terminalConfigurations: launchProjectConfig.terminalConfigurations,
+            memo: launchProjectConfig.memo
+        });
     }
 
     /// @notice Launches rulesets for a project.
@@ -219,37 +204,22 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         internal
         returns (uint256)
     {
-        return controller.launchRulesetsFor(
-            projectId,
-            launchRulesetsConfig.config,
-            JBRulesetMetadata({
-                global: launchRulesetsConfig.metadata.global,
-                reservedRate: launchRulesetsConfig.metadata.reservedRate,
-                redemptionRate: launchRulesetsConfig.metadata.redemptionRate,
-                ballotRedemptionRate: launchRulesetsConfig.metadata.ballotRedemptionRate,
-                pausePay: launchRulesetsConfig.metadata.pausePay,
-                pauseDistributions: launchRulesetsConfig.metadata.pauseDistributions,
-                pauseRedeem: launchRulesetsConfig.metadata.pauseRedeem,
-                pauseBurn: launchRulesetsConfig.metadata.pauseBurn,
-                allowMinting: launchRulesetsConfig.metadata.allowMinting,
-                allowTerminalMigration: launchRulesetsConfig.metadata.allowTerminalMigration,
-                allowControllerMigration: launchRulesetsConfig.metadata.allowControllerMigration,
-                holdFees: launchRulesetsConfig.metadata.holdFees,
-                preferClaimedTokenOverride: launchRulesetsConfig.metadata.preferClaimedTokenOverride,
-                useTotalOverflowForRedemptions: launchRulesetsConfig.metadata.useTotalOverflowForRedemptions,
-                // Use the data hook upon payments.
-                useDataSourceForPay: true,
-                useDataSourceForRedeem: launchRulesetsConfig.metadata.useDataSourceForRedeem,
-                // Use the provided data hook.
-                dataSource: address(dataHook),
-                metadata: launchRulesetsConfig.metadata.metadata
-            }),
-            launchRulesetsConfig.mustStartAtOrAfter,
-            launchRulesetsConfig.splitGroups,
-            launchRulesetsConfig.fundAccessLimitGroups,
-            launchRulesetsConfig.terminals,
-            launchRulesetsConfig.memo
-        );
+        // Keep a reference to how many ruleset configurations there are.
+        uint256 numberOfRulesetConfigurations = launchRulesetsConfig.rulesetConfigurations.length; 
+
+        // Set the data hook to be active for pay transactions for each ruleset configuration.
+        for (uint256 i; i < numberOfRulesetConfigurations; i++) {
+            launchRulesetsConfig.rulesetConfigurations[i].metadata.useDataHookForPay = true;
+            launchRulesetsConfig.rulesetConfigurations[i].metadata.dataHook = address(dataHook);
+        }
+
+        // Launch the rulesets.
+        return controller.launchRulesetsFor({
+            projectId: projectId,
+            rulesetConfigurations: launchRulesetsConfig.rulesetConfigurations,
+            terminalConfigurations: launchRulesetsConfig.terminalConfigurations,
+            memo: launchRulesetsConfig.memo
+        });
     }
 
     /// @notice Queues rulesets for a project.
@@ -267,35 +237,20 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         internal
         returns (uint256)
     {
-        return controller.queueRulesetsOf(
-            projectId,
-            queueRulesetsConfig.config,
-            JBRulesetMetadata({
-                global: queueRulesetsConfig.metadata.global,
-                reservedRate: queueRulesetsConfig.metadata.reservedRate,
-                redemptionRate: queueRulesetsConfig.metadata.redemptionRate,
-                ballotRedemptionRate: queueRulesetsConfig.metadata.ballotRedemptionRate,
-                pausePay: queueRulesetsConfig.metadata.pausePay,
-                pauseDistributions: queueRulesetsConfig.metadata.pauseDistributions,
-                pauseRedeem: queueRulesetsConfig.metadata.pauseRedeem,
-                pauseBurn: queueRulesetsConfig.metadata.pauseBurn,
-                allowMinting: queueRulesetsConfig.metadata.allowMinting,
-                allowTerminalMigration: queueRulesetsConfig.metadata.allowTerminalMigration,
-                allowControllerMigration: queueRulesetsConfig.metadata.allowControllerMigration,
-                holdFees: queueRulesetsConfig.metadata.holdFees,
-                preferClaimedTokenOverride: queueRulesetsConfig.metadata.preferClaimedTokenOverride,
-                useTotalOverflowForRedemptions: queueRulesetsConfig.metadata.useTotalOverflowForRedemptions,
-                // Use the data hook upon payments.
-                useDataSourceForPay: true,
-                useDataSourceForRedeem: queueRulesetsConfig.metadata.useDataSourceForRedeem,
-                // Use the provided data hook.
-                dataSource: address(dataHook),
-                metadata: queueRulesetsConfig.metadata.metadata
-            }),
-            queueRulesetsConfig.mustStartAtOrAfter,
-            queueRulesetsConfig.splitGroups,
-            queueRulesetsConfig.fundAccessLimitGroups,
-            queueRulesetsConfig.memo
-        );
+        // Keep a reference to how many ruleset configurations there are.
+        uint256 numberOfRulesetConfigurations = queueRulesetsConfig.rulesetConfigurations.length; 
+
+        // Set the data hook to be active for pay transactions for each ruleset configuration.
+        for (uint256 i; i < numberOfRulesetConfigurations; i++) {
+            queueRulesetsConfig.rulesetConfigurations[i].metadata.useDataHookForPay = true;
+            queueRulesetsConfig.rulesetConfigurations[i].metadata.dataHook = address(dataHook);
+        }
+
+        // Queue the rulesets.
+        return controller.queueRulesetsOf({
+            projectId: projectId,
+            rulesetConfigurations: queueRulesetsConfig.rulesetConfigurations,
+            memo: queueRulesetsConfig.memo
+        });
     }
 }

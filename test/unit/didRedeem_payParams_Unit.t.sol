@@ -8,7 +8,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
     function testJBTieredNFTRewardDelegate_redeemParams_returnsCorrectAmount() public {
         uint256 _weight;
         uint256 _totalWeight;
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(10);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
 
         // Set 10 tiers, with half supply minted for each
         for (uint256 i = 1; i <= 10; i++) {
@@ -83,7 +83,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
         uint256 _weight;
         uint256 _totalWeight;
 
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(10);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
 
         // Set 10 tiers, with half supply minted for each
         for (uint256 i = 1; i <= 10; i++) {
@@ -138,7 +138,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
         uint256 _weight;
         uint256 _totalWeight;
 
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(10);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
 
         // Set 10 tiers, with half supply minted for each
         for (uint256 i = 1; i <= 10; i++) {
@@ -226,7 +226,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
     }
 
     function testJBTieredNFTRewardDelegate_afterRedeemRecordedWith_burnRedeemedNFT(uint256 _numberOfNFT) public {
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(5);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(5);
 
         // Has to all fit in tier 1 minus reserved
         _numberOfNFT = bound(_numberOfNFT, 1, 90);
@@ -393,7 +393,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
         vm.assume(beneficiary != _wrongHolder);
         vm.assume(tokenId != 0);
 
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(1);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(1);
 
         _hook.ForTest_setOwnerOf(tokenId, beneficiary);
 

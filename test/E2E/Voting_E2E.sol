@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 import "./Pay_Mint_Redeem_E2E.t.sol";
 
 import "src/JBGoverned721TiersHook.sol";
-import "src/abstract/ERC721.sol";
+import {ERC721} from "lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
 
 contract TestJB721TiersHookGovernance is TestJBTieredNFTRewardDelegateE2E {
     using JBRulesetMetadataResolver for JBRuleset;

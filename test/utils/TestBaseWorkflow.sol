@@ -33,7 +33,7 @@ import "lib/juice-contracts-v4/src/interfaces/IJBToken.sol";
 import "lib/juice-contracts-v4/src/libraries/JBPermissionIds.sol";
 import "lib/juice-contracts-v4/src/libraries/JBRulesetMetadataResolver.sol";
 
-import {mulDiv} from "@prb/math/src/Common.sol";
+import {mulDiv} from "lib/prb-math/src/Common.sol";
 
 import "forge-std/Test.sol";
 
@@ -64,7 +64,7 @@ contract TestBaseWorkflow is Test {
     JBController internal _jbController;
     JBTerminalStore internal _jbPaymentTerminalStore;
     JBMultiTerminal internal _jbETHPaymentTerminal;
-    JBProjectMetadata internal _projectMetadata;
+    string internal _projectMetadata;
     JBRulesetConfig internal _config;
     JBPayDataHookRulesetMetadata internal _metadata;
     JBSplitGroup[] internal _splitGroups;
@@ -139,7 +139,7 @@ contract TestBaseWorkflow is Test {
 
         _terminals.push(_jbETHPaymentTerminal);
 
-        _projectMetadata = JBProjectMetadata({content: "myIPFSHash", domain: 1});
+        _projectMetadata = "myIPFSHash";
 
         _config = JBRulesetConfig({ // TODO: fix this
             duration: 14,
@@ -149,11 +149,6 @@ contract TestBaseWorkflow is Test {
         });
 
         _metadata = JBPayDataHookRulesetMetadata({
-            global: JBGlobalFundingCycleMetadata({
-                allowSetTerminals: false,
-                allowSetController: false,
-                pauseTransfers: false
-            }),
             reservedRate: 5000, //50%
             redemptionRate: 5000, //50%
             ballotRedemptionRate: 5000,

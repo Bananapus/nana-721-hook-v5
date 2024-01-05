@@ -19,6 +19,7 @@ import "lib/juice-contracts-v4/src/interfaces/terminal/IJBTerminal.sol";
 import "lib/juice-contracts-v4/src/interfaces/IJBRulesetApprovalHook.sol";
 
 import "src/structs/JBLaunchProjectConfig.sol";
+import "src/structs/JBPayDataHookRulesetMetadata.sol";
 
 import "lib/juice-address-registry/src/JBAddressRegistry.sol";
 
@@ -176,27 +177,21 @@ contract UnitTestSetup is Test {
                     ballot: IJBRulesetApprovalHook(address(0)),
                     metadata: JBRulesetMetadataResolver.packFundingCycleMetadata(
                         JBRulesetMetadata({
-                            global: JBGlobalFundingCycleMetadata({
-                                allowSetTerminals: false,
-                                allowSetController: false,
-                                pauseTransfers: false
-                            }),
                             reservedRate: 5000, //50%
                             redemptionRate: 5000, //50%
-                            ballotRedemptionRate: 5000,
+                            baseCurrency: 0,
                             pausePay: false,
-                            pauseDistributions: false,
-                            pauseRedeem: false,
-                            pauseBurn: false,
-                            allowMinting: true,
+                            pauseCreditTransfers: false,
+                            allowOwnerMinting: true,
                             allowTerminalMigration: false,
+                            allowSetTerminals: false,
                             allowControllerMigration: false,
+                            allowSetController: false,
                             holdFees: false,
-                            preferClaimedTokenOverride: false,
-                            useTotalOverflowForRedemptions: false,
-                            useDataSourceForPay: true,
-                            useDataSourceForRedeem: true,
-                            dataSource: address(0),
+                            useTotalSurplusForRedemptions: false,
+                            useDataHookForPay: true,
+                            useDataHookForRedeem: true,
+                            dataHook: address(0),
                             metadata: 0x00
                         })
                         )
@@ -636,7 +631,7 @@ contract UnitTestSetup is Test {
         _hook.transferOwnership(owner);
     }
 
-    function _initializeForTestDelegate(uint256 initialNumberOfTiers)
+    function _initializeForTestHook(uint256 initialNumberOfTiers)
         internal
         returns (ForTest_JB721TiersHook _hook)
     {
@@ -678,7 +673,7 @@ contract UnitTestSetup is Test {
             JBLaunchProjectConfig memory launchProjectConfig
         )
     {
-        JBProjectMetadata memory projectMetadata;
+        string memory projectMetadata;
         JBRulesetConfig memory config;
         JBPayDataHookRulesetMetadata memory metadata;
         JBSplitGroup[] memory splitGroups;
@@ -719,35 +714,29 @@ contract UnitTestSetup is Test {
             governanceType: JB721GovernanceType.NONE
         });
 
-        projectMetadata = JBProjectMetadata({content: "myIPFSHash", domain: 1});
+        projectMetadata = "myIPFSHash";
         config = JBRulesetConfig({ // TODO: fix this
             duration: 14,
             weight: 10 ** 18,
             discountRate: 450_000_000,
             ballot: IJBRulesetApprovalHook(address(0))
         });
-        metadata = JBPayDataHookRulesetMetadata({
-            global: JBGlobalFundingCycleMetadata({
-                allowSetTerminals: false,
-                allowSetController: false,
-                pauseTransfers: false
-            }),
-            reservedRate: 5000, //50%
-            redemptionRate: 5000, //50%
-            ballotRedemptionRate: 0,
-            pausePay: false,
-            pauseDistributions: false,
-            pauseRedeem: false,
-            pauseBurn: false,
-            allowMinting: false,
-            allowTerminalMigration: false,
-            allowControllerMigration: false,
-            holdFees: false,
-            preferClaimedTokenOverride: false,
-            useTotalOverflowForRedemptions: false,
-            useDataSourceForRedeem: false,
-            metadata: 0x00
-        });
+        metadata =  JBRulesetMetadata({
+                            reservedRate: 5000, //50%
+                            redemptionRate: 5000, //50%
+                            baseCurrency: 0,
+                            pausePay: false,
+                            pauseCreditTransfers: false,
+                            allowOwnerMinting: false,
+                            allowTerminalMigration: false,
+                            allowSetTerminals: false,
+                            allowControllerMigration: false,
+                            allowSetController: false,
+                            holdFees: false,
+                            useTotalSurplusForRedemptions: false,
+                            useDataHookForRedeem: false,
+                            metadata: 0x00
+                        });
         launchProjectConfig = JBLaunchProjectConfig({
             projectMetadata: projectMetadata,
             config: config,

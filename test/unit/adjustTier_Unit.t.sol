@@ -659,8 +659,8 @@ contract TestJuice721dDelegate_adjustTier_Unit is UnitTestSetup {
         }
         //  Deploy the hook with the initial tiers
         JB721TiersHookStore _store = new JB721TiersHookStore();
-        vm.etch(delegate_i, address(hook).code);
-        JB721TiersHook _hook = JB721TiersHook(delegate_i);
+        vm.etch(hook_i, address(hook).code);
+        JB721TiersHook _hook = JB721TiersHook(hook_i);
         _hook.initialize(
             projectId,
             name,
@@ -1109,8 +1109,8 @@ contract TestJuice721dDelegate_adjustTier_Unit is UnitTestSetup {
             });
         }
         JB721TiersHookStore _store = new JB721TiersHookStore();
-        vm.etch(delegate_i, address(hook).code);
-        JB721TiersHook _hook = JB721TiersHook(delegate_i);
+        vm.etch(hook_i, address(hook).code);
+        JB721TiersHook _hook = JB721TiersHook(hook_i);
         _hook.initialize(
             projectId,
             name,
@@ -1151,7 +1151,7 @@ contract TestJuice721dDelegate_adjustTier_Unit is UnitTestSetup {
         initialNumberOfTiers = bound(initialNumberOfTiers, 0, 15);
         numberTiersToAdd = bound(numberTiersToAdd, 2, 15);
 
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(initialNumberOfTiers);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(initialNumberOfTiers);
 
         JB721TierConfig[] memory _tierParamsToAdd = new JB721TierConfig[](numberTiersToAdd);
         for (uint256 i; i < numberTiersToAdd; i++) {

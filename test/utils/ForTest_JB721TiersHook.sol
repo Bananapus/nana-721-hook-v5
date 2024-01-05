@@ -74,7 +74,7 @@ contract ForTest_JB721TiersHook is JB721TiersHook {
     }
 
     function ForTest_setOwnerOf(uint256 tokenId, address owner) public {
-        _owners[tokenId] = owner;
+        _ownerOf[tokenId] = owner;
     }
 }
 
@@ -144,7 +144,7 @@ contract ForTest_JB721TiersHookStore is JB721TiersHookStore, IJB721TiersHookStor
     }
 
     function ForTest_setIsTierRemoved(address hook, uint256 tokenId) public override {
-        _isTierRemovedBitmapWord[hook].removeTier(tokenId);
+        _removedTiersBitmapWordOf[hook].removeTier(tokenId);
     }
 
     function ForTest_packBools(

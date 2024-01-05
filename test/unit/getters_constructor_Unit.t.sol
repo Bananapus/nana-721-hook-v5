@@ -10,7 +10,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
 
         (, JB721Tier[] memory _tiers) = _createTiers(defaultTierConfig, numberOfTiers);
 
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(numberOfTiers);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(numberOfTiers);
 
         assertTrue(
             _isIn(_hook.test_store().tiersOf(address(_hook), new uint256[](0), false, 0, numberOfTiers), _tiers)
@@ -72,7 +72,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         (, JB721Tier[] memory _tiers) = _createTiers(defaultTierConfig, numberOfTiers);
 
         mockTokenUriResolver = makeAddr("mockTokenUriResolver");
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(numberOfTiers);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(numberOfTiers);
 
         for (uint256 i; i < numberOfTiers; i++) {
             // Mock the URI resolver call
@@ -113,7 +113,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
             }
         }
 
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(numberOfTiers);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(numberOfTiers);
 
         _hook.test_store().ForTest_setIsTierRemoved(address(_hook), firstRemovedTier);
         _hook.test_store().ForTest_setIsTierRemoved(address(_hook), secondRemovedTier);
@@ -133,7 +133,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
         (, JB721Tier[] memory _tiers) = _createTiers(defaultTierConfig, numberOfTiers);
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(numberOfTiers);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(numberOfTiers);
 
         // Check: correct tier, if exist?
         if (givenTier <= numberOfTiers && givenTier != 0) {
@@ -162,7 +162,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
     function testJBTieredNFTRewardDelegate_totalSupply_returnsTotalSupply(uint256 numberOfTiers) public {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(numberOfTiers);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(numberOfTiers);
 
         for (uint256 i; i < numberOfTiers; i++) {
             _hook.test_store().ForTest_setTier(
@@ -190,7 +190,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
     {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(numberOfTiers);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(numberOfTiers);
 
         for (uint256 i; i < numberOfTiers; i++) {
             _hook.test_store().ForTest_setBalanceOf(address(_hook), holder, i + 1, (i + 1) * 10);
@@ -207,7 +207,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         uint256 reservedMinted = 10;
         uint256 reserveFrequency = 9;
 
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(10);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
 
         for (uint256 i; i < 10; i++) {
             _hook.test_store().ForTest_setTier(
@@ -244,7 +244,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
 
         defaultTierConfig.useVotingUnits = true;
         defaultTierConfig.votingUnits = uint32(votingUnits);
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(numberOfTiers);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(numberOfTiers);
 
         // Set one tier voting unit to 0
         _hook.test_store().ForTest_setTier(
@@ -285,7 +285,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
     function testJBTieredNFTRewardDelegate_tokenURI_returnsCorrectUriIfResolverUsed(uint256 tokenId) public {
         mockTokenUriResolver = makeAddr("mockTokenUriResolver");
 
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(10);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
 
         // Mock the URI resolver call
         mockAndExpect(
@@ -300,7 +300,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
     }
 
     function testJBTieredNFTRewardDelegate_tokenURI_returnsCorrectUriIfNoResolverUsed() public {
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(10);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
 
         for (uint256 i = 1; i <= 10; i++) {
             uint256 tokenId = _generateTokenId(i, 1);
@@ -309,7 +309,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
     }
 
     function testJBTieredNFTRewardDelegate_setEncodedIPFSUriOf_returnsCorrectUriIfEncodedAdded() public {
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(10);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
 
         uint256 tokenId = _generateTokenId(1, 1);
         _hook.ForTest_setOwnerOf(tokenId, address(123));
@@ -331,7 +331,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         lastTier = bound(lastTier, 0, numberOfTiers);
         firstTier = bound(firstTier, 0, lastTier);
 
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(numberOfTiers);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(numberOfTiers);
 
         uint256 _maxNumberOfTiers = (numberOfTiers * (numberOfTiers + 1)) / 2; // "tier amount" of token mintable per
             // tier -> max == numberOfTiers!
@@ -359,7 +359,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
     {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(numberOfTiers);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(numberOfTiers);
 
         uint256 _theoreticalWeight;
 
@@ -388,7 +388,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
     )
         public
     {
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(10);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
 
         _hook.ForTest_setOwnerOf(tokenId, _owner);
         assertEq(_hook.firstOwnerOf(tokenId), _owner);
@@ -406,7 +406,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
 
         defaultTierConfig.allowOwnerMint = true;
         defaultTierConfig.reserveFrequency = 0;
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(10);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
 
         uint16[] memory _tiersToMint = new uint16[](1);
         _tiersToMint[0] = 1;
@@ -425,14 +425,14 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
     }
 
     function testJBTieredNFTRewardDelegate_firstOwnerOf_shouldReturnAddressZeroIfNotMinted(uint256 tokenId) public {
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(10);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
         assertEq(_hook.firstOwnerOf(tokenId), address(0));
     }
 
     function testJBTieredNFTRewardDelegate_constructor_deployIfNoEmptyinitialSupply(uint256 nbTiers) public {
         nbTiers = bound(nbTiers, 0, 10);
         // Create new tiers array
-        ForTest_JB721TiersHook _hook = _initializeForTestDelegate(nbTiers);
+        ForTest_JB721TiersHook _hook = _initializeForTestHook(nbTiers);
         (, JB721Tier[] memory _tiers) = _createTiers(defaultTierConfig, nbTiers);
 
         // Check: hook has correct parameters?
@@ -478,8 +478,8 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
 
         // Expect the error at i+1 (as the floor is now smaller than i)
         vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.NO_SUPPLY.selector));
-        vm.etch(delegate_i, address(hook).code);
-        JB721TiersHook _hook = JB721TiersHook(delegate_i);
+        vm.etch(hook_i, address(hook).code);
+        JB721TiersHook _hook = JB721TiersHook(hook_i);
         _hook.initialize(
             projectId,
             name,

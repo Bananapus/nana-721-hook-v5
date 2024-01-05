@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {Votes} from "lib/openzeppelin-contracts/contracts/governance/utils/Votes.sol";
+import {EIP712} from "lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol";
 import {IJBDirectory} from "lib/juice-contracts-v4/src/interfaces/IJBDirectory.sol";
 import {IJBProjects} from "lib/juice-contracts-v4/src/interfaces/IJBProjects.sol";
 import {IJBPermissions} from "lib/juice-contracts-v4/src/interfaces/IJBPermissions.sol";
 
-import {Votes} from "./abstract/Votes.sol";
 import {JB721Tier} from "./structs/JB721Tier.sol";
 import {JB721TiersHook} from "./JB721TiersHook.sol";
 
@@ -26,6 +27,7 @@ contract JBGoverned721TiersHook is Votes, JB721TiersHook {
         bytes4 metadataPayHookId,
         bytes4 metadataRedeemHookId
     )
+        EIP712("Juicebox 721 Governance Hook", "1")
         JB721TiersHook(directory, permissions, metadataPayHookId, metadataRedeemHookId)
     {}
 
@@ -39,7 +41,7 @@ contract JBGoverned721TiersHook is Votes, JB721TiersHook {
     /// @param account The address to get the voting units of.
     /// @return units The number of voting units that the address has.
     function _getVotingUnits(address account) internal view virtual override returns (uint256 units) {
-        return store.votingUnitsOf(address(this), account);
+        return STORE.votingUnitsOf(address(this), account);
     }
 
     /// @notice After an NFT is transferred, update the voting units of the sender and receiver accordingly.
