@@ -21,9 +21,9 @@ contract TestJB721TiersHookGovernance is TestJBTieredNFTRewardDelegateE2E {
         // to handle stack too deep
         {
             uint256 projectId =
-                deployer.launchProjectFor(_projectOwner, tiered721DeployerData, launchProjectConfig, _jbController);
+                deployer.launchProjectFor(projectOwner, tiered721DeployerData, launchProjectConfig, jbController);
             // Get the dataSource
-            _hook = JBGoverned721TiersHook(_jbRulesets.currentOf(projectId).dataHook());
+            _hook = JBGoverned721TiersHook(jbRulesets.currentOf(projectId).dataHook());
             uint256 _payAmount = tiered721DeployerData.tiersConfig.tiers[_tier].price;
             assertEq(_hook.delegates(_user), address(0));
             vm.prank(_user);
@@ -47,7 +47,7 @@ contract TestJB721TiersHookGovernance is TestJBTieredNFTRewardDelegateE2E {
                 // Generate the metadata
                 _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
             }
-            _jbMultiTerminal.pay{value: _payAmount}({
+            jbMultiTerminal.pay{value: _payAmount}({
                 projectId: projectId, 
                 amount: 100, 
                 token: JBConstants.NATIVE_TOKEN,
@@ -91,9 +91,9 @@ contract TestJB721TiersHookGovernance is TestJBTieredNFTRewardDelegateE2E {
             // Set the governance type to tiered
             tiered721DeployerData.governanceType = JB721GovernanceType.ONCHAIN;
             projectId =
-                deployer.launchProjectFor(_projectOwner, tiered721DeployerData, launchProjectConfig, _jbController);
+                deployer.launchProjectFor(projectOwner, tiered721DeployerData, launchProjectConfig, jbController);
             // Get the dataSource
-            _hook = JBGoverned721TiersHook(_jbRulesets.currentOf(projectId).dataHook());
+            _hook = JBGoverned721TiersHook(jbRulesets.currentOf(projectId).dataHook());
             // Delegate NFT to fren
             vm.startPrank(_user);
             _hook.delegate(_userFren);
@@ -123,7 +123,7 @@ contract TestJB721TiersHookGovernance is TestJBTieredNFTRewardDelegateE2E {
 
             // Pay and mint an NFT
             vm.deal(_user, _payAmount);
-            _jbMultiTerminal.pay{value: _payAmount}({
+            jbMultiTerminal.pay{value: _payAmount}({
                 projectId: projectId, 
                 amount: 100, 
                 token: JBConstants.NATIVE_TOKEN,

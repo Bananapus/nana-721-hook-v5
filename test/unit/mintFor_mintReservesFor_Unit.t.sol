@@ -211,7 +211,7 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         }
     }
 
-    function testJBTieredNFTRewardHook_use_default_reserved_token_beneficiary() public {
+    function testJBTieredNFTRewardHook_use_default_reserved_tokenbeneficiary() public {
         uint256 initialSupply = 200;
         uint256 totalMinted = 120;
         uint256 reserveFrequency = 9;
@@ -235,7 +235,7 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         }
     }
 
-    function testJBTieredNFTRewardDelegate_no_reserved_rate_if_no_beneficiary_set() public {
+    function testJBTieredNFTRewardDelegate_no_reserved_rate_if_nobeneficiary_set() public {
         uint256 initialSupply = 200;
         uint256 totalMinted = 120;
         uint256 reservedMinted = 10;

@@ -30,10 +30,10 @@ pragma solidity 0.8.23;
 //   string baseUri;
 //   string contractUri;
 
-//   address _projectOwner;
+//   address projectOwner;
 
 //   function setUp() public {
-//     _projectOwner = msg.sender; // Change me
+//     projectOwner = msg.sender; // Change me
 //     jbController = deployer.controller();
 //     jbDirectory = jbController.DIRECTORY();
 //     jbFundingCycleStore = jbController.rulesets();
@@ -52,7 +52,7 @@ pragma solidity 0.8.23;
 //     vm.startBroadcast();
 
 //     uint256 projectId = deployer.launchProjectFor(
-//       _projectOwner,
+//       projectOwner,
 //       tiered721DeployerData,
 //       launchProjectConfig
 //     );
@@ -68,7 +68,7 @@ pragma solidity 0.8.23;
 //     )
 //   {
 //     // Project rulesetId
-//     JBProjectMetadata memory _projectMetadata = JBProjectMetadata({
+//     JBProjectMetadata memory projectMetadata = JBProjectMetadata({
 //       content: 'QmdkypzHEZTPZUWe6FmfHLD6iSu9DebRcssFFM42cv5q8i',
 //       domain: 0
 //     });
@@ -109,7 +109,7 @@ pragma solidity 0.8.23;
 //       preferAddToBalance: false,
 //       percent: 1000000000,
 //       projectId: 0,
-//       beneficiary: payable(_projectOwner),
+//       beneficiary: payable(projectOwner),
 //       allocator: IJBSplitAllocator(address(0))
 //     });
 
@@ -176,7 +176,7 @@ pragma solidity 0.8.23;
 //     });
 
 //     launchProjectConfig = JBLaunchProjectConfig({
-//       projectMetadata: _projectMetadata,
+//       projectMetadata: projectMetadata,
 //       config: _config,
 //       metadata: _metadata,
 //       mustStartAtOrAfter: 0,
