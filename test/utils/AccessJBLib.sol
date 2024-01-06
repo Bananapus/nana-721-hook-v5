@@ -6,7 +6,7 @@ import "lib/juice-contracts-v4/src/libraries/JBConstants.sol";
 
 contract AccessJBLib {
     function NATIVE() external pure returns (uint256) {
-        return JBCurrencyIds.NATIVE;
+        return uint32(uint160(JBConstants.NATIVE_TOKEN));
     }
 
     function USD() external pure returns (uint256) {

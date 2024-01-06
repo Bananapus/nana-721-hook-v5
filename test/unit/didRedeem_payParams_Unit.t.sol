@@ -57,7 +57,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                 redeemCount: 0,
                 totalSupply: 0,
                 surplus: SURPLUS,
-                reclaimAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}),
+                reclaimAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}),
                 useTotalSurplus: true,
                 redemptionRate: REDEMPTION_RATE,
                 metadata: _delegateMetadata
@@ -119,7 +119,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                 redeemCount: 0,
                 totalSupply: 0,
                 surplus: _surplus,
-                reclaimAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}),
+                reclaimAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}),
                 useTotalSurplus: true,
                 redemptionRate: _redemptionRate,
                 metadata: abi.encode(bytes32(0), type(IJB721Hook).interfaceId, _tokenList)
@@ -181,7 +181,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
             redeemCount: 0,
             totalSupply: 0,
             surplus: SURPLUS,
-            reclaimAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}),
+            reclaimAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}),
             useTotalSurplus: true,
             redemptionRate: REDEMPTION_RATE,
             metadata: _delegateMetadata
@@ -210,7 +210,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                 redeemCount: _tokenCount,
                 totalSupply: 0,
                 surplus: 100,
-                reclaimAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}),
+                reclaimAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}),
                 useTotalSurplus: true,
                 redemptionRate: 100,
                 metadata: new bytes(0)
@@ -259,8 +259,8 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                     payer: beneficiary,
                     projectId: projectId,
                     rulesetId: 0,
-                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 10, 18, JBCurrencyIds.NATIVE),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 10, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                     weight: 10 ** 18,
                     projectTokenCount: 0,
                     beneficiary: beneficiary,
@@ -294,8 +294,8 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 1,
                 redeemCount: 0,
-                reclaimedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}),
-                forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}), // 0
+                reclaimedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}),
+                forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}), // 0
                 redemptionRate: 5000,
                     // fwd to hook
                 beneficiary: payable(beneficiary),
@@ -303,6 +303,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                 redeemerMetadata: _delegateMetadata
             })
         );
+
         // Balance should be 0 again
         assertEq(_hook.balanceOf(beneficiary), 0);
 
@@ -334,8 +335,8 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                 projectId: _wrongProjectId,
                 rulesetId: 1,
                 redeemCount: 0,
-                reclaimedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}),
-                forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}), //sv
+                reclaimedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}),
+                forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}), //sv
                 redemptionRate: 5000,
                     // 0 fwd to hook
                 beneficiary: payable(beneficiary),
@@ -365,8 +366,8 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 1,
                 redeemCount: 0,
-                reclaimedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}),
-                forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}), // 0
+                reclaimedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}),
+                forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}), // 0
                 redemptionRate: 5000,
                 beneficiary: payable(beneficiary),
                 hookMetadata: bytes(""),
@@ -418,8 +419,8 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 1,
                 redeemCount: 0,
-                reclaimedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}),
-                forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}), // 0
+                reclaimedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}),
+                forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}), // 0
                 redemptionRate: 5000,
                     // fwd to hook
                 beneficiary: payable(_wrongHolder),

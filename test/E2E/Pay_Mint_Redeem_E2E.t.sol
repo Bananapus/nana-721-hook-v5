@@ -577,7 +577,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             baseUri: baseUri,
             tokenUriResolver: IJB721TokenUriResolver(address(0)),
             contractUri: contractUri,
-            tiersConfig: JB721InitTiersConfig({tiers: tierParams, currency: 1, decimals: 18, prices: IJBPrices(address(0))}),
+            tiersConfig: JB721InitTiersConfig({tiers: tierParams, currency: uint32(uint160(JBConstants.NATIVE_TOKEN)), decimals: 18, prices: IJBPrices(address(0))}),
             reserveBeneficiary: reserveBeneficiary,
             store: new JB721TiersHookStore(),
             flags: JB721TiersHookFlags({

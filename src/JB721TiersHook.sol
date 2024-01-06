@@ -480,7 +480,10 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
     //*********************************************************************//
     // ------------------------ internal functions ----------------------- //
     //*********************************************************************//
-
+    
+    event K(bool found, bytes metadata);
+    event L(uint16[] tierIds);
+    event J(uint256 priceCurrency, uint256 contextCurrency);
     /// @notice Process a payment, minting NFTs and updating credits as necessary.
     /// @param context Payment context provided by the terminal after it has recorded the payment in the terminal store.
     function _processPayment(JBAfterPayRecordedContext calldata context) internal virtual override {
@@ -491,6 +494,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
             uint256 packed = packedPricingContext;
             // pricing currency in bits 0-47 (48 bits).
             uint256 pricingCurrency = uint256(uint48(packed));
+            emit J(pricingCurrency, context.amount.currency);
             if (context.amount.currency == pricingCurrency) {
                 value = context.amount.value;
             } else {
@@ -534,12 +538,15 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         // Resolve the metadata.
         (bool found, bytes memory metadata) = JBMetadataResolver.getDataFor(metadataPayHookId, context.payerMetadata);
 
+        emit K(found, metadata);
         if (found) {
             // Keep a reference to the IDs of the tier be to minted.
             uint16[] memory tierIdsToMint;
 
             // Decode the metadata.
             (allowOverspending, tierIdsToMint) = abi.decode(metadata, (bool, uint16[]));
+
+            emit L(tierIdsToMint);
 
             // Make sure overspending is allowed if requested.
             if (allowOverspending && STORE.flagsOf(address(this)).preventOverspending) {

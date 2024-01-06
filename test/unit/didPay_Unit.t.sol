@@ -49,8 +49,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
             payer: beneficiary,
             projectId: projectId,
             rulesetId: 0,
-            amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 10 * _tokenToMint, 18, JBCurrencyIds.NATIVE),
-            forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+            amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 10 * _tokenToMint, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+            forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
             weight: 10 ** 18,
             projectTokenCount: 0,
             beneficiary: beneficiary,
@@ -99,10 +99,10 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 payer: msg.sender,
                 projectId: projectId,
                 rulesetId: 0,
-                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, JBCurrencyIds.NATIVE), // 1 wei below
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 1 wei below
                     // the
                     // minimum amount
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -128,10 +128,10 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 payer: msg.sender,
                 projectId: projectId,
                 rulesetId: 0,
-                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, JBCurrencyIds.NATIVE), // 1 wei below
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 1 wei below
                     // the
                     // minimum amount
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -176,8 +176,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 payer: msg.sender,
                 projectId: projectId,
                 rulesetId: 0,
-                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, JBCurrencyIds.NATIVE),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -216,8 +216,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 payer: msg.sender,
                 projectId: projectId,
                 rulesetId: 0,
-                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -268,8 +268,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 payer: msg.sender,
                 projectId: projectId,
                 rulesetId: 0,
-                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: beneficiary,
@@ -326,8 +326,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 payer: beneficiary,
                 projectId: projectId,
                 rulesetId: 0,
-                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: beneficiary,
@@ -368,8 +368,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 payer: beneficiary,
                 projectId: projectId,
                 rulesetId: 0,
-                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: beneficiary,
@@ -432,8 +432,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 payer: beneficiary,
                 projectId: projectId,
                 rulesetId: 0,
-                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: beneficiary,
@@ -452,8 +452,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 payer: msg.sender,
                 projectId: projectId,
                 rulesetId: 0,
-                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: beneficiary,
@@ -498,7 +498,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         // Mock the price oracle call
         uint256 _amountInEth = (tiers[0].price * 2 + tiers[1].price) * 2;
-        mockAndExpect(_jbPrice, abi.encodeCall(IJBPrices.pricePerUnitOf, (projectId, 1, 2, 18)), abi.encode(2 * 10 ** 9));
+        mockAndExpect(_jbPrice, abi.encodeCall(IJBPrices.pricePerUnitOf, (projectId, uint32(uint160(JBConstants.NATIVE_TOKEN)), 2, 18)), abi.encode(2 * 10 ** 9));
 
         uint256 _totalSupplyBeforePay = _hook.STORE().totalSupplyOf(address(hook));
 
@@ -525,8 +525,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 payer: msg.sender,
                 projectId: projectId,
                 rulesetId: 0,
-                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amountInEth, 18, JBCurrencyIds.NATIVE),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amountInEth, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -586,8 +586,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 payer: msg.sender,
                 projectId: projectId,
                 rulesetId: 0,
-                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, JBCurrencyIds.NATIVE),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -641,8 +641,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 payer: msg.sender,
                 projectId: projectId,
                 rulesetId: 0,
-                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, JBCurrencyIds.NATIVE),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -692,9 +692,9 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 amount: JBTokenAmount(
-                    JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price - 1, 18, JBCurrencyIds.NATIVE
+                    JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price - 1, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
                 ),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -749,8 +749,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     payer: msg.sender,
                     projectId: projectId,
                     rulesetId: 0,
-                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price, 18, JBCurrencyIds.NATIVE),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                     weight: 10 ** 18,
                     projectTokenCount: 0,
                     beneficiary: msg.sender,
@@ -793,8 +793,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     payer: msg.sender,
                     projectId: projectId,
                     rulesetId: 0,
-                    amount: JBTokenAmount(address(0), 0, 18, JBCurrencyIds.NATIVE),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    amount: JBTokenAmount(address(0), 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                     weight: 10 ** 18,
                     projectTokenCount: 0,
                     beneficiary: msg.sender,
@@ -822,8 +822,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     payer: msg.sender,
                     projectId: projectId,
                     rulesetId: 0,
-                    amount: JBTokenAmount(token, 0, 18, JBCurrencyIds.NATIVE),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    amount: JBTokenAmount(token, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                     weight: 10 ** 18,
                     projectTokenCount: 0,
                     beneficiary: msg.sender,
@@ -881,8 +881,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     payer: beneficiary,
                     projectId: projectId,
                     rulesetId: 0,
-                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                     weight: 10 ** 18,
                     projectTokenCount: 0,
                     beneficiary: beneficiary,
@@ -920,8 +920,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     payer: beneficiary,
                     projectId: projectId,
                     rulesetId: 0,
-                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, JBCurrencyIds.NATIVE),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                     weight: 10 ** 18,
                     projectTokenCount: 0,
                     beneficiary: beneficiary,
@@ -964,8 +964,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     payer: msg.sender,
                     projectId: projectId,
                     rulesetId: 0,
-                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                     weight: 10 ** 18,
                     projectTokenCount: 0,
                     beneficiary: beneficiary,
@@ -1025,8 +1025,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     payer: msg.sender,
                     projectId: projectId,
                     rulesetId: 0,
-                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                     weight: 10 ** 18,
                     projectTokenCount: 0,
                     beneficiary: beneficiary,
@@ -1110,8 +1110,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     payer: msg.sender,
                     projectId: projectId,
                     rulesetId: 0,
-                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, JBCurrencyIds.NATIVE),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                     weight: 10 ** 18,
                     projectTokenCount: 0,
                     beneficiary: msg.sender,
@@ -1163,8 +1163,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     payer: msg.sender,
                     projectId: projectId,
                     rulesetId: 0,
-                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, JBCurrencyIds.NATIVE),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                     weight: 10 ** 18,
                     projectTokenCount: 0,
                     beneficiary: msg.sender,
@@ -1222,8 +1222,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     payer: _holder,
                     projectId: projectId,
                     rulesetId: 0,
-                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price, 18, JBCurrencyIds.NATIVE),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
                     weight: 10 ** 18,
                     projectTokenCount: 0,
                     beneficiary: _holder,
@@ -1252,8 +1252,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 1,
                 redeemCount: 0,
-                reclaimedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}),
-                forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}), // 0
+                reclaimedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}),
+                forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}), // 0
                 redemptionRate: 5000,
                     // fwd to hook
                 beneficiary: payable(_holder),

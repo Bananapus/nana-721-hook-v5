@@ -669,7 +669,7 @@ contract TestJuice721dDelegate_adjustTier_Unit is UnitTestSetup {
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
-            JB721InitTiersConfig({tiers: _tierParams, currency: 1, decimals: 18, prices: IJBPrices(address(0))}),
+            JB721InitTiersConfig({tiers: _tierParams, currency: uint32(uint160(JBConstants.NATIVE_TOKEN)), decimals: 18, prices: IJBPrices(address(0))}),
             IJB721TiersHookStore(address(_store)),
             JB721TiersHookFlags({
                 preventOverspending: false,
@@ -1119,7 +1119,7 @@ contract TestJuice721dDelegate_adjustTier_Unit is UnitTestSetup {
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
-            JB721InitTiersConfig({tiers: _tierParams, currency: 1, decimals: 18, prices: IJBPrices(address(0))}),
+            JB721InitTiersConfig({tiers: _tierParams, currency: uint32(uint160(JBConstants.NATIVE_TOKEN)), decimals: 18, prices: IJBPrices(address(0))}),
             IJB721TiersHookStore(address(_store)),
             JB721TiersHookFlags({
                 preventOverspending: false,

@@ -64,7 +64,7 @@ contract ForTest_JB721TiersHook is JB721TiersHook {
             baseUri,
             tokenUriResolver,
             contractUri,
-            JB721InitTiersConfig({tiers: tiers, currency: 1, decimals: 18, prices: IJBPrices(address(0))}),
+            JB721InitTiersConfig({tiers: tiers, currency: uint32(uint160(JBConstants.NATIVE_TOKEN)), decimals: 18, prices: IJBPrices(address(0))}),
             _test_store,
             flags
         );

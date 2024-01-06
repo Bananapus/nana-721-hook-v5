@@ -229,7 +229,7 @@ contract UnitTestSetup is Test {
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
-            JB721InitTiersConfig({tiers: tiers, currency: 1, decimals: 18, prices: IJBPrices(address(0))}),
+            JB721InitTiersConfig({tiers: tiers, currency: uint32(uint160(JBConstants.NATIVE_TOKEN)), decimals: 18, prices: IJBPrices(address(0))}),
             address(0),
             store,
             JB721TiersHookFlags({
@@ -248,7 +248,7 @@ contract UnitTestSetup is Test {
     }
 
     function NATIVE() internal pure returns (uint256) {
-        return JBCurrencyIds.NATIVE;
+        return uint32(uint160(JBConstants.NATIVE_TOKEN));
     }
 
     function USD() internal pure returns (uint256) {
@@ -567,7 +567,7 @@ contract UnitTestSetup is Test {
     }
 
     function _initializeDelegateDefaultTiers(uint256 initialNumberOfTiers) internal returns (JB721TiersHook) {
-        return _initializeDelegateDefaultTiers(initialNumberOfTiers, false, 1, 18, address(0));
+        return _initializeDelegateDefaultTiers(initialNumberOfTiers, false, uint32(uint160(JBConstants.NATIVE_TOKEN)), 18, address(0));
     }
 
     function _initializeDelegateDefaultTiers(
@@ -577,7 +577,7 @@ contract UnitTestSetup is Test {
         internal
         returns (JB721TiersHook)
     {
-        return _initializeDelegateDefaultTiers(initialNumberOfTiers, preventOverspending, 1, 18, address(0));
+        return _initializeDelegateDefaultTiers(initialNumberOfTiers, preventOverspending, uint32(uint160(JBConstants.NATIVE_TOKEN)), 18, address(0));
     }
 
     function _initializeDelegateDefaultTiers(
@@ -702,7 +702,7 @@ contract UnitTestSetup is Test {
             baseUri: baseUri,
             tokenUriResolver: IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri: contractUri,
-            tiersConfig: JB721InitTiersConfig({tiers: tierParams, currency: 1, decimals: 18, prices: IJBPrices(address(0))}),
+            tiersConfig: JB721InitTiersConfig({tiers: tierParams, currency: uint32(uint160(JBConstants.NATIVE_TOKEN)), decimals: 18, prices: IJBPrices(address(0))}),
             reserveBeneficiary: reserveBeneficiary,
             store: store,
             flags: JB721TiersHookFlags({
