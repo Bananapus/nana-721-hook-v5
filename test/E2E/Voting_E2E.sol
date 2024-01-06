@@ -14,7 +14,7 @@ contract TestJB721TiersHookGovernance is TestJBTieredNFTRewardDelegateE2E {
         (JBDeploy721TiersHookConfig memory tiered721DeployerData, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         // _tier has to be a valid tier (0-indexed)
-        _tier = bound(_tier, 0, tiered721DeployerData.tiersconfig.tiers.length - 1);
+        _tier = bound(_tier, 0, tiered721DeployerData.tiersConfig.tiers.length - 1);
         // Set the governance type to tiered
         tiered721DeployerData.governanceType = JB721GovernanceType.ONCHAIN;
         JBGoverned721TiersHook _hook;
@@ -23,8 +23,8 @@ contract TestJB721TiersHookGovernance is TestJBTieredNFTRewardDelegateE2E {
             uint256 projectId =
                 deployer.launchProjectFor(_projectOwner, tiered721DeployerData, launchProjectConfig, _jbController);
             // Get the dataSource
-            _hook = JBGoverned721TiersHook(_jbRulesets.currentOf(projectId).dataSource());
-            uint256 _payAmount = tiered721DeployerData.tiersconfig.tiers[_tier].price;
+            _hook = JBGoverned721TiersHook(_jbRulesets.currentOf(projectId).dataHook());
+            uint256 _payAmount = tiered721DeployerData.tiersConfig.tiers[_tier].price;
             assertEq(_hook.delegates(_user), address(0));
             vm.prank(_user);
             _hook.delegate(_user);
@@ -47,16 +47,22 @@ contract TestJB721TiersHookGovernance is TestJBTieredNFTRewardDelegateE2E {
                 // Generate the metadata
                 _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
             }
-            _jbETHPaymentTerminal.pay{value: _payAmount}(
-                projectId, 100, address(0), _user, 0, false, "Take my money!", _delegateMetadata
-            );
+            _jbMultiTerminal.pay{value: _payAmount}({
+                projectId: projectId, 
+                amount: 100, 
+                token: JBConstants.NATIVE_TOKEN,
+                beneficiary: _user, 
+                minReturnedTokens: 0, 
+                memo: "Take my money!", 
+                metadata: _delegateMetadata
+            });
         }
         // Assert that the user received the votingUnits
-        assertEq(_hook.getVotes(_user), tiered721DeployerData.tiersconfig.tiers[_tier].votingUnits);
+        assertEq(_hook.getVotes(_user), tiered721DeployerData.tiersConfig.tiers[_tier].votingUnits);
         uint256 _frenExpectedVotes = 0;
         // Have the user delegate to themselves
         if (_recipientDelegated) {
-            _frenExpectedVotes = tiered721DeployerData.tiersconfig.tiers[_tier].votingUnits;
+            _frenExpectedVotes = tiered721DeployerData.tiersConfig.tiers[_tier].votingUnits;
             vm.prank(_userFren);
             _hook.delegate(_userFren);
         }
@@ -81,13 +87,13 @@ contract TestJB721TiersHookGovernance is TestJBTieredNFTRewardDelegateE2E {
             JBLaunchProjectConfig memory launchProjectConfig;
             (tiered721DeployerData, launchProjectConfig) = createData();
             // _tier has to be a valid tier (0-indexed)
-            _tier = bound(_tier, 0, tiered721DeployerData.tiersconfig.tiers.length - 1);
+            _tier = bound(_tier, 0, tiered721DeployerData.tiersConfig.tiers.length - 1);
             // Set the governance type to tiered
             tiered721DeployerData.governanceType = JB721GovernanceType.ONCHAIN;
             projectId =
                 deployer.launchProjectFor(_projectOwner, tiered721DeployerData, launchProjectConfig, _jbController);
             // Get the dataSource
-            _hook = JBGoverned721TiersHook(_jbRulesets.currentOf(projectId).dataSource());
+            _hook = JBGoverned721TiersHook(_jbRulesets.currentOf(projectId).dataHook());
             // Delegate NFT to fren
             vm.startPrank(_user);
             _hook.delegate(_userFren);
@@ -98,7 +104,7 @@ contract TestJB721TiersHookGovernance is TestJBTieredNFTRewardDelegateE2E {
         }
 
         {
-            uint256 _payAmount = tiered721DeployerData.tiersconfig.tiers[_tier].price;
+            uint256 _payAmount = tiered721DeployerData.tiersConfig.tiers[_tier].price;
 
             // Craft the metadata: mint the specified tier
             uint16[] memory rawMetadata = new uint16[](1);
@@ -117,22 +123,28 @@ contract TestJB721TiersHookGovernance is TestJBTieredNFTRewardDelegateE2E {
 
             // Pay and mint an NFT
             vm.deal(_user, _payAmount);
-            _jbETHPaymentTerminal.pay{value: _payAmount}(
-                projectId, 100, address(0), _user, 0, false, "Take my money!", _delegateMetadata
-            );
+            _jbMultiTerminal.pay{value: _payAmount}({
+                projectId: projectId, 
+                amount: 100, 
+                token: JBConstants.NATIVE_TOKEN,
+                beneficiary: _user, 
+                minReturnedTokens: 0,  
+                memo: "Take my money!", 
+                metadata: _delegateMetadata
+            });
         }
         // Delegate NFT to self
         if (!_selfDelegateBeforeReceive) {
             _hook.delegate(_user);
         }
         // Assert that the user received the votingUnits
-        assertEq(_hook.getVotes(_user), tiered721DeployerData.tiersconfig.tiers[_tier].votingUnits);
+        assertEq(_hook.getVotes(_user), tiered721DeployerData.tiersConfig.tiers[_tier].votingUnits);
         // Delegate to the users fren
         _hook.delegate(_userFren);
         vm.stopPrank();
         // Assert that the user lost their voting units
         assertEq(_hook.getVotes(_user), 0);
         // Assert that fren received the voting units
-        assertEq(_hook.getVotes(_userFren), tiered721DeployerData.tiersconfig.tiers[_tier].votingUnits);
+        assertEq(_hook.getVotes(_userFren), tiered721DeployerData.tiersConfig.tiers[_tier].votingUnits);
     }
 }

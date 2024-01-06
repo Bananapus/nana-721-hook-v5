@@ -45,19 +45,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         // Generate the metadata
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
 
-        JBAfterPayRecordedContext memory _payData = JBAfterPayRecordedContext(
-            beneficiary,
-            projectId,
-            0,
-            JBTokenAmount(JBConstants.NATIVE_TOKEN, 10 * _tokenToMint, 18, JBCurrencyIds.NATIVE),
-            JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-            0,
-            beneficiary,
-            false,
-            "",
-            bytes(""),
-            _delegateMetadata
-        );
+        JBAfterPayRecordedContext memory _payData = JBAfterPayRecordedContext({
+            payer: beneficiary,
+            projectId: projectId,
+            rulesetId: 0,
+            amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 10 * _tokenToMint, 18, JBCurrencyIds.NATIVE),
+            forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+            weight: 10 ** 18,
+            projectTokenCount: 0,
+            beneficiary: beneficiary,
+            hookMetadata: bytes(""),
+            payerMetadata: _delegateMetadata
+        });
 
         vm.prank(mockTerminalAddress);
         _hook.afterPayRecordedWith(_payData);
@@ -96,21 +95,20 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         vm.prank(mockTerminalAddress);
         _hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, JBCurrencyIds.NATIVE), // 1 wei below
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, JBCurrencyIds.NATIVE), // 1 wei below
                     // the
                     // minimum amount
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                msg.sender,
-                false,
-                "",
-                new bytes(0),
-                new bytes(0)
-            )
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: new bytes(0)
+            })
         );
     }
 
@@ -126,21 +124,20 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, JBCurrencyIds.NATIVE), // 1 wei below
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, JBCurrencyIds.NATIVE), // 1 wei below
                     // the
                     // minimum amount
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                msg.sender,
-                false,
-                "",
-                new bytes(0),
-                new bytes(0)
-            )
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: new bytes(0)
+            })
         );
 
         assertEq(hook.NftCreditsOf(msg.sender), tiers[0].price - 1);
@@ -175,19 +172,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, JBCurrencyIds.NATIVE),
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                msg.sender,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, JBCurrencyIds.NATIVE),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: _delegateMetadata
+            })
         );
 
         // Make sure a new NFT was minted
@@ -216,19 +212,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                msg.sender,
-                false,
-                "",
-                bytes(""),
-                _metadata
-            )
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: _metadata
+    })
         );
 
         // Make sure no new NFT was minted if amount >= contribution floor
@@ -269,19 +264,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                beneficiary,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: beneficiary,
+                hookMetadata: new bytes(0),
+                payerMetadata: _delegateMetadata
+            })
         );
 
         // Check: credit is updated?
@@ -328,19 +322,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         // First call will mint the 3 tiers requested + accumulate half of first floor in credit
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                beneficiary,
-                projectId,
-                0,
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                beneficiary,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+            JBAfterPayRecordedContext({
+                payer: beneficiary,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: _delegateMetadata
+            })
         );
 
         uint256 _totalSupplyBefore = hook.STORE().totalSupplyOf(address(hook));
@@ -371,19 +364,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         // Second call will mint another 3 tiers requested + mint from the first tier with the credit
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                beneficiary,
-                projectId,
-                0,
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                beneficiary,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+            JBAfterPayRecordedContext({
+                payer: beneficiary,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: beneficiary,
+                hookMetadata: new bytes(0),
+                payerMetadata: _delegateMetadata
+            })
         );
 
         // Check: total supply has increased?
@@ -436,19 +428,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         // First call will mint the 3 tiers requested + accumulate half of first floor in credit
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                beneficiary,
-                projectId,
-                0,
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                beneficiary,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+            JBAfterPayRecordedContext({
+                payer: beneficiary,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: beneficiary,
+                hookMetadata: new bytes(0),
+                payerMetadata: _delegateMetadata
+            })
         );
 
         uint256 _totalSupplyBefore = hook.STORE().totalSupplyOf(address(hook));
@@ -457,19 +448,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         // Second call will mint another 3 tiers requested BUT not with the credit accumulated
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                beneficiary,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: beneficiary,
+                hookMetadata: new bytes(0),
+                payerMetadata: _delegateMetadata
+            })
         );
 
         // Check: total supply has increased with the 3 token?
@@ -508,7 +498,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         // Mock the price oracle call
         uint256 _amountInEth = (tiers[0].price * 2 + tiers[1].price) * 2;
-        mockAndExpect(_jbPrice, abi.encodeCall(IJBPrices.priceFor, (1, 2, 18)), abi.encode(2 * 10 ** 9));
+        mockAndExpect(_jbPrice, abi.encodeCall(IJBPrices.pricePerUnitOf, (projectId, 1, 2, 18)), abi.encode(2 * 10 ** 9));
 
         uint256 _totalSupplyBeforePay = _hook.STORE().totalSupplyOf(address(hook));
 
@@ -531,19 +521,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         vm.prank(mockTerminalAddress);
         _hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, _amountInEth, 18, JBCurrencyIds.NATIVE),
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                msg.sender,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amountInEth, 18, JBCurrencyIds.NATIVE),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: _delegateMetadata
+            })
         );
 
         // Make sure a new NFT was minted
@@ -593,19 +582,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, JBCurrencyIds.NATIVE),
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                msg.sender,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, JBCurrencyIds.NATIVE),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: _delegateMetadata
+            })
         );
 
         // Make sure no new NFT was minted
@@ -649,19 +637,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, JBCurrencyIds.NATIVE),
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                msg.sender,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, JBCurrencyIds.NATIVE),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: _delegateMetadata
+            })
         );
 
         // Make sure no new NFT was minted
@@ -700,20 +687,20 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(
                     JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price - 1, 18, JBCurrencyIds.NATIVE
                 ),
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                msg.sender,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: _delegateMetadata
+            }
             )
         );
 
@@ -758,19 +745,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
             // Perform the pay
             vm.prank(mockTerminalAddress);
             hook.afterPayRecordedWith(
-                JBAfterPayRecordedContext(
-                    msg.sender,
-                    projectId,
-                    0,
-                    JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price, 18, JBCurrencyIds.NATIVE),
-                    JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                    0,
-                    msg.sender,
-                    false,
-                    "",
-                    bytes(""),
-                    _delegateMetadata
-                )
+                JBAfterPayRecordedContext({
+                    payer: msg.sender,
+                    projectId: projectId,
+                    rulesetId: 0,
+                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price, 18, JBCurrencyIds.NATIVE),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    weight: 10 ** 18,
+                    projectTokenCount: 0,
+                    beneficiary: msg.sender,
+                    hookMetadata: new bytes(0),
+                    payerMetadata: _delegateMetadata
+                })
             );
             // Make sure if there was no supply left there was no NFT minted
             if (_supplyLeft == 0) {
@@ -803,18 +789,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         vm.expectRevert(abi.encodeWithSelector(JB721Hook.INVALID_PAY_EVENT.selector));
 
         hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(address(0), 0, 18, JBCurrencyIds.NATIVE),
-                JBTokenAmount(address(0), 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                msg.sender,
-                false,
-                "",
-                bytes(""),
-                new bytes(0)
+            JBAfterPayRecordedContext({
+                    payer: msg.sender,
+                    projectId: projectId,
+                    rulesetId: 0,
+                    amount: JBTokenAmount(address(0), 0, 18, JBCurrencyIds.NATIVE),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    weight: 10 ** 18,
+                    projectTokenCount: 0,
+                    beneficiary: msg.sender,
+                    hookMetadata: new bytes(0),
+                    payerMetadata: new bytes(0)
+            }
             )
         );
     }
@@ -832,19 +818,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         // The caller is the _expectedCaller however the terminal in the calldata is not correct
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(token, 0, 18, JBCurrencyIds.NATIVE),
-                JBTokenAmount(token, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                msg.sender,
-                false,
-                "",
-                bytes(""),
-                new bytes(0)
-            )
+            JBAfterPayRecordedContext({
+                    payer: msg.sender,
+                    projectId: projectId,
+                    rulesetId: 0,
+                    amount: JBTokenAmount(token, 0, 18, JBCurrencyIds.NATIVE),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    weight: 10 ** 18,
+                    projectTokenCount: 0,
+                    beneficiary: msg.sender,
+                    hookMetadata: new bytes(0),
+                    payerMetadata: new bytes(0)
+            })
         );
 
         // Check: nothing has been minted
@@ -891,18 +876,19 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         // First call will mint the 3 tiers requested + accumulate half of first floor in credit
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                beneficiary,
-                projectId,
-                0,
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                beneficiary,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
+            JBAfterPayRecordedContext({
+
+                    payer: beneficiary,
+                    projectId: projectId,
+                    rulesetId: 0,
+                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    weight: 10 ** 18,
+                    projectTokenCount: 0,
+                    beneficiary: beneficiary,
+                    hookMetadata: new bytes(0),
+                    payerMetadata: _delegateMetadata
+            }
             )
         );
 
@@ -929,19 +915,19 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         // minting with left over credits
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                beneficiary,
-                projectId,
-                0,
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, JBCurrencyIds.NATIVE),
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                beneficiary,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+            JBAfterPayRecordedContext({
+
+                    payer: beneficiary,
+                    projectId: projectId,
+                    rulesetId: 0,
+                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, JBCurrencyIds.NATIVE),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    weight: 10 ** 18,
+                    projectTokenCount: 0,
+                    beneficiary: beneficiary,
+                    hookMetadata: new bytes(0),
+                    payerMetadata: _delegateMetadata
+            })
         );
 
         // total supply increases
@@ -974,18 +960,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         vm.prank(mockTerminalAddress);
         vm.expectRevert(abi.encodeWithSelector(JB721TiersHook.OVERSPENDING.selector));
         hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                beneficiary,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
+            JBAfterPayRecordedContext({
+                    payer: msg.sender,
+                    projectId: projectId,
+                    rulesetId: 0,
+                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    weight: 10 ** 18,
+                    projectTokenCount: 0,
+                    beneficiary: msg.sender,
+                    hookMetadata: new bytes(0),
+                    payerMetadata: _delegateMetadata
+            }
             )
         );
     }
@@ -1035,18 +1021,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         }
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                beneficiary,
-                false,
-                "",
-                bytes(""),
-                _metadata
+            JBAfterPayRecordedContext({
+                    payer: msg.sender,
+                    projectId: projectId,
+                    rulesetId: 0,
+                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, JBCurrencyIds.NATIVE),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    weight: 10 ** 18,
+                    projectTokenCount: 0,
+                    beneficiary: msg.sender,
+                    hookMetadata: new bytes(0),
+                    payerMetadata: _metadata
+            }
             )
         );
     }
@@ -1077,7 +1063,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     weight: 10e18,
                     decayRate: 0,
                     approvalHook: IJBRulesetApprovalHook(address(0)),
-                    metadata: JBRulesetMetadataResolver.packFundingCycleMetadata(
+                    metadata: JBRulesetMetadataResolver.packRulesetMetadata(
                         JBRulesetMetadata({
                             reservedRate: 5000, //50%
                             redemptionRate: 5000, //50%
@@ -1120,19 +1106,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         vm.prank(mockTerminalAddress);
         _hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, JBCurrencyIds.NATIVE),
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                msg.sender,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+            JBAfterPayRecordedContext({
+                    payer: msg.sender,
+                    projectId: projectId,
+                    rulesetId: 0,
+                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, JBCurrencyIds.NATIVE),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    weight: 10 ** 18,
+                    projectTokenCount: 0,
+                    beneficiary: msg.sender,
+                    hookMetadata: new bytes(0),
+                    payerMetadata: _delegateMetadata
+            })
         );
 
         uint256 _tokenId = _generateTokenId(1, 1);
@@ -1174,18 +1159,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         vm.prank(mockTerminalAddress);
         _hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, JBCurrencyIds.NATIVE),
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                msg.sender,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
+            JBAfterPayRecordedContext({
+                    payer: msg.sender,
+                    projectId: projectId,
+                    rulesetId: 0,
+                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, JBCurrencyIds.NATIVE),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    weight: 10 ** 18,
+                    projectTokenCount: 0,
+                    beneficiary: msg.sender,
+                    hookMetadata: new bytes(0),
+                    payerMetadata: _delegateMetadata
+            }
             )
         );
 
@@ -1233,18 +1218,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         // which leads to underflow on redeem
         vm.prank(mockTerminalAddress);
         _hook.afterPayRecordedWith(
-            JBAfterPayRecordedContext(
-                _holder,
-                projectId,
-                0,
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price, 18, JBCurrencyIds.NATIVE),
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                _holder,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
+            JBAfterPayRecordedContext({
+                    payer: _holder,
+                    projectId: projectId,
+                    rulesetId: 0,
+                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price, 18, JBCurrencyIds.NATIVE),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    weight: 10 ** 18,
+                    projectTokenCount: 0,
+                    beneficiary: _holder,
+                    hookMetadata: new bytes(0),
+                    payerMetadata: _delegateMetadata
+            }
             )
         );
 
@@ -1263,7 +1248,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         vm.prank(mockTerminalAddress);
         _hook.afterRedeemRecordedWith(
             JBAfterRedeemRecordedContext({
-                holder: _holder,
+                payer: _holder,
                 projectId: projectId,
                 currentFundingCycleConfiguration: 1,
                 projectTokenCount: 0,

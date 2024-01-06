@@ -7,6 +7,7 @@ import {IJBDirectory} from "lib/juice-contracts-v4/src/interfaces/IJBDirectory.s
 import {IJBController} from "lib/juice-contracts-v4/src/interfaces/IJBController.sol";
 import {IJBPermissions} from "lib/juice-contracts-v4/src/interfaces/IJBPermissions.sol";
 import {JBPermissionIds} from "lib/juice-contracts-v4/src/libraries/JBPermissionIds.sol";
+import {JBRulesetConfig} from "lib/juice-contracts-v4/src/structs/JBRulesetConfig.sol";
 import {JBRulesetMetadata} from "lib/juice-contracts-v4/src/structs/JBRulesetMetadata.sol";
 
 import {IJB721TiersHookDeployer} from "./interfaces/IJB721TiersHookDeployer.sol";
@@ -16,6 +17,8 @@ import {JBDeploy721TiersHookConfig} from "./structs/JBDeploy721TiersHookConfig.s
 import {JBLaunchRulesetsConfig} from "./structs/JBLaunchRulesetsConfig.sol";
 import {JBQueueRulesetsConfig} from "./structs/JBQueueRulesetsConfig.sol";
 import {JBLaunchProjectConfig} from "./structs/JBLaunchProjectConfig.sol";
+import {JBPayDataHookRulesetConfig} from "./structs/JBPayDataHookRulesetConfig.sol";
+import {JBPayDataHookRulesetMetadata} from "./structs/JBPayDataHookRulesetMetadata.sol";
 
 /// @title JB721TiersHookProjectDeployer
 /// @notice Deploys a project and a 721 tiers hook for it.
@@ -173,17 +176,52 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         // Keep a reference to how many ruleset configurations there are.
         uint256 numberOfRulesetConfigurations = launchProjectConfig.rulesetConfigurations.length; 
 
+        // Initialize an array of ruleset configurations.
+        JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](numberOfRulesetConfigurations);
+
+        // Keep a reference to the pay data ruleset config being iterated on.
+        JBPayDataHookRulesetConfig memory payDataRulesetConfig;
+
         // Set the data hook to be active for pay transactions for each ruleset configuration.
         for (uint256 i; i < numberOfRulesetConfigurations; i++) {
-            launchProjectConfig.rulesetConfigurations[i].metadata.useDataHookForPay = true;
-            launchProjectConfig.rulesetConfigurations[i].metadata.dataHook = address(dataHook);
+            // Set the pay data ruleset config being iterated on.
+            payDataRulesetConfig = launchProjectConfig.rulesetConfigurations[i];
+
+            // Add the ruleset config.
+            rulesetConfigurations[i] = JBRulesetConfig({
+                mustStartAtOrAfter: payDataRulesetConfig.mustStartAtOrAfter,
+                duration: payDataRulesetConfig.duration,
+                weight: payDataRulesetConfig.weight,
+                decayRate: payDataRulesetConfig.decayRate,
+                approvalHook: payDataRulesetConfig.approvalHook,
+                metadata: JBRulesetMetadata({
+                    reservedRate: payDataRulesetConfig.metadata.reservedRate,
+                    redemptionRate: payDataRulesetConfig.metadata.redemptionRate,
+                    baseCurrency: payDataRulesetConfig.metadata.baseCurrency,
+                    pausePay: payDataRulesetConfig.metadata.pausePay,
+                    pauseCreditTransfers: payDataRulesetConfig.metadata.pauseCreditTransfers,
+                    allowOwnerMinting: payDataRulesetConfig.metadata.allowOwnerMinting,
+                    allowTerminalMigration: payDataRulesetConfig.metadata.allowTerminalMigration,
+                    allowSetTerminals: payDataRulesetConfig.metadata.allowSetTerminals,
+                    allowControllerMigration: payDataRulesetConfig.metadata.allowControllerMigration,
+                    allowSetController: payDataRulesetConfig.metadata.allowSetController,
+                    holdFees: payDataRulesetConfig.metadata.holdFees,
+                    useTotalSurplusForRedemptions: payDataRulesetConfig.metadata.useTotalSurplusForRedemptions,
+                    useDataHookForPay: true,
+                    useDataHookForRedeem: payDataRulesetConfig.metadata.useDataHookForRedeem,
+                    dataHook: address(dataHook),
+                    metadata: payDataRulesetConfig.metadata.metadata
+                }),
+                splitGroups: payDataRulesetConfig.splitGroups,
+                fundAccessLimitGroups: payDataRulesetConfig.fundAccessLimitGroups
+            });
         }
 
         // Launch the project.
         controller.launchProjectFor({
             owner: owner,
             projectMetadata: launchProjectConfig.projectMetadata,
-            rulesetConfigurations: launchProjectConfig.rulesetConfigurations,
+            rulesetConfigurations: rulesetConfigurations,
             terminalConfigurations: launchProjectConfig.terminalConfigurations,
             memo: launchProjectConfig.memo
         });
@@ -207,16 +245,51 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         // Keep a reference to how many ruleset configurations there are.
         uint256 numberOfRulesetConfigurations = launchRulesetsConfig.rulesetConfigurations.length; 
 
+        // Initialize an array of ruleset configurations.
+        JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](numberOfRulesetConfigurations);
+
+        // Keep a reference to the pay data ruleset config being iterated on.
+        JBPayDataHookRulesetConfig memory payDataRulesetConfig;
+
         // Set the data hook to be active for pay transactions for each ruleset configuration.
         for (uint256 i; i < numberOfRulesetConfigurations; i++) {
-            launchRulesetsConfig.rulesetConfigurations[i].metadata.useDataHookForPay = true;
-            launchRulesetsConfig.rulesetConfigurations[i].metadata.dataHook = address(dataHook);
+            // Set the pay data ruleset config being iterated on.
+            payDataRulesetConfig = launchRulesetsConfig.rulesetConfigurations[i];
+
+            // Add the ruleset config.
+            rulesetConfigurations[i] = JBRulesetConfig({
+                mustStartAtOrAfter: payDataRulesetConfig.mustStartAtOrAfter,
+                duration: payDataRulesetConfig.duration,
+                weight: payDataRulesetConfig.weight,
+                decayRate: payDataRulesetConfig.decayRate,
+                approvalHook: payDataRulesetConfig.approvalHook,
+                metadata: JBRulesetMetadata({
+                    reservedRate: payDataRulesetConfig.metadata.reservedRate,
+                    redemptionRate: payDataRulesetConfig.metadata.redemptionRate,
+                    baseCurrency: payDataRulesetConfig.metadata.baseCurrency,
+                    pausePay: payDataRulesetConfig.metadata.pausePay,
+                    pauseCreditTransfers: payDataRulesetConfig.metadata.pauseCreditTransfers,
+                    allowOwnerMinting: payDataRulesetConfig.metadata.allowOwnerMinting,
+                    allowTerminalMigration: payDataRulesetConfig.metadata.allowTerminalMigration,
+                    allowSetTerminals: payDataRulesetConfig.metadata.allowSetTerminals,
+                    allowControllerMigration: payDataRulesetConfig.metadata.allowControllerMigration,
+                    allowSetController: payDataRulesetConfig.metadata.allowSetController,
+                    holdFees: payDataRulesetConfig.metadata.holdFees,
+                    useTotalSurplusForRedemptions: payDataRulesetConfig.metadata.useTotalSurplusForRedemptions,
+                    useDataHookForPay: true,
+                    useDataHookForRedeem: payDataRulesetConfig.metadata.useDataHookForRedeem,
+                    dataHook: address(dataHook),
+                    metadata: payDataRulesetConfig.metadata.metadata
+                }),
+                splitGroups: payDataRulesetConfig.splitGroups,
+                fundAccessLimitGroups: payDataRulesetConfig.fundAccessLimitGroups
+            });
         }
 
         // Launch the rulesets.
         return controller.launchRulesetsFor({
             projectId: projectId,
-            rulesetConfigurations: launchRulesetsConfig.rulesetConfigurations,
+            rulesetConfigurations: rulesetConfigurations,
             terminalConfigurations: launchRulesetsConfig.terminalConfigurations,
             memo: launchRulesetsConfig.memo
         });
@@ -240,16 +313,51 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         // Keep a reference to how many ruleset configurations there are.
         uint256 numberOfRulesetConfigurations = queueRulesetsConfig.rulesetConfigurations.length; 
 
+        // Initialize an array of ruleset configurations.
+        JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](numberOfRulesetConfigurations);
+
+        // Keep a reference to the pay data ruleset config being iterated on.
+        JBPayDataHookRulesetConfig memory payDataRulesetConfig;
+
         // Set the data hook to be active for pay transactions for each ruleset configuration.
         for (uint256 i; i < numberOfRulesetConfigurations; i++) {
-            queueRulesetsConfig.rulesetConfigurations[i].metadata.useDataHookForPay = true;
-            queueRulesetsConfig.rulesetConfigurations[i].metadata.dataHook = address(dataHook);
+            // Set the pay data ruleset config being iterated on.
+            payDataRulesetConfig = queueRulesetsConfig.rulesetConfigurations[i];
+
+            // Add the ruleset config.
+            rulesetConfigurations[i] = JBRulesetConfig({
+                mustStartAtOrAfter: payDataRulesetConfig.mustStartAtOrAfter,
+                duration: payDataRulesetConfig.duration,
+                weight: payDataRulesetConfig.weight,
+                decayRate: payDataRulesetConfig.decayRate,
+                approvalHook: payDataRulesetConfig.approvalHook,
+                metadata: JBRulesetMetadata({
+                    reservedRate: payDataRulesetConfig.metadata.reservedRate,
+                    redemptionRate: payDataRulesetConfig.metadata.redemptionRate,
+                    baseCurrency: payDataRulesetConfig.metadata.baseCurrency,
+                    pausePay: payDataRulesetConfig.metadata.pausePay,
+                    pauseCreditTransfers: payDataRulesetConfig.metadata.pauseCreditTransfers,
+                    allowOwnerMinting: payDataRulesetConfig.metadata.allowOwnerMinting,
+                    allowTerminalMigration: payDataRulesetConfig.metadata.allowTerminalMigration,
+                    allowSetTerminals: payDataRulesetConfig.metadata.allowSetTerminals,
+                    allowControllerMigration: payDataRulesetConfig.metadata.allowControllerMigration,
+                    allowSetController: payDataRulesetConfig.metadata.allowSetController,
+                    holdFees: payDataRulesetConfig.metadata.holdFees,
+                    useTotalSurplusForRedemptions: payDataRulesetConfig.metadata.useTotalSurplusForRedemptions,
+                    useDataHookForPay: true,
+                    useDataHookForRedeem: payDataRulesetConfig.metadata.useDataHookForRedeem,
+                    dataHook: address(dataHook),
+                    metadata: payDataRulesetConfig.metadata.metadata
+                }),
+                splitGroups: payDataRulesetConfig.splitGroups,
+                fundAccessLimitGroups: payDataRulesetConfig.fundAccessLimitGroups
+            });
         }
 
         // Queue the rulesets.
         return controller.queueRulesetsOf({
             projectId: projectId,
-            rulesetConfigurations: queueRulesetsConfig.rulesetConfigurations,
+            rulesetConfigurations: rulesetConfigurations,
             memo: queueRulesetsConfig.memo
         });
     }

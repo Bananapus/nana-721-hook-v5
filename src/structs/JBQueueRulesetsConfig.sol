@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "lib/juice-contracts-v4/src/structs/JBRulesetConfig.sol";
-import "lib/juice-contracts-v4/src/structs/JBFundAccessLimitGroup.sol";
-import "lib/juice-contracts-v4/src/structs/JBSplitGroup.sol";
-import "./JBPayDataHookRulesetMetadata.sol";
+import "./JBPayDataHookRulesetConfig.sol";
 
 /// @custom:member projectId The ID of the project to launch rulesets for.
 /// @custom:member rulesetConfigurations The ruleset configurations to queue.
@@ -12,6 +9,6 @@ import "./JBPayDataHookRulesetMetadata.sol";
 /// @custom:member memo A memo to pass along to the emitted event.
 struct JBQueueRulesetsConfig {
     uint256 projectId;
-    JBRulesetConfig[] rulesetConfigurations;
+    JBPayDataHookRulesetConfig[] rulesetConfigurations;
     string memo;
 }

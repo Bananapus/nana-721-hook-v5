@@ -37,6 +37,7 @@ contract ForTest_JB721TiersHook is JB721TiersHook {
 
     uint256 constant SURPLUS = 10e18;
     uint256 constant REDEMPTION_RATE = JBConstants.MAX_RESERVED_RATE; // 40%
+    address private _ownerOverride;
 
     constructor(
         uint256 projectId,
@@ -52,7 +53,7 @@ contract ForTest_JB721TiersHook is JB721TiersHook {
         JB721TiersHookFlags memory flags
     )
         // The directory is also an IJBPermissioned
-        JB721TiersHook(directory, IJBPermissioned(address(directory)).operatorStore(), PAY_HOOK_ID, REDEEM_HOOK_ID)
+        JB721TiersHook(directory, IJBPermissioned(address(directory)).PERMISSIONS(), PAY_HOOK_ID, REDEEM_HOOK_ID)
     {
         // Disable the safety check to not allow initializing the original contract
         codeOrigin = address(0);
@@ -72,10 +73,16 @@ contract ForTest_JB721TiersHook is JB721TiersHook {
 
         metadataHelper = new MetadataResolverHelper();
     }
-
+    
     function ForTest_setOwnerOf(uint256 tokenId, address owner) public {
-        _ownerOf[tokenId] = owner;
+        _ownerOverride = owner;
     }
+
+    function ownerOf(uint256 tokenId) public view virtual override returns (address) {
+        if (_ownerOverride != address(0)) return _ownerOverride; 
+        return super.ownerOf(tokenId);
+    }
+
 }
 
 contract ForTest_JB721TiersHookStore is JB721TiersHookStore, IJB721TiersHookStore_ForTest {

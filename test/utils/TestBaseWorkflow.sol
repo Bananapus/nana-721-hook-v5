@@ -40,6 +40,7 @@ import "forge-std/Test.sol";
 
 import "./AccessJBLib.sol";
 
+import "src/structs/JBPayDataHookRulesetConfig.sol";
 import "src/structs/JBPayDataHookRulesetMetadata.sol";
 
 // Base contract for Juicebox system tests.
@@ -65,9 +66,11 @@ contract TestBaseWorkflow is Test {
     JBSplits internal _jbSplits;
     JBController internal _jbController;
     JBTerminalStore internal _jbTerminalStore;
-    JBMultiTerminal internal _jbETHPaymentTerminal;
+    JBMultiTerminal internal _jbMultiTerminal;
     string internal _projectMetadata;
     JBRulesetConfig internal _config;
+    JBTerminalConfig[] internal _terminalConfigurations;
+    JBPayDataHookRulesetConfig[] internal _rulesetConfigurations;
     JBPayDataHookRulesetMetadata internal _metadata;
     JBSplitGroup[] internal _splitGroups;
     JBFundAccessLimitGroup[] internal _fundAccessLimitGroups;
@@ -130,7 +133,7 @@ contract TestBaseWorkflow is Test {
 
         _accessJBLib = new AccessJBLib();
 
-        _jbETHPaymentTerminal = new JBMultiTerminal(
+        _jbMultiTerminal = new JBMultiTerminal(
             _jbPermissions,
             _jbProjects,
             _jbDirectory,
@@ -140,36 +143,44 @@ contract TestBaseWorkflow is Test {
             IPermit2(address(0)),
             address(0)
         );
-        vm.label(address(_jbETHPaymentTerminal), "JBMultiTerminal");
+        vm.label(address(_jbMultiTerminal), "JBMultiTerminal");
 
-        _terminals.push(_jbETHPaymentTerminal);
+        _terminals.push(_jbMultiTerminal);
 
         _projectMetadata = "myIPFSHash";
-
-        _config = JBRulesetConfig({ // TODO: fix this
-            duration: 14,
-            weight: 1000 * 10 ** 18,
-            discountRate: 450_000_000,
-            ballot: IJBRulesetApprovalHook(address(0))
-        });
 
         _metadata = JBPayDataHookRulesetMetadata({
             reservedRate: 5000, //50%
             redemptionRate: 5000, //50%
-            ballotRedemptionRate: 5000,
+            baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
             pausePay: false,
-            pauseDistributions: false,
-            pauseRedeem: false,
-            pauseBurn: false,
-            allowMinting: true,
+            pauseCreditTransfers: false,
+            allowOwnerMinting: true,
             allowTerminalMigration: false,
+            allowSetTerminals: false,
             allowControllerMigration: false,
+            allowSetController: false,
             holdFees: false,
-            preferClaimedTokenOverride: false,
-            useTotalOverflowForRedemptions: false,
-            useDataSourceForRedeem: true,
+            useTotalSurplusForRedemptions: false,
+            useDataHookForRedeem: true,
             metadata: 0x00
         });
+
+        // Package up the ruleset configuration.
+        _rulesetConfigurations = new JBPayDataHookRulesetConfig[](1);
+        _rulesetConfigurations[0].mustStartAtOrAfter = 0;
+        _rulesetConfigurations[0].duration = 14;
+        _rulesetConfigurations[0].weight = 1000 * 10 ** 18;
+        _rulesetConfigurations[0].decayRate = 450_000_000;
+        _rulesetConfigurations[0].approvalHook = IJBRulesetApprovalHook(address(0));
+        _rulesetConfigurations[0].metadata = _metadata;
+        _rulesetConfigurations[0].splitGroups = _splitGroups;
+        _rulesetConfigurations[0].fundAccessLimitGroups = _fundAccessLimitGroups;
+
+        _terminalConfigurations = new JBTerminalConfig[](1);
+        address[] memory _tokensToAccept = new address[](1);
+        _tokensToAccept[0] = JBConstants.NATIVE_TOKEN;
+        _terminalConfigurations[0] = JBTerminalConfig({terminal: _jbMultiTerminal, tokensToAccept: _tokensToAccept});
 
         // ---- general setup ----
         vm.deal(_beneficiary, 100 ether);

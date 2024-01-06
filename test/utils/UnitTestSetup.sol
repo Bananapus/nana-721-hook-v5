@@ -175,7 +175,7 @@ contract UnitTestSetup is Test {
                     weight: 10e18,
                     decayRate: 0,
                     approvalHook: IJBRulesetApprovalHook(address(0)),
-                    metadata: JBRulesetMetadataResolver.packFundingCycleMetadata(
+                    metadata: JBRulesetMetadataResolver.packRulesetMetadata(
                         JBRulesetMetadata({
                             reservedRate: 5000, //50%
                             redemptionRate: 5000, //50%
@@ -215,7 +215,7 @@ contract UnitTestSetup is Test {
             IJBDirectory(mockJBDirectory), IJBPermissions(mockJBPermissions), PAY_HOOK_ID, REDEEM_HOOK_ID
         );
 
-        addressRegistry = new JBAddressRegistry(IJBAddressRegistry(address(0)));
+        addressRegistry = new JBAddressRegistry();
 
         jbHookDeployer = new JB721TiersHookDeployer(onchainGovernance, noGovernanceOrigin, addressRegistry);
 
@@ -674,7 +674,8 @@ contract UnitTestSetup is Test {
         )
     {
         string memory projectMetadata;
-        JBRulesetConfig memory config;
+        JBPayDataHookRulesetConfig[] memory rulesetConfigurations;
+        JBTerminalConfig[] memory terminalConfigurations;
         JBPayDataHookRulesetMetadata memory metadata;
         JBSplitGroup[] memory splitGroups;
         JBFundAccessLimitGroup[] memory fundAccessLimitGroups;
@@ -715,36 +716,43 @@ contract UnitTestSetup is Test {
         });
 
         projectMetadata = "myIPFSHash";
-        config = JBRulesetConfig({ // TODO: fix this
-            duration: 14,
-            weight: 10 ** 18,
-            discountRate: 450_000_000,
-            ballot: IJBRulesetApprovalHook(address(0))
+
+        metadata = JBPayDataHookRulesetMetadata({
+            reservedRate: 5000, //50%
+            redemptionRate: 5000, //50%
+            baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
+            pausePay: false,
+            pauseCreditTransfers: false,
+            allowOwnerMinting: false,
+            allowTerminalMigration: false,
+            allowSetTerminals: false,
+            allowControllerMigration: false,
+            allowSetController: false,
+            holdFees: false,
+            useTotalSurplusForRedemptions: false,
+            useDataHookForRedeem: false,
+            metadata: 0x00
         });
-        metadata =  JBRulesetMetadata({
-                            reservedRate: 5000, //50%
-                            redemptionRate: 5000, //50%
-                            baseCurrency: 0,
-                            pausePay: false,
-                            pauseCreditTransfers: false,
-                            allowOwnerMinting: false,
-                            allowTerminalMigration: false,
-                            allowSetTerminals: false,
-                            allowControllerMigration: false,
-                            allowSetController: false,
-                            holdFees: false,
-                            useTotalSurplusForRedemptions: false,
-                            useDataHookForRedeem: false,
-                            metadata: 0x00
-                        });
+
+        rulesetConfigurations = new JBPayDataHookRulesetConfig[](1);
+        rulesetConfigurations[0].mustStartAtOrAfter = 0;
+        rulesetConfigurations[0].duration = 14;
+        rulesetConfigurations[0].weight = 10 ** 18;
+        rulesetConfigurations[0].decayRate = 450_000_000;
+        rulesetConfigurations[0].approvalHook = IJBRulesetApprovalHook(address(0));
+        rulesetConfigurations[0].metadata = metadata;
+        rulesetConfigurations[0].splitGroups = splitGroups;
+        rulesetConfigurations[0].fundAccessLimitGroups = fundAccessLimitGroups;
+
+        terminalConfigurations = new JBTerminalConfig[](1);
+        address[] memory tokensToAccept = new address[](1);
+        tokensToAccept[0] = JBConstants.NATIVE_TOKEN;
+        terminalConfigurations[0] = JBTerminalConfig({terminal: IJBTerminal(mockTerminalAddress), tokensToAccept: tokensToAccept});
+
         launchProjectConfig = JBLaunchProjectConfig({
             projectMetadata: projectMetadata,
-            config: config,
-            metadata: metadata,
-            mustStartAtOrAfter: 0,
-            splitGroups: splitGroups,
-            fundAccessLimitGroups: fundAccessLimitGroups,
-            terminals: terminals,
+            rulesetConfigurations: rulesetConfigurations,
+            terminalConfigurations: terminalConfigurations,
             memo: rulesetMemo
         });
     }
