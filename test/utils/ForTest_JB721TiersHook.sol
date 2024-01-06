@@ -37,7 +37,6 @@ contract ForTest_JB721TiersHook is JB721TiersHook {
 
     uint256 constant SURPLUS = 10e18;
     uint256 constant REDEMPTION_RATE = JBConstants.MAX_RESERVED_RATE; // 40%
-    address private _ownerOverride;
 
     constructor(
         uint256 projectId,
@@ -74,15 +73,9 @@ contract ForTest_JB721TiersHook is JB721TiersHook {
         metadataHelper = new MetadataResolverHelper();
     }
     
-    function ForTest_setOwnerOf(uint256, address owner) public {
-        _ownerOverride = owner;
+    function ForTest_setOwnerOf(uint256 tokenId, address owner) public {
+        _owners[tokenId] = owner;
     }
-
-    function ownerOf(uint256 tokenId) public view virtual override returns (address) {
-        if (_ownerOverride != address(0)) return _ownerOverride; 
-        return super.ownerOf(tokenId);
-    }
-
 }
 
 contract ForTest_JB721TiersHookStore is JB721TiersHookStore, IJB721TiersHookStore_ForTest {
