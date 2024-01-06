@@ -330,7 +330,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
-                beneficiary: msg.sender,
+                beneficiary: beneficiary,
                 hookMetadata: new bytes(0),
                 payerMetadata: _delegateMetadata
             })
@@ -968,7 +968,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
                     weight: 10 ** 18,
                     projectTokenCount: 0,
-                    beneficiary: msg.sender,
+                    beneficiary: beneficiary,
                     hookMetadata: new bytes(0),
                     payerMetadata: _delegateMetadata
             }
@@ -1029,7 +1029,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
                     weight: 10 ** 18,
                     projectTokenCount: 0,
-                    beneficiary: msg.sender,
+                    beneficiary: beneficiary,
                     hookMetadata: new bytes(0),
                     payerMetadata: _metadata
             }
