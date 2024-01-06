@@ -678,7 +678,6 @@ contract UnitTestSetup is Test {
         JBTerminalConfig[] memory terminalConfigurations;
         JBPayDataHookRulesetMetadata memory metadata;
         JBFundAccessLimitGroup[] memory fundAccessLimitGroups;
-        IJBTerminal[] memory terminals;
         JB721TierConfig[] memory tierParams = new JB721TierConfig[](10);
         for (uint256 i; i < 10; i++) {
             tierParams[i] = JB721TierConfig({

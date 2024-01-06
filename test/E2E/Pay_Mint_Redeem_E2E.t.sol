@@ -588,6 +588,38 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             }),
             governanceType: JB721GovernanceType.NONE
         });
+
+        JBPayDataHookRulesetMetadata memory _metadata = JBPayDataHookRulesetMetadata({
+            reservedRate: 5000, //50%
+            redemptionRate: 5000, //50%
+            baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
+            pausePay: false,
+            pauseCreditTransfers: false,
+            allowOwnerMinting: true,
+            allowTerminalMigration: false,
+            allowSetTerminals: false,
+            allowControllerMigration: false,
+            allowSetController: false,
+            holdFees: false,
+            useTotalSurplusForRedemptions: false,
+            useDataHookForRedeem: true,
+            metadata: 0x00
+        });
+
+        JBPayDataHookRulesetConfig[] memory _rulesetConfigurations = new JBPayDataHookRulesetConfig[](1);
+        // Package up the ruleset configuration.
+        _rulesetConfigurations[0].mustStartAtOrAfter = 0;
+        _rulesetConfigurations[0].duration = 14;
+        _rulesetConfigurations[0].weight = 1000 * 10 ** 18;
+        _rulesetConfigurations[0].decayRate = 450_000_000;
+        _rulesetConfigurations[0].approvalHook = IJBRulesetApprovalHook(address(0));
+        _rulesetConfigurations[0].metadata = _metadata;
+
+        JBTerminalConfig[] memory _terminalConfigurations = new JBTerminalConfig[](1);
+        address[] memory _tokensToAccept = new address[](1);
+        _tokensToAccept[0] = JBConstants.NATIVE_TOKEN;
+        _terminalConfigurations[0] = JBTerminalConfig({terminal: _jbMultiTerminal, tokensToAccept: _tokensToAccept});
+
         launchProjectConfig = JBLaunchProjectConfig({
             projectMetadata: _projectMetadata,
             rulesetConfigurations: _rulesetConfigurations,

@@ -67,12 +67,6 @@ contract TestBaseWorkflow is Test {
     JBTerminalStore internal _jbTerminalStore;
     JBMultiTerminal internal _jbMultiTerminal;
     string internal _projectMetadata;
-    JBRulesetConfig internal _config;
-    JBTerminalConfig[] internal _terminalConfigurations;
-    JBPayDataHookRulesetConfig[] internal _rulesetConfigurations;
-    JBPayDataHookRulesetMetadata internal _metadata;
-    JBFundAccessLimitGroup[] internal _fundAccessLimitGroups;
-    IJBTerminal[] internal _terminals;
     IJBToken internal _tokenV2;
 
     AccessJBLib internal _accessJBLib;
@@ -143,42 +137,7 @@ contract TestBaseWorkflow is Test {
         );
         vm.label(address(_jbMultiTerminal), "JBMultiTerminal");
 
-        _terminals.push(_jbMultiTerminal);
-
         _projectMetadata = "myIPFSHash";
-
-        _metadata = JBPayDataHookRulesetMetadata({
-            reservedRate: 5000, //50%
-            redemptionRate: 5000, //50%
-            baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
-            pausePay: false,
-            pauseCreditTransfers: false,
-            allowOwnerMinting: true,
-            allowTerminalMigration: false,
-            allowSetTerminals: false,
-            allowControllerMigration: false,
-            allowSetController: false,
-            holdFees: false,
-            useTotalSurplusForRedemptions: false,
-            useDataHookForRedeem: true,
-            metadata: 0x00
-        });
-
-        // Package up the ruleset configuration.
-        JBPayDataHookRulesetConfig memory _rulesetConfiguration;
-        _rulesetConfiguration.mustStartAtOrAfter = 0;
-        _rulesetConfiguration.duration = 14;
-        _rulesetConfiguration.weight = 1000 * 10 ** 18;
-        _rulesetConfiguration.decayRate = 450_000_000;
-        _rulesetConfiguration.approvalHook = IJBRulesetApprovalHook(address(0));
-        _rulesetConfiguration.metadata = _metadata;
-        _rulesetConfiguration.fundAccessLimitGroups = _fundAccessLimitGroups;
-        _rulesetConfigurations.push(_rulesetConfiguration);
-
-        address[] memory _tokensToAccept = new address[](1);
-        _tokensToAccept[0] = JBConstants.NATIVE_TOKEN;
-        JBTerminalConfig memory _terminalConfiguration = JBTerminalConfig({terminal: _jbMultiTerminal, tokensToAccept: _tokensToAccept});
-        _terminalConfigurations.push(_terminalConfiguration);
 
         // ---- general setup ----
         vm.deal(_beneficiary, 100 ether);

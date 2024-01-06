@@ -74,7 +74,7 @@ contract ForTest_JB721TiersHook is JB721TiersHook {
         metadataHelper = new MetadataResolverHelper();
     }
     
-    function ForTest_setOwnerOf(uint256 tokenId, address owner) public {
+    function ForTest_setOwnerOf(uint256, address owner) public {
         _ownerOverride = owner;
     }
 
