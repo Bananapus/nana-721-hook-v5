@@ -22,7 +22,6 @@ import "lib/juice-contracts-v4/src/structs/JBFundAccessLimitGroup.sol";
 import "lib/juice-contracts-v4/src/structs/JBRuleset.sol";
 import "lib/juice-contracts-v4/src/structs/JBRulesetConfig.sol";
 import "lib/juice-contracts-v4/src/structs/JBRulesetMetadata.sol";
-import "lib/juice-contracts-v4/src/structs/JBSplitGroup.sol";
 import "lib/juice-contracts-v4/src/structs/JBPermissionsData.sol";
 import "lib/juice-contracts-v4/src/structs/JBBeforePayRecordedContext.sol";
 import "lib/juice-contracts-v4/src/structs/JBBeforeRedeemRecordedContext.sol";
@@ -72,7 +71,6 @@ contract TestBaseWorkflow is Test {
     JBTerminalConfig[] internal _terminalConfigurations;
     JBPayDataHookRulesetConfig[] internal _rulesetConfigurations;
     JBPayDataHookRulesetMetadata internal _metadata;
-    JBSplitGroup[] internal _splitGroups;
     JBFundAccessLimitGroup[] internal _fundAccessLimitGroups;
     IJBTerminal[] internal _terminals;
     IJBToken internal _tokenV2;
@@ -167,15 +165,15 @@ contract TestBaseWorkflow is Test {
         });
 
         // Package up the ruleset configuration.
-        _rulesetConfigurations = new JBPayDataHookRulesetConfig[](1);
-        _rulesetConfigurations[0].mustStartAtOrAfter = 0;
-        _rulesetConfigurations[0].duration = 14;
-        _rulesetConfigurations[0].weight = 1000 * 10 ** 18;
-        _rulesetConfigurations[0].decayRate = 450_000_000;
-        _rulesetConfigurations[0].approvalHook = IJBRulesetApprovalHook(address(0));
-        _rulesetConfigurations[0].metadata = _metadata;
-        _rulesetConfigurations[0].splitGroups = _splitGroups;
-        _rulesetConfigurations[0].fundAccessLimitGroups = _fundAccessLimitGroups;
+        JBPayDataHookRulesetConfig memory _rulesetConfiguration;
+        _rulesetConfiguration.mustStartAtOrAfter = 0;
+        _rulesetConfiguration.duration = 14;
+        _rulesetConfiguration.weight = 1000 * 10 ** 18;
+        _rulesetConfiguration.decayRate = 450_000_000;
+        _rulesetConfiguration.approvalHook = IJBRulesetApprovalHook(address(0));
+        _rulesetConfiguration.metadata = _metadata;
+        _rulesetConfiguration.fundAccessLimitGroups = _fundAccessLimitGroups;
+        _rulesetConfigurations.push(_rulesetConfiguration);
 
         _terminalConfigurations = new JBTerminalConfig[](1);
         address[] memory _tokensToAccept = new address[](1);

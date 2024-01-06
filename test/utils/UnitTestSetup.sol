@@ -677,7 +677,6 @@ contract UnitTestSetup is Test {
         JBPayDataHookRulesetConfig[] memory rulesetConfigurations;
         JBTerminalConfig[] memory terminalConfigurations;
         JBPayDataHookRulesetMetadata memory metadata;
-        JBSplitGroup[] memory splitGroups;
         JBFundAccessLimitGroup[] memory fundAccessLimitGroups;
         IJBTerminal[] memory terminals;
         JB721TierConfig[] memory tierParams = new JB721TierConfig[](10);
@@ -741,7 +740,6 @@ contract UnitTestSetup is Test {
         rulesetConfigurations[0].decayRate = 450_000_000;
         rulesetConfigurations[0].approvalHook = IJBRulesetApprovalHook(address(0));
         rulesetConfigurations[0].metadata = metadata;
-        rulesetConfigurations[0].splitGroups = splitGroups;
         rulesetConfigurations[0].fundAccessLimitGroups = fundAccessLimitGroups;
 
         terminalConfigurations = new JBTerminalConfig[](1);
