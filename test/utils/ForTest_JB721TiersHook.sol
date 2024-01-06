@@ -14,7 +14,7 @@ import {MetadataResolverHelper} from "lib/juice-contracts-v4/test/helpers/Metada
 
 import "lib/juice-contracts-v4/src/libraries/JBConstants.sol";
 
-import "./UnitTestSetup.sol"; // Only to get the PAY_HOOK_ID and REDEEM_HOOK_ID constants...
+import "./UnitTestSetup.sol"; // Only used to get the `PAY_HOOK_ID` and `REDEEM_HOOK_ID` constants.
 
 interface IJB721TiersHookStore_ForTest is IJB721TiersHookStore {
     function ForTest_dumpTiersList(address nft) external view returns (JB721Tier[] memory tiers);
@@ -48,10 +48,10 @@ contract ForTest_JB721TiersHook is JB721TiersHook {
         IJB721TokenUriResolver tokenUriResolver,
         string memory contractUri,
         JB721TierConfig[] memory tiers,
-        IJB721TiersHookStore _test_store,
+        IJB721TiersHookStore _test_store, // TODO: rename?
         JB721TiersHookFlags memory flags
     )
-        // The directory is also an IJBPermissioned
+        // The directory is also `IJBPermissioned`.
         JB721TiersHook(directory, IJBPermissioned(address(directory)).PERMISSIONS(), PAY_HOOK_ID, REDEEM_HOOK_ID)
     {
         // Disable the safety check to not allow initializing the original contract
@@ -89,7 +89,7 @@ contract ForTest_JB721TiersHookStore is JB721TiersHookStore, IJB721TiersHookStor
         tiers = new JB721Tier[](maxTierId);
         // Count the number of included tiers.
         uint256 numberOfIncludedTiers;
-        // Get a reference to the index being iterated on, starting with the starting index.
+        // Get a reference to the sorted index being iterated on, starting with the first one.
         uint256 currentSortIndex = _firstSortedTierIdOf(nft, 0);
         // Keep a reference to the tier being iterated on.
         JBStored721Tier memory storedTier;
@@ -118,8 +118,8 @@ contract ForTest_JB721TiersHookStore is JB721TiersHookStore, IJB721TiersHookStor
             // Set the next sort index.
             currentSortIndex = _nextSortedTierIdOf(nft, currentSortIndex, maxTierId);
         }
-        // Drop the empty tiers at the end of the array (coming from maxTierIdOf which *might* be bigger than actual
-        // bigger tier)
+        // Drop the empty tiers at the end of the array.
+        // The array's size is bsaed on `maxTierIdOf`, which *might* exceed the actual number of tiers.
         for (uint256 i = tiers.length - 1; i >= 0; i--) {
             if (tiers[i].id == 0) {
                 assembly ("memory-safe") {
