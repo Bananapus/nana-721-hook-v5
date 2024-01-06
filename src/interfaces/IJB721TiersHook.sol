@@ -36,11 +36,11 @@ interface IJB721TiersHook is IJB721Hook {
 
     event SetTokenUriResolver(IJB721TokenUriResolver indexed newResolver, address caller);
 
-    event AddNftCredits(
+    event AddPayCredits(
         uint256 indexed amount, uint256 indexed newTotalCredits, address indexed account, address caller
     );
 
-    event UseNftCredits(
+    event UsePayCredits(
         uint256 indexed amount, uint256 indexed newTotalCredits, address indexed account, address caller
     );
 

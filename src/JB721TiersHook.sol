@@ -566,9 +566,9 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
 
                 // Emit the change in NFT credits.
                 if (newpayCredits > payCredits) {
-                    emit AddpayCredits(newpayCredits - payCredits, newpayCredits, context.beneficiary, msg.sender);
+                    emit AddPayCredits(newpayCredits - payCredits, newpayCredits, context.beneficiary, msg.sender);
                 } else if (payCredits > newpayCredits) {
-                    emit UsepayCredits(payCredits - newpayCredits, newpayCredits, context.beneficiary, msg.sender);
+                    emit UsePayCredits(payCredits - newpayCredits, newpayCredits, context.beneficiary, msg.sender);
                 }
 
                 // Store the new NFT credits for the beneficiary.
@@ -577,7 +577,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
             // Otherwise, reset their NFT credits.
         } else if (payCredits != unusedPayCredits) {
             // Emit the change in NFT credits.
-            emit UsepayCredits(payCredits - unusedPayCredits, unusedPayCredits, context.beneficiary, msg.sender);
+            emit UsePayCredits(payCredits - unusedPayCredits, unusedPayCredits, context.beneficiary, msg.sender);
 
             // Store the new NFT credits.
             payCreditsOf[context.beneficiary] = unusedPayCredits;

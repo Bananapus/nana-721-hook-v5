@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import "forge-std/Test.sol";
+import "lib/forge-std/src/Test.sol";
 import "../utils/ForTest_JB721TiersHook.sol";
 
 import "src/JB721TiersHookDeployer.sol";
@@ -105,10 +105,10 @@ contract UnitTestSetup is Test {
     event AddTier(uint256 indexed tierId, JB721TierConfig tier, address caller);
     event RemoveTier(uint256 indexed tierId, address caller);
     event CleanTiers(address indexed nft, address caller);
-    event AddNftCredits(
+    event AddPayCredits(
         uint256 indexed amount, uint256 indexed newTotalCredits, address indexed account, address caller
     );
-    event UseNftCredits(
+    event UsePayCredits(
         uint256 indexed amount, uint256 indexed newTotalCredits, address indexed account, address caller
     );
 
@@ -248,7 +248,7 @@ contract UnitTestSetup is Test {
     }
 
     function NATIVE() internal pure returns (uint256) {
-        return uint32(uint160(JBConstants.NATIVE_TOKEN));
+        return JBCurrencyIds.NATIVE;
     }
 
     function USD() internal pure returns (uint256) {

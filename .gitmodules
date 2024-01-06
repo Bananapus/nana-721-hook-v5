@@ -1,6 +1,12 @@
 [submodule "lib/forge-std"]
 	path = lib/forge-std
 	url = https://github.com/brockelmore/forge-std
+[submodule "lib/openzeppelin-contracts"]
+	path = lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "lib/prb-math"]
+	path = lib/prb-math
+	url = https://github.com/PaulRBerg/prb-math
 [submodule "lib/juice-contracts-v4"]
 	path = lib/juice-contracts-v4
 	url = https://github.com/Bananapus/juice-contracts-v4
@@ -10,9 +16,3 @@
 [submodule "lib/juice-address-registry"]
 	path = lib/juice-address-registry
 	url = https://github.com/Bananapus/juice-address-registry
-[submodule "lib/openzeppelin-contracts"]
-	path = lib/openzeppelin-contracts
-	url = https://github.com/OpenZeppelin/openzeppelin-contracts
-[submodule "lib/prb-math"]
-	path = lib/prb-math
-	url = https://github.com/PaulRBerg/prb-math

@@ -260,7 +260,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         uint256 _newCredits = _leftover + hook.payCreditsOf(beneficiary);
 
         vm.expectEmit(true, true, true, true, address(hook));
-        emit AddNftCredits(_newCredits, _newCredits, beneficiary, mockTerminalAddress);
+        emit AddPayCredits(_newCredits, _newCredits, beneficiary, mockTerminalAddress);
 
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
@@ -317,7 +317,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         _leftover = _leftover / 2 + _credits; //left over amount
 
         vm.expectEmit(true, true, true, true, address(hook));
-        emit AddNftCredits(_leftover - _credits, _leftover, beneficiary, mockTerminalAddress);
+        emit AddPayCredits(_leftover - _credits, _leftover, beneficiary, mockTerminalAddress);
 
         // First call will mint the 3 tiers requested + accumulate half of first floor in credit
         vm.prank(mockTerminalAddress);
@@ -354,7 +354,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         // fetch existing credits
         _credits = hook.payCreditsOf(beneficiary);
         vm.expectEmit(true, true, true, true, address(hook));
-        emit UseNftCredits(
+        emit UsePayCredits(
             _credits,
             0, // no stashed credits
             beneficiary,
@@ -871,7 +871,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         _leftover = _leftover / 2 + _credits; //left over amount
 
         vm.expectEmit(true, true, true, true, address(hook));
-        emit AddNftCredits(_leftover - _credits, _leftover, beneficiary, mockTerminalAddress);
+        emit AddPayCredits(_leftover - _credits, _leftover, beneficiary, mockTerminalAddress);
 
         // First call will mint the 3 tiers requested + accumulate half of first floor in credit
         vm.prank(mockTerminalAddress);
@@ -910,7 +910,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         // using existing credits to mint
         _leftover = tiers[0].price - 1 - _credits;
         vm.expectEmit(true, true, true, true, address(hook));
-        emit UseNftCredits(_credits - _leftover, _leftover, beneficiary, mockTerminalAddress);
+        emit UsePayCredits(_credits - _leftover, _leftover, beneficiary, mockTerminalAddress);
 
         // minting with left over credits
         vm.prank(mockTerminalAddress);
@@ -1017,7 +1017,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
             // calculating new credits since _leftover is non zero
             uint256 _newCredits = tiers[0].price + _leftover + _stashedCredits;
             vm.expectEmit(true, true, true, true, address(hook));
-            emit AddNftCredits(_newCredits - _credits, _newCredits, beneficiary, mockTerminalAddress);
+            emit AddPayCredits(_newCredits - _credits, _newCredits, beneficiary, mockTerminalAddress);
         }
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(

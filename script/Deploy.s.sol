@@ -1,8 +1,8 @@
 pragma solidity 0.8.23;
 
-import "forge-std/Script.sol";
-import "forge-std/StdJson.sol";
-import "forge-std/Test.sol";
+import "lib/forge-std/src/Script.sol";
+import "lib/forge-std/src/StdJson.sol";
+import "lib/forge-std/src/Test.sol";
 
 import {IJBAddressRegistry} from "lib/juice-address-registry/src/interfaces/IJBAddressRegistry.sol";
 import {IJBProjects} from "lib/juice-contracts-v4/src/interfaces/IJBProjects.sol";

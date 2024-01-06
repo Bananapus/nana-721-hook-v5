@@ -35,7 +35,7 @@ import "lib/juice-contracts-v4/src/libraries/JBRulesetMetadataResolver.sol";
 
 import {mulDiv} from "lib/prb-math/src/Common.sol";
 
-import "forge-std/Test.sol";
+import "lib/forge-std/src/Test.sol";
 
 import "./AccessJBLib.sol";
 
