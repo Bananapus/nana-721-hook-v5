@@ -75,7 +75,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
     /// which can be redeemed to mint NFTs.
     /// @custom:param addr The address to get the NFT credits balance of.
     /// @return The amount of credits the address has.
-    mapping(address addr => uint256) public override NftCreditsOf;
+    mapping(address addr => uint256) public override payCreditsOf;
 
     /// @notice The base URI for the NFT `tokenUris`.
     string public override baseURI;
@@ -481,9 +481,6 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
     // ------------------------ internal functions ----------------------- //
     //*********************************************************************//
     
-    event K(bool found, bytes metadata);
-    event L(uint16[] tierIds);
-    event J(uint256 priceCurrency, uint256 contextCurrency);
     /// @notice Process a payment, minting NFTs and updating credits as necessary.
     /// @param context Payment context provided by the terminal after it has recorded the payment in the terminal store.
     function _processPayment(JBAfterPayRecordedContext calldata context) internal virtual override {
@@ -494,7 +491,6 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
             uint256 packed = packedPricingContext;
             // pricing currency in bits 0-47 (48 bits).
             uint256 pricingCurrency = uint256(uint48(packed));
-            emit J(pricingCurrency, context.amount.currency);
             if (context.amount.currency == pricingCurrency) {
                 value = context.amount.value;
             } else {
@@ -515,20 +511,20 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         }
 
         // Keep a reference to the number of NFT credits the beneficiary already has.
-        uint256 nftCredits = NftCreditsOf[context.beneficiary];
+        uint256 payCredits = payCreditsOf[context.beneficiary];
 
         // Set the leftover amount as the initial value.
         uint256 leftoverAmount = value;
 
         // If the payer is the beneficiary, combine their NFT credits with the amount paid.
-        uint256 unusedNftCredits;
+        uint256 unusedPayCredits;
         if (context.payer == context.beneficiary) {
             unchecked {
-                leftoverAmount += nftCredits;
+                leftoverAmount += payCredits;
             }
         } else {
             // Otherwise, the payer's NFT credits won't be used, and we keep track of the unused credits.
-            unusedNftCredits = nftCredits;
+            unusedPayCredits = payCredits;
         }
 
         // Keep a reference to the boolean indicating whether paying more than the price of the NFTs being minted is
@@ -538,15 +534,12 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         // Resolve the metadata.
         (bool found, bytes memory metadata) = JBMetadataResolver.getDataFor(metadataPayHookId, context.payerMetadata);
 
-        emit K(found, metadata);
         if (found) {
             // Keep a reference to the IDs of the tier be to minted.
             uint16[] memory tierIdsToMint;
 
             // Decode the metadata.
             (allowOverspending, tierIdsToMint) = abi.decode(metadata, (bool, uint16[]));
-
-            emit L(tierIdsToMint);
 
             // Make sure overspending is allowed if requested.
             if (allowOverspending && STORE.flagsOf(address(this)).preventOverspending) {
@@ -569,25 +562,25 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
             // Increment the leftover amount.
             unchecked {
                 // Keep a reference to the amount of new NFT credits.
-                uint256 newNftCredits = leftoverAmount + unusedNftCredits;
+                uint256 newpayCredits = leftoverAmount + unusedPayCredits;
 
                 // Emit the change in NFT credits.
-                if (newNftCredits > nftCredits) {
-                    emit AddNftCredits(newNftCredits - nftCredits, newNftCredits, context.beneficiary, msg.sender);
-                } else if (nftCredits > newNftCredits) {
-                    emit UseNftCredits(nftCredits - newNftCredits, newNftCredits, context.beneficiary, msg.sender);
+                if (newpayCredits > payCredits) {
+                    emit AddpayCredits(newpayCredits - payCredits, newpayCredits, context.beneficiary, msg.sender);
+                } else if (payCredits > newpayCredits) {
+                    emit UsepayCredits(payCredits - newpayCredits, newpayCredits, context.beneficiary, msg.sender);
                 }
 
                 // Store the new NFT credits for the beneficiary.
-                NftCreditsOf[context.beneficiary] = newNftCredits;
+                payCreditsOf[context.beneficiary] = newpayCredits;
             }
             // Otherwise, reset their NFT credits.
-        } else if (nftCredits != unusedNftCredits) {
+        } else if (payCredits != unusedPayCredits) {
             // Emit the change in NFT credits.
-            emit UseNftCredits(nftCredits - unusedNftCredits, unusedNftCredits, context.beneficiary, msg.sender);
+            emit UsepayCredits(payCredits - unusedPayCredits, unusedPayCredits, context.beneficiary, msg.sender);
 
             // Store the new NFT credits.
-            NftCreditsOf[context.beneficiary] = unusedNftCredits;
+            payCreditsOf[context.beneficiary] = unusedPayCredits;
         }
     }
 

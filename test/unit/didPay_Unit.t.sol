@@ -140,7 +140,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
             })
         );
 
-        assertEq(hook.NftCreditsOf(msg.sender), tiers[0].price - 1);
+        assertEq(hook.payCreditsOf(msg.sender), tiers[0].price - 1);
     }
 
     // If the amount is above contribution floor and a tier is passed, mint as many corresponding tier as possible
@@ -257,7 +257,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
 
         // calculating new credits
-        uint256 _newCredits = _leftover + hook.NftCreditsOf(beneficiary);
+        uint256 _newCredits = _leftover + hook.payCreditsOf(beneficiary);
 
         vm.expectEmit(true, true, true, true, address(hook));
         emit AddNftCredits(_newCredits, _newCredits, beneficiary, mockTerminalAddress);
@@ -279,7 +279,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         );
 
         // Check: credit is updated?
-        assertEq(hook.NftCreditsOf(beneficiary), _leftover);
+        assertEq(hook.payCreditsOf(beneficiary), _leftover);
     }
 
     // Mint a given tier with a leftover, mint another given tier then, if the accumulated credit is enough, mint an
@@ -312,7 +312,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         // Generate the metadata
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
 
-        uint256 _credits = hook.NftCreditsOf(beneficiary);
+        uint256 _credits = hook.payCreditsOf(beneficiary);
 
         _leftover = _leftover / 2 + _credits; //left over amount
 
@@ -352,7 +352,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         }
 
         // fetch existing credits
-        _credits = hook.NftCreditsOf(beneficiary);
+        _credits = hook.payCreditsOf(beneficiary);
         vm.expectEmit(true, true, true, true, address(hook));
         emit UseNftCredits(
             _credits,
@@ -394,7 +394,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         assertEq(hook.ownerOf(_generateTokenId(2, 2)), beneficiary);
 
         // Check: no credit is left?
-        assertEq(hook.NftCreditsOf(beneficiary), 0);
+        assertEq(hook.payCreditsOf(beneficiary), 0);
     }
 
     function testJBTieredNFTRewardDelegate_afterPayRecordedWith_doNotMintWithSomeoneElseCredit() public {
@@ -443,7 +443,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         );
 
         uint256 _totalSupplyBefore = hook.STORE().totalSupplyOf(address(hook));
-        uint256 _creditBefore = hook.NftCreditsOf(beneficiary);
+        uint256 _creditBefore = hook.payCreditsOf(beneficiary);
 
         // Second call will mint another 3 tiers requested BUT not with the credit accumulated
         vm.prank(mockTerminalAddress);
@@ -477,7 +477,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         assertEq(hook.ownerOf(_generateTokenId(2, 2)), beneficiary);
 
         // Check: credit is now having both left-overs?
-        assertEq(hook.NftCreditsOf(beneficiary), _creditBefore * 2);
+        assertEq(hook.payCreditsOf(beneficiary), _creditBefore * 2);
     }
 
     // Terminal is in currency 1 with 18 decimal, hook is in currency 2, with 9 decimals
@@ -867,7 +867,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         // Generate the metadata
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
 
-        uint256 _credits = hook.NftCreditsOf(beneficiary);
+        uint256 _credits = hook.payCreditsOf(beneficiary);
         _leftover = _leftover / 2 + _credits; //left over amount
 
         vm.expectEmit(true, true, true, true, address(hook));
@@ -905,7 +905,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         }
 
         // fetch existing credits
-        _credits = hook.NftCreditsOf(beneficiary);
+        _credits = hook.payCreditsOf(beneficiary);
 
         // using existing credits to mint
         _leftover = tiers[0].price - 1 - _credits;
@@ -1012,7 +1012,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         if (_prevent) {
             vm.expectRevert(abi.encodeWithSelector(JB721TiersHook.OVERSPENDING.selector));
         } else {
-            uint256 _credits = hook.NftCreditsOf(beneficiary);
+            uint256 _credits = hook.payCreditsOf(beneficiary);
             uint256 _stashedCredits = _credits;
             // calculating new credits since _leftover is non zero
             uint256 _newCredits = tiers[0].price + _leftover + _stashedCredits;

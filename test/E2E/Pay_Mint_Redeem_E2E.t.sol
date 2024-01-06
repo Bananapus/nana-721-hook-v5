@@ -227,7 +227,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         // Check: No NFT was minted
         assertEq(IERC721(NFTRewardDataHook).balanceOf(beneficiary), 0);
         // Check: User Received the credits
-        assertEq(IJB721TiersHook(NFTRewardDataHook).NftCreditsOf(beneficiary), valueSent);
+        assertEq(IJB721TiersHook(NFTRewardDataHook).payCreditsOf(beneficiary), valueSent);
     }
 
     function testNoMintOnPayWhenNotIncludingMetadata(uint256 valueSent) external {
@@ -251,7 +251,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         // Check: No NFT was minted
         assertEq(IERC721(NFTRewardDataHook).balanceOf(beneficiary), 0);
         // Check: User Received the credits
-        assertEq(IJB721TiersHook(NFTRewardDataHook).NftCreditsOf(beneficiary), valueSent);
+        assertEq(IJB721TiersHook(NFTRewardDataHook).payCreditsOf(beneficiary), valueSent);
     }
 
     // TODO This needs care (fuzz fails with insuf reserve for val=10)

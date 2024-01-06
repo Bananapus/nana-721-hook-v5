@@ -52,7 +52,7 @@ interface IJB721TiersHook is IJB721Hook {
 
     function pricingContext() external view returns (uint256, uint256, IJBPrices);
 
-    function NftCreditsOf(address addr) external view returns (uint256);
+    function payCreditsOf(address addr) external view returns (uint256);
 
     function firstOwnerOf(uint256 tokenId) external view returns (address);
 
