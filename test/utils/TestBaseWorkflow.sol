@@ -5,6 +5,7 @@ import "lib/juice-contracts-v4/src/JBController.sol";
 import "lib/juice-contracts-v4/src/JBDirectory.sol";
 import "lib/juice-contracts-v4/src/JBMultiTerminal.sol";
 import "lib/juice-contracts-v4/src/JBFundAccessLimits.sol";
+import "lib/juice-contracts-v4/src/JBFeelessAddresses.sol";
 import "lib/juice-contracts-v4/src/JBTerminalStore.sol";
 import "lib/juice-contracts-v4/src/JBRulesets.sol";
 import "lib/juice-contracts-v4/src/JBPermissions.sol";
@@ -53,16 +54,17 @@ contract TestBaseWorkflow is Test {
     address internal _beneficiary = address(69_420);
     address internal _caller = address(696_969);
 
-    JBPermissions internal _jbOperatorStore;
+    JBPermissions internal _jbPermissions;
     JBProjects internal _jbProjects;
     JBPrices internal _jbPrices;
     JBDirectory internal _jbDirectory;
-    JBRulesets internal _jbFundingCycleStore;
-    JBTokens internal _jbTokenStore;
-    JBFundAccessLimits internal _jbFundsAccessConstraintsStore;
-    JBSplits internal _jbSplitsStore;
+    JBRulesets internal _jbRulesets;
+    JBTokens internal _jbTokens;
+    JBFundAccessLimits internal _jbFundAccessLimits;
+    JBFeelessAddresses internal _jbFeelessAddresses;
+    JBSplits internal _jbSplits;
     JBController internal _jbController;
-    JBTerminalStore internal _jbPaymentTerminalStore;
+    JBTerminalStore internal _jbTerminalStore;
     JBMultiTerminal internal _jbETHPaymentTerminal;
     string internal _projectMetadata;
     JBRulesetConfig internal _config;
@@ -81,59 +83,62 @@ contract TestBaseWorkflow is Test {
     // Deploys and initializes contracts for testing.
     function setUp() public virtual {
         // ---- Set up project ----
-        _jbOperatorStore = new JBPermissions();
-        vm.label(address(_jbOperatorStore), "JBPermissions");
+        _jbPermissions = new JBPermissions();
+        vm.label(address(_jbPermissions), "JBPermissions");
 
-        _jbProjects = new JBProjects(_jbOperatorStore);
+        _jbProjects = new JBProjects(_projectOwner);
         vm.label(address(_jbProjects), "JBProjects");
 
-        _jbPrices = new JBPrices(_projectOwner);
+        _jbPrices = new JBPrices(_jbPermissions, _jbProjects, _projectOwner);
         vm.label(address(_jbPrices), "JBPrices");
 
-        address contractAtNoncePlusOne = addressFrom(address(this), 5);
-
-        _jbFundingCycleStore = new JBRulesets(IJBDirectory(contractAtNoncePlusOne));
-        vm.label(address(_jbFundingCycleStore), "JBRulesets");
-
-        _jbDirectory = new JBDirectory(_jbOperatorStore, _jbProjects, _jbFundingCycleStore, _projectOwner);
+        _jbDirectory = new JBDirectory(_jbPermissions, _jbProjects, _projectOwner);
         vm.label(address(_jbDirectory), "JBDirectory");
 
-        _jbFundsAccessConstraintsStore = new JBFundAccessLimits(_jbDirectory);
+        _jbRulesets = new JBRulesets(_jbDirectory);
+        vm.label(address(_jbRulesets), "JBRulesets");
 
-        _jbTokenStore = new JBTokens(_jbOperatorStore, _jbProjects, _jbDirectory, _jbFundingCycleStore);
-        vm.label(address(_jbTokenStore), "JBTokens");
+        _jbFundAccessLimits = new JBFundAccessLimits(_jbDirectory);
+        vm.label(address(_jbFundAccessLimits), "JBFundAccessLimits");
 
-        _jbSplitsStore = new JBSplits(_jbOperatorStore, _jbProjects, _jbDirectory);
-        vm.label(address(_jbSplitsStore), "JBSplits");
+        _jbFeelessAddresses = new JBFeelessAddresses(address(69));
+        vm.label(address(_jbFeelessAddresses), "JBFeelessAddresses");
+
+        _jbTokens = new JBTokens(_jbDirectory);
+        vm.label(address(_jbTokens), "JBTokens");
+
+        _jbSplits = new JBSplits(_jbDirectory);
+        vm.label(address(_jbSplits), "JBSplits");
 
         _jbController = new JBController(
-            _jbOperatorStore,
+            _jbPermissions,
             _jbProjects,
             _jbDirectory,
-            _jbFundingCycleStore,
-            _jbTokenStore,
-            _jbSplitsStore,
-            _jbFundsAccessConstraintsStore
+            _jbRulesets,
+            _jbTokens,
+            _jbSplits,
+            _jbFundAccessLimits,
+            address(0)
         );
         vm.label(address(_jbController), "JBController");
 
         vm.prank(_projectOwner);
         _jbDirectory.setIsAllowedToSetFirstController(address(_jbController), true);
 
-        _jbPaymentTerminalStore = new JBTerminalStore(_jbDirectory, _jbFundingCycleStore, _jbPrices);
-        vm.label(address(_jbPaymentTerminalStore), "JBTerminalStore");
+        _jbTerminalStore = new JBTerminalStore(_jbDirectory, _jbRulesets, _jbPrices);
+        vm.label(address(_jbTerminalStore), "JBTerminalStore");
 
         _accessJBLib = new AccessJBLib();
 
         _jbETHPaymentTerminal = new JBMultiTerminal(
-            _accessJBLib.NATIVE(),
-            _jbOperatorStore,
+            _jbPermissions,
             _jbProjects,
             _jbDirectory,
-            _jbSplitsStore,
-            _jbPrices,
-            address(_jbPaymentTerminalStore),
-            _projectOwner
+            _jbSplits,
+            _jbTerminalStore,
+            _jbFeelessAddresses,
+            IPermit2(address(0)),
+            address(0)
         );
         vm.label(address(_jbETHPaymentTerminal), "JBMultiTerminal");
 

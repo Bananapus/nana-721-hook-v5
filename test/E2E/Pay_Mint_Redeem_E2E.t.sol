@@ -55,14 +55,14 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
 
     function setUp() public override {
         super.setUp();
-        noGovernance = new JB721TiersHook(_jbDirectory, _jbOperatorStore, metadataPayHookId, metadataRedeemHookId);
+        noGovernance = new JB721TiersHook(_jbDirectory, _jbPermissions, metadataPayHookId, metadataRedeemHookId);
         JBGoverned721TiersHook onchainGovernance =
-            new JBGoverned721TiersHook(_jbDirectory, _jbOperatorStore, metadataPayHookId, metadataRedeemHookId);
+            new JBGoverned721TiersHook(_jbDirectory, _jbPermissions, metadataPayHookId, metadataRedeemHookId);
         addressRegistry = new JBAddressRegistry(IJBAddressRegistry(address(0)));
         JB721TiersHookDeployer hookDeployer =
             new JB721TiersHookDeployer(onchainGovernance, noGovernance, addressRegistry);
         deployer = new JB721TiersHookProjectDeployer(
-            IJBDirectory(_jbDirectory), hookDeployer, IJBPermissions(_jbOperatorStore)
+            IJBDirectory(_jbDirectory), hookDeployer, IJBPermissions(_jbPermissions)
         );
 
         metadataHelper = new MetadataResolverHelper();
@@ -76,7 +76,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         // Check: first project has the id 1?
         assertEq(projectId, 1);
         // Check: hook added to registry?
-        address _hook = _jbFundingCycleStore.currentOf(projectId).dataSource();
+        address _hook = _jbRulesets.currentOf(projectId).dataSource();
         assertEq(addressRegistry.deployerOf(_hook), address(deployer.hookDeployer()));
     }
 
@@ -129,7 +129,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         );
         uint256 tokenId = _generateTokenId(highestTier, 1);
         // Check: NFT actually received?
-        address NFTRewardDataSource = _jbFundingCycleStore.currentOf(projectId).dataSource();
+        address NFTRewardDataSource = _jbRulesets.currentOf(projectId).dataSource();
         if (valueSent < 10) {
             assertEq(IERC721(NFTRewardDataSource).balanceOf(_beneficiary), 0);
         } else {
@@ -200,7 +200,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         );
 
         // Check: NFT actually received?
-        address NFTRewardDataSource = _jbFundingCycleStore.currentOf(projectId).dataSource();
+        address NFTRewardDataSource = _jbRulesets.currentOf(projectId).dataSource();
         assertEq(IERC721(NFTRewardDataSource).balanceOf(_beneficiary), 5);
         for (uint256 i = 1; i <= 5; i++) {
             uint256 tokenId = _generateTokenId(i, 1);
@@ -219,7 +219,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             createData();
         uint256 projectId =
             deployer.launchProjectFor(_projectOwner, tiered721DeployerData, launchProjectConfig, _jbController);
-        address NFTRewardDataSource = _jbFundingCycleStore.currentOf(projectId).dataSource();
+        address NFTRewardDataSource = _jbRulesets.currentOf(projectId).dataSource();
         bool _allowOverspending = true;
         uint16[] memory rawMetadata = new uint16[](0);
         bytes memory metadata =
@@ -251,7 +251,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             createData();
         uint256 projectId =
             deployer.launchProjectFor(_projectOwner, tiered721DeployerData, launchProjectConfig, _jbController);
-        address NFTRewardDataSource = _jbFundingCycleStore.currentOf(projectId).dataSource();
+        address NFTRewardDataSource = _jbRulesets.currentOf(projectId).dataSource();
 
         vm.prank(_caller);
         _jbETHPaymentTerminal.pay{value: valueSent}(
@@ -282,7 +282,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             createData();
         uint256 projectId =
             deployer.launchProjectFor(_projectOwner, tiered721DeployerData, launchProjectConfig, _jbController);
-        address NFTRewardDataSource = _jbFundingCycleStore.currentOf(projectId).dataSource();
+        address NFTRewardDataSource = _jbRulesets.currentOf(projectId).dataSource();
         // Check: 0 reserved token before any mint from a contribution?
         assertEq(
             IJB721TiersHook(NFTRewardDataSource).STORE().numberOfPendingReservesFor(NFTRewardDataSource, highestTier), 0
@@ -419,7 +419,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             _hookMetadata = metadataHelper.createMetadata(_ids, _data);
         }
 
-        address NFTRewardDataSource = _jbFundingCycleStore.currentOf(projectId).dataSource();
+        address NFTRewardDataSource = _jbRulesets.currentOf(projectId).dataSource();
         // New token balance
         uint256 tokenBalance = IERC721(NFTRewardDataSource).balanceOf(_beneficiary);
 
@@ -493,7 +493,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             "Take my money!", // _memo
             _hookMetadata //_hookMetadata
         );
-        address NFTRewardDataSource = _jbFundingCycleStore.currentOf(projectId).dataSource();
+        address NFTRewardDataSource = _jbRulesets.currentOf(projectId).dataSource();
         // New token balance
         uint256 tokenBalance = IERC721(NFTRewardDataSource).balanceOf(_beneficiary);
         // Reserved token available to mint
@@ -601,7 +601,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         tiered721DeployerData = JBDeploy721TiersHookConfig({
             name: name,
             symbol: symbol,
-            rulesets: _jbFundingCycleStore,
+            rulesets: _jbRulesets,
             baseUri: baseUri,
             tokenUriResolver: IJB721TokenUriResolver(address(0)),
             contractUri: contractUri,

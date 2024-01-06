@@ -23,7 +23,7 @@ contract TestJB721TiersHookGovernance is TestJBTieredNFTRewardDelegateE2E {
             uint256 projectId =
                 deployer.launchProjectFor(_projectOwner, tiered721DeployerData, launchProjectConfig, _jbController);
             // Get the dataSource
-            _hook = JBGoverned721TiersHook(_jbFundingCycleStore.currentOf(projectId).dataSource());
+            _hook = JBGoverned721TiersHook(_jbRulesets.currentOf(projectId).dataSource());
             uint256 _payAmount = tiered721DeployerData.tiersconfig.tiers[_tier].price;
             assertEq(_hook.delegates(_user), address(0));
             vm.prank(_user);
@@ -87,7 +87,7 @@ contract TestJB721TiersHookGovernance is TestJBTieredNFTRewardDelegateE2E {
             projectId =
                 deployer.launchProjectFor(_projectOwner, tiered721DeployerData, launchProjectConfig, _jbController);
             // Get the dataSource
-            _hook = JBGoverned721TiersHook(_jbFundingCycleStore.currentOf(projectId).dataSource());
+            _hook = JBGoverned721TiersHook(_jbRulesets.currentOf(projectId).dataSource());
             // Delegate NFT to fren
             vm.startPrank(_user);
             _hook.delegate(_userFren);
