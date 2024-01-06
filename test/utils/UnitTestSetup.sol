@@ -29,6 +29,7 @@ import "lib/juice-contracts-v4/src/libraries/JBConstants.sol";
 bytes4 constant PAY_HOOK_ID = bytes4(hex"70");
 bytes4 constant REDEEM_HOOK_ID = bytes4(hex"71");
 
+// TODO: Find new name for _tiers return variables
 contract UnitTestSetup is Test {
     address beneficiary;
     address owner;
@@ -454,7 +455,7 @@ contract UnitTestSetup is Test {
     )
         internal
         view
-        returns (JB721TierConfig[] memory _tiersParams, JB721Tier[] memory _tiers)
+        returns (JB721TierConfig[] memory tierConfigs, JB721Tier[] memory _tiers)
     {
         return _createTiers(tierParams, numberOfTiers, 0, new uint16[](numberOfTiers), 0);
     }
@@ -466,7 +467,7 @@ contract UnitTestSetup is Test {
     )
         internal
         view
-        returns (JB721TierConfig[] memory tiersParams, JB721Tier[] memory _tiers)
+        returns (JB721TierConfig[] memory tierConfigs, JB721Tier[] memory _tiers)
     {
         return _createTiers(tierParams, numberOfTiers, 0, new uint16[](numberOfTiers), categoryIncrement);
     }
@@ -479,13 +480,13 @@ contract UnitTestSetup is Test {
     )
         internal
         view
-        returns (JB721TierConfig[] memory _tiersParams, JB721Tier[] memory _tiers)
+        returns (JB721TierConfig[] memory tierConfigs, JB721Tier[] memory _tiers)
     {
         return _createTiers(tierParams, numberOfTiers, initialId, floors, 0);
     }
 
     function _createTiers(
-        JB721TierConfig memory tierParams,
+        JB721TierConfig memory tierConfig,
         uint256 numberOfTiers,
         uint256 initialId,
         uint16[] memory floors,
@@ -493,40 +494,40 @@ contract UnitTestSetup is Test {
     )
         internal
         view
-        returns (JB721TierConfig[] memory _tiersParams, JB721Tier[] memory _tiers)
+        returns (JB721TierConfig[] memory tierConfigs, JB721Tier[] memory _tiers)
     {
-        _tiersParams = new JB721TierConfig[](numberOfTiers);
+        tierConfigs = new JB721TierConfig[](numberOfTiers);
         _tiers = new JB721Tier[](numberOfTiers);
 
         for (uint256 i; i < numberOfTiers; i++) {
-            _tiersParams[i] = JB721TierConfig({
+            tierConfigs[i] = JB721TierConfig({
                 price: floors[i] == 0 ? uint16((i + 1) * 10) : floors[i],
-                initialSupply: tierParams.initialSupply == 0 ? uint32(100) : tierParams.initialSupply,
-                votingUnits: tierParams.votingUnits,
-                reserveFrequency: tierParams.reserveFrequency,
+                initialSupply: tierConfig.initialSupply == 0 ? uint32(100) : tierConfig.initialSupply,
+                votingUnits: tierConfig.votingUnits,
+                reserveFrequency: tierConfig.reserveFrequency,
                 reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: i < tokenUris.length ? tokenUris[i] : tokenUris[0],
                 category: categoryIncrement == 0
-                    ? tierParams.category == type(uint24).max ? uint24(i * 2 + 1) : tierParams.category
+                    ? tierConfig.category == type(uint24).max ? uint24(i * 2 + 1) : tierConfig.category
                     : uint24(i * 2 + categoryIncrement),
-                allowOwnerMint: tierParams.allowOwnerMint,
-                useReserveBeneficiaryAsDefault: tierParams.useReserveBeneficiaryAsDefault,
-                transfersPausable: tierParams.transfersPausable,
-                useVotingUnits: tierParams.useVotingUnits
+                allowOwnerMint: tierConfig.allowOwnerMint,
+                useReserveBeneficiaryAsDefault: tierConfig.useReserveBeneficiaryAsDefault,
+                transfersPausable: tierConfig.transfersPausable,
+                useVotingUnits: tierConfig.useVotingUnits
             });
 
             _tiers[i] = JB721Tier({
                 id: initialId + i + 1,
-                price: _tiersParams[i].price,
-                remainingSupply: _tiersParams[i].initialSupply,
-                initialSupply: _tiersParams[i].initialSupply,
-                votingUnits: _tiersParams[i].votingUnits,
-                reserveFrequency: _tiersParams[i].reserveFrequency,
-                reserveBeneficiary: _tiersParams[i].reserveBeneficiary,
-                encodedIPFSUri: _tiersParams[i].encodedIPFSUri,
-                category: _tiersParams[i].category,
-                allowOwnerMint: _tiersParams[i].allowOwnerMint,
-                transfersPausable: _tiersParams[i].transfersPausable,
+                price: tierConfigs[i].price,
+                remainingSupply: tierConfigs[i].initialSupply,
+                initialSupply: tierConfigs[i].initialSupply,
+                votingUnits: tierConfigs[i].votingUnits,
+                reserveFrequency: tierConfigs[i].reserveFrequency,
+                reserveBeneficiary: tierConfigs[i].reserveBeneficiary,
+                encodedIPFSUri: tierConfigs[i].encodedIPFSUri,
+                category: tierConfigs[i].category,
+                allowOwnerMint: tierConfigs[i].allowOwnerMint,
+                transfersPausable: tierConfigs[i].transfersPausable,
                 resolvedUri: defaultTierConfig.encodedIPFSUri == bytes32(0)
                     ? ""
                     : string(abi.encodePacked("resolverURI", _generateTokenId(initialId + i + 1, 0)))
@@ -535,7 +536,7 @@ contract UnitTestSetup is Test {
     }
 
     function _addDeleteTiers(
-        JB721TiersHook _hook,
+        JB721TiersHook tiersHook,
         uint256 currentNumberOfTiers,
         uint256 numberOfTiersToRemove,
         JB721TierConfig[] memory tiersToAdd
@@ -554,12 +555,12 @@ contract UnitTestSetup is Test {
         newNumberOfTiers += tiersToAdd.length;
 
         vm.startPrank(owner);
-        _hook.adjustTiers(tiersToAdd, tiersToRemove);
-        _hook.STORE().cleanTiers(address(_hook));
+        tiersHook.adjustTiers(tiersToAdd, tiersToRemove);
+        tiersHook.STORE().cleanTiers(address(tiersHook));
         vm.stopPrank();
 
         JB721Tier[] memory storedTiers =
-            _hook.STORE().tiersOf(address(_hook), new uint256[](0), false, 0, newNumberOfTiers);
+            tiersHook.STORE().tiersOf(address(tiersHook), new uint256[](0), false, 0, newNumberOfTiers);
         assertEq(storedTiers.length, newNumberOfTiers);
 
         return newNumberOfTiers;
@@ -587,17 +588,17 @@ contract UnitTestSetup is Test {
         address oracle
     )
         internal
-        returns (JB721TiersHook _hook)
+        returns (JB721TiersHook tiersHook)
     {
         // Initialize first tiers to add
         (JB721TierConfig[] memory tiersParams,) = _createTiers(defaultTierConfig, initialNumberOfTiers);
 
         // "Deploy" the hook
         vm.etch(hook_i, address(hook).code);
-        _hook = JB721TiersHook(hook_i);
+        tiersHook = JB721TiersHook(hook_i);
 
         // Deploy the hook store
-        JB721TiersHookStore _store = new JB721TiersHookStore();
+        JB721TiersHookStore hookStore = new JB721TiersHookStore();
 
         // Initialize the hook, put the struc in memory for stack's sake
         JB721TiersHookFlags memory flags = JB721TiersHookFlags({
@@ -614,7 +615,7 @@ contract UnitTestSetup is Test {
             prices: IJBPrices(oracle)
         });
 
-        _hook.initialize(
+        tiersHook.initialize(
             projectId,
             name,
             symbol,
@@ -623,26 +624,26 @@ contract UnitTestSetup is Test {
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
             pricingParams,
-            IJB721TiersHookStore(_store),
+            IJB721TiersHookStore(hookStore),
             flags
         );
 
         // Transfer ownership to owner
-        _hook.transferOwnership(owner);
+        tiersHook.transferOwnership(owner);
     }
 
     function _initializeForTestHook(uint256 initialNumberOfTiers)
         internal
-        returns (ForTest_JB721TiersHook _hook)
+        returns (ForTest_JB721TiersHook tiersHook)
     {
         // Initialize first tiers to add
         (JB721TierConfig[] memory tiersParams,) = _createTiers(defaultTierConfig, initialNumberOfTiers);
 
         // Deploy the For Test hook store
-        ForTest_JB721TiersHookStore _store = new ForTest_JB721TiersHookStore();
+        ForTest_JB721TiersHookStore hookStore = new ForTest_JB721TiersHookStore();
 
         // Deploy the For Test hook
-        _hook = new ForTest_JB721TiersHook(
+        tiersHook = new ForTest_JB721TiersHook(
             projectId,
             IJBDirectory(mockJBDirectory),
             name,
@@ -652,7 +653,7 @@ contract UnitTestSetup is Test {
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
             tiersParams,
-            IJB721TiersHookStore(address(_store)),
+            IJB721TiersHookStore(address(hookStore)),
             JB721TiersHookFlags({
                 preventOverspending: false,
                 noNewTiersWithReserves: false,
@@ -662,7 +663,7 @@ contract UnitTestSetup is Test {
         );
 
         // Transfer ownership to owner
-        _hook.transferOwnership(owner);
+        tiersHook.transferOwnership(owner);
     }
 
     function createData()
