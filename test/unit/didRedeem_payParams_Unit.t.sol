@@ -47,20 +47,19 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
 
         // Generate the metadata
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
-        (uint256 reclaimAmount, string memory memo, JBRedeemHookSpecification[] memory _returnedDelegate) = _hook
+        (uint256 reclaimAmount, JBRedeemHookSpecification[] memory _returnedDelegate) = _hook
             .beforeRedeemRecordedWith(
             JBBeforeRedeemRecordedContext({
-                terminal: IJBTerminal(address(0)),
+                terminal: address(0),
                 holder: beneficiary,
                 projectId: projectId,
-                currentFundingCycleConfiguration: 0,
-                tokenCount: 0,
+                rulesetId: 0,
+                redeemCount: 0,
                 totalSupply: 0,
                 surplus: SURPLUS,
                 reclaimAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}),
-                useTotalOverflow: true,
+                useTotalSurplus: true,
                 redemptionRate: REDEMPTION_RATE,
-                memo: "plz gib",
                 metadata: _delegateMetadata
             })
         );
@@ -73,7 +72,6 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
             MAX_RESERVED_RATE()
         );
         assertEq(reclaimAmount, _claimableOverflow);
-        assertEq(memo, "plz gib");
         assertEq(address(_returnedDelegate[0].hook), address(_hook));
     }
 
@@ -111,26 +109,24 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
             _weight += (i + 1) * (i + 1) * 10;
         }
 
-        (uint256 reclaimAmount, string memory memo, JBRedeemHookSpecification[] memory _returnedDelegate) = _hook
+        (uint256 reclaimAmount, JBRedeemHookSpecification[] memory _returnedDelegate) = _hook
             .beforeRedeemRecordedWith(
             JBBeforeRedeemRecordedContext({
-                terminal: IJBTerminal(address(0)),
+                terminal: address(0),
                 holder: beneficiary,
                 projectId: projectId,
-                currentFundingCycleConfiguration: 0,
-                tokenCount: 0,
+                rulesetId: 0,
+                redeemCount: 0,
                 totalSupply: 0,
                 surplus: _surplus,
                 reclaimAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}),
-                useTotalOverflow: true,
+                useTotalSurplus: true,
                 redemptionRate: _redemptionRate,
-                memo: "plz gib",
                 metadata: abi.encode(bytes32(0), type(IJB721Hook).interfaceId, _tokenList)
             })
         );
 
         assertEq(reclaimAmount, 0);
-        assertEq(memo, "plz gib");
         assertEq(address(_returnedDelegate[0].hook), address(_hook));
     }
 
@@ -178,27 +174,25 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
 
         JBBeforeRedeemRecordedContext memory _redeemParams = JBBeforeRedeemRecordedContext({
-            terminal: IJBTerminal(address(0)),
+            terminal: address(0),
             holder: beneficiary,
             projectId: projectId,
-            currentFundingCycleConfiguration: 0,
-            tokenCount: 0,
+            rulesetId: 0,
+            redeemCount: 0,
             totalSupply: 0,
             surplus: SURPLUS,
             reclaimAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}),
-            useTotalOverflow: true,
+            useTotalSurplus: true,
             redemptionRate: REDEMPTION_RATE,
-            memo: "plz gib",
             metadata: _delegateMetadata
         });
 
-        (uint256 reclaimAmount, string memory memo, JBRedeemHookSpecification[] memory _returnedDelegate) =
+        (uint256 reclaimAmount, JBRedeemHookSpecification[] memory _returnedDelegate) =
             _hook.beforeRedeemRecordedWith(_redeemParams);
 
         // Portion of the surplus accessible (pro rata weight held)
         uint256 _base = mulDiv(SURPLUS, _weight, _totalWeight);
         assertEq(reclaimAmount, _base);
-        assertEq(memo, "plz gib");
         assertEq(address(_returnedDelegate[0].hook), address(_hook));
     }
 
@@ -209,17 +203,16 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
 
         hook.beforeRedeemRecordedWith(
             JBBeforeRedeemRecordedContext({
-                terminal: IJBTerminal(address(0)),
+                terminal: address(0),
                 holder: beneficiary,
                 projectId: projectId,
-                currentFundingCycleConfiguration: 0,
-                tokenCount: _tokenCount,
+                rulesetId: 0,
+                redeemCount: _tokenCount,
                 totalSupply: 0,
                 surplus: 100,
                 reclaimAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}),
-                useTotalOverflow: true,
+                useTotalSurplus: true,
                 redemptionRate: 100,
-                memo: "",
                 metadata: new bytes(0)
             })
         );
@@ -262,19 +255,18 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
             // We mint the NFTs otherwise the voting balance does not get incremented
             // which leads to underflow on redeem
             vm.prank(mockTerminalAddress);
-            JBAfterPayRecordedContext memory _payData = JBAfterPayRecordedContext(
-                beneficiary,
-                projectId,
-                0,
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 10, 18, JBCurrencyIds.NATIVE),
-                JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
-                0,
-                beneficiary,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            );
+            JBAfterPayRecordedContext memory _payData = JBAfterPayRecordedContext({
+                    payer: beneficiary,
+                    projectId: projectId,
+                    rulesetId: 0,
+                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 10, 18, JBCurrencyIds.NATIVE),
+                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, JBCurrencyIds.NATIVE), // 0 fwd to hook
+                    weight: 10 ** 18,
+                    projectTokenCount: 0,
+                    beneficiary: beneficiary,
+                    hookMetadata: new bytes(0),
+                    payerMetadata: _delegateMetadata
+            });
 
             _hook.afterPayRecordedWith(_payData);
 
@@ -300,14 +292,14 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
             JBAfterRedeemRecordedContext({
                 holder: beneficiary,
                 projectId: projectId,
-                currentFundingCycleConfiguration: 1,
-                projectTokenCount: 0,
+                rulesetId: 1,
+                redeemCount: 0,
                 reclaimedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}),
                 forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}), // 0
+                redemptionRate: 5000,
                     // fwd to hook
                 beneficiary: payable(beneficiary),
-                memo: "thy shall redeem",
-                dataSourceMetadata: bytes(""),
+                hookMetadata: bytes(""),
                 redeemerMetadata: _delegateMetadata
             })
         );
@@ -340,14 +332,14 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
             JBAfterRedeemRecordedContext({
                 holder: beneficiary,
                 projectId: _wrongProjectId,
-                currentFundingCycleConfiguration: 1,
-                projectTokenCount: 0,
+                rulesetId: 1,
+                redeemCount: 0,
                 reclaimedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}),
                 forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}), //sv
+                redemptionRate: 5000,
                     // 0 fwd to hook
                 beneficiary: payable(beneficiary),
-                memo: "thy shall redeem",
-                dataSourceMetadata: bytes(""),
+                hookMetadata: bytes(""),
                 redeemerMetadata: abi.encode(type(IJB721TiersHook).interfaceId, _tokenList)
             })
         );
@@ -371,14 +363,13 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
             JBAfterRedeemRecordedContext({
                 holder: beneficiary,
                 projectId: projectId,
-                currentFundingCycleConfiguration: 1,
-                projectTokenCount: 0,
+                rulesetId: 1,
+                redeemCount: 0,
                 reclaimedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}),
                 forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}), // 0
-                    // fwd to hook
+                redemptionRate: 5000,
                 beneficiary: payable(beneficiary),
-                memo: "thy shall redeem",
-                dataSourceMetadata: bytes(""),
+                hookMetadata: bytes(""),
                 redeemerMetadata: abi.encode(type(IJB721TiersHook).interfaceId, _tokenList)
             })
         );
@@ -425,14 +416,14 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
             JBAfterRedeemRecordedContext({
                 holder: _wrongHolder,
                 projectId: projectId,
-                currentFundingCycleConfiguration: 1,
-                projectTokenCount: 0,
+                rulesetId: 1,
+                redeemCount: 0,
                 reclaimedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}),
                 forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}), // 0
+                redemptionRate: 5000,
                     // fwd to hook
                 beneficiary: payable(_wrongHolder),
-                memo: "thy shall redeem",
-                dataSourceMetadata: bytes(""),
+                hookMetadata: bytes(""),
                 redeemerMetadata: _delegateMetadata
             })
         );

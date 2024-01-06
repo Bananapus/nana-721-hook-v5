@@ -1248,16 +1248,16 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         vm.prank(mockTerminalAddress);
         _hook.afterRedeemRecordedWith(
             JBAfterRedeemRecordedContext({
-                payer: _holder,
+                holder: _holder,
                 projectId: projectId,
-                currentFundingCycleConfiguration: 1,
-                projectTokenCount: 0,
+                rulesetId: 1,
+                redeemCount: 0,
                 reclaimedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}),
                 forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencyIds.NATIVE}), // 0
+                redemptionRate: 5000,
                     // fwd to hook
                 beneficiary: payable(_holder),
-                memo: "thy shall redeem",
-                dataSourceMetadata: bytes(""),
+                hookMetadata: bytes(""),
                 redeemerMetadata: _delegateMetadata
             })
         );

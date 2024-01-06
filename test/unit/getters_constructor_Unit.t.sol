@@ -48,7 +48,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
 
         JB721TiersHook _hook = JB721TiersHook(address(jbHookDeployer.deployHookFor(projectId, delegateData)));
 
-        (uint256 __currency, uint256 __decimals, IJBPrices __prices) = _hook.tiersconfigContext();
+        (uint256 __currency, uint256 __decimals, IJBPrices __prices) = _hook.pricingContext();
         assertEq(__currency, uint256(_currency));
         assertEq(__decimals, uint256(_decimals));
         assertEq(address(__prices), _prices);

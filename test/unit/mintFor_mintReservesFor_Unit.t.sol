@@ -124,7 +124,7 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     weight: 10e18,
                     decayRate: 0,
                     approvalHook: IJBRulesetApprovalHook(address(0)),
-                    metadata: JBRulesetMetadataResolver.packFundingCycleMetadata(
+                    metadata: JBRulesetMetadataResolver.packRulesetMetadata(
                         JBRulesetMetadata({
                             reservedRate: 5000, //50%
                             redemptionRate: 5000, //50%
@@ -170,7 +170,7 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         for (uint256 tier = 1; tier <= nbTiers; tier++) {
             uint256 mintable = _hook.test_store().numberOfPendingReservesFor(address(_hook), tier);
             vm.prank(owner);
-            vm.expectRevert(JB721TiersHook.MINT_RESERVEnftS_PAUSED.selector);
+            vm.expectRevert(JB721TiersHook.MINT_RESERVE_NFTS_PAUSED.selector);
             _hook.mintPendingReservesFor(tier, mintable);
         }
     }
