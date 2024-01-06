@@ -175,10 +175,10 @@ contract TestBaseWorkflow is Test {
         _rulesetConfiguration.fundAccessLimitGroups = _fundAccessLimitGroups;
         _rulesetConfigurations.push(_rulesetConfiguration);
 
-        _terminalConfigurations = new JBTerminalConfig[](1);
         address[] memory _tokensToAccept = new address[](1);
         _tokensToAccept[0] = JBConstants.NATIVE_TOKEN;
-        _terminalConfigurations[0] = JBTerminalConfig({terminal: _jbMultiTerminal, tokensToAccept: _tokensToAccept});
+        JBTerminalConfig memory _terminalConfiguration = JBTerminalConfig({terminal: _jbMultiTerminal, tokensToAccept: _tokensToAccept});
+        _terminalConfigurations.push(_terminalConfiguration);
 
         // ---- general setup ----
         vm.deal(_beneficiary, 100 ether);
