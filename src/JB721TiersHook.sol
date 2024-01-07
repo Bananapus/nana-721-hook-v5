@@ -631,8 +631,8 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         // Get a reference to the tier.
         JB721Tier memory tier = STORE.tierOfTokenId(address(this), tokenId, false);
 
-        // Keep a reference to where the token is coming from.
-        from = _ownerOf(tokenId);
+        // Record the transfers and keep a reference to where the token is coming from.
+        from = super._update(to, tokenId, auth);
 
         // Transfers must not be paused (when not minting or burning).
         if (from != address(0)) {
@@ -651,8 +651,6 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
             // If the token isn't already associated with a first owner, store the sender as the first owner.
             if (_firstOwnerOf[tokenId] == address(0)) _firstOwnerOf[tokenId] = from;
         }
-
-        super._update(to, tokenId, auth);
 
         // Record the transfer.
         STORE.recordTransferForTier(tier.id, from, to);
