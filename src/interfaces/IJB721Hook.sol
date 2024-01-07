@@ -7,8 +7,4 @@ interface IJB721Hook {
     function projectId() external view returns (uint256);
 
     function DIRECTORY() external view returns (IJBDirectory);
-
-    function metadataPayHookId() external view returns (bytes4);
-
-    function metadataRedeemHookId() external view returns (bytes4);
 }

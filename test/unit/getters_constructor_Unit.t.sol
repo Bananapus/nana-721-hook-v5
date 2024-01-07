@@ -12,12 +12,8 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
 
         ForTest_JB721TiersHook _hook = _initializeForTestHook(numberOfTiers);
 
-        assertTrue(
-            _isIn(_hook.test_store().tiersOf(address(_hook), new uint256[](0), false, 0, numberOfTiers), _tiers)
-        );
-        assertTrue(
-            _isIn(_tiers, _hook.test_store().tiersOf(address(_hook), new uint256[](0), false, 0, numberOfTiers))
-        );
+        assertTrue(_isIn(_hook.test_store().tiersOf(address(_hook), new uint256[](0), false, 0, numberOfTiers), _tiers));
+        assertTrue(_isIn(_tiers, _hook.test_store().tiersOf(address(_hook), new uint256[](0), false, 0, numberOfTiers)));
     }
 
     function testJBTieredNFTRewardDelegate_pricing_packingFunctionsAsExpected(
@@ -488,7 +484,12 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
-            JB721InitTiersConfig({tiers: _tiers, currency: uint32(uint160(JBConstants.NATIVE_TOKEN)), decimals: 18, prices: IJBPrices(address(0))}),
+            JB721InitTiersConfig({
+                tiers: _tiers,
+                currency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
+                decimals: 18,
+                prices: IJBPrices(address(0))
+            }),
             _dataSourceStore,
             JB721TiersHookFlags({
                 preventOverspending: false,

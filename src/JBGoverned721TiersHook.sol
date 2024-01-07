@@ -19,16 +19,12 @@ contract JBGoverned721TiersHook is Votes, JB721TiersHook {
 
     /// @param directory A directory of terminals and controllers for projects.
     /// @param permissions The operatorStore that will be used to check operator permissions.
-    /// @param metadataPayHookId This contract's pay hook ID; used for parsing payment metadata.
-    /// @param metadataRedeemHookId This contract's redeem hook ID; used for parsing redemption metadata.
     constructor(
         IJBDirectory directory,
-        IJBPermissions permissions,
-        bytes4 metadataPayHookId,
-        bytes4 metadataRedeemHookId
+        IJBPermissions permissions
     )
         EIP712("Juicebox 721 Governance Hook", "1")
-        JB721TiersHook(directory, permissions, metadataPayHookId, metadataRedeemHookId)
+        JB721TiersHook(directory, permissions)
     {}
 
     //*********************************************************************//

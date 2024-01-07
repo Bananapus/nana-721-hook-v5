@@ -40,7 +40,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         // Pass the hook id
         bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_HOOK_ID;
+        _ids[0] = bytes4(bytes20(address(_hook)));
 
         // Generate the metadata
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -49,8 +49,11 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
             payer: beneficiary,
             projectId: projectId,
             rulesetId: 0,
-            amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 10 * _tokenToMint, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-            forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
+            amount: JBTokenAmount(
+                JBConstants.NATIVE_TOKEN, 10 * _tokenToMint, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
+                ),
+            forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                // fwd to hook
             weight: 10 ** 18,
             projectTokenCount: 0,
             beneficiary: beneficiary,
@@ -99,10 +102,13 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 payer: msg.sender,
                 projectId: projectId,
                 rulesetId: 0,
-                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 1 wei below
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ), // 1 wei below
                     // the
                     // minimum amount
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -128,10 +134,13 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 payer: msg.sender,
                 projectId: projectId,
                 rulesetId: 0,
-                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 1 wei below
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ), // 1 wei below
                     // the
                     // minimum amount
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -166,7 +175,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         // Pass the hook id
         bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_HOOK_ID;
+        _ids[0] = bytes4(bytes20(address(hook)));
 
         // Generate the metadata
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -176,8 +185,14 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 payer: msg.sender,
                 projectId: projectId,
                 rulesetId: 0,
-                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN,
+                    tiers[0].price * 2 + tiers[1].price,
+                    18,
+                    uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -217,13 +232,14 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
                 hookMetadata: new bytes(0),
                 payerMetadata: _metadata
-    })
+            })
         );
 
         // Make sure no new NFT was minted if amount >= contribution floor
@@ -251,7 +267,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         // Pass the hook id
         bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_HOOK_ID;
+        _ids[0] = bytes4(bytes20(address(hook)));
 
         // Generate the metadata
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -269,7 +285,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: beneficiary,
@@ -307,7 +324,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         // Pass the hook id
         bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_HOOK_ID;
+        _ids[0] = bytes4(bytes20(address(hook)));
 
         // Generate the metadata
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -327,7 +344,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: beneficiary,
@@ -369,7 +387,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: beneficiary,
@@ -420,7 +439,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         // Pass the hook id
         bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_HOOK_ID;
+        _ids[0] = bytes4(bytes20(address(hook)));
 
         // Generate the metadata
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -433,7 +452,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: beneficiary,
@@ -453,7 +473,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: beneficiary,
@@ -498,7 +519,11 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         // Mock the price oracle call
         uint256 _amountInEth = (tiers[0].price * 2 + tiers[1].price) * 2;
-        mockAndExpect(_jbPrice, abi.encodeCall(IJBPrices.pricePerUnitOf, (projectId, uint32(uint160(JBConstants.NATIVE_TOKEN)), 2, 18)), abi.encode(2 * 10 ** 9));
+        mockAndExpect(
+            _jbPrice,
+            abi.encodeCall(IJBPrices.pricePerUnitOf, (projectId, uint32(uint160(JBConstants.NATIVE_TOKEN)), 2, 18)),
+            abi.encode(2 * 10 ** 9)
+        );
 
         uint256 _totalSupplyBeforePay = _hook.STORE().totalSupplyOf(address(hook));
 
@@ -514,7 +539,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         // Pass the hook id
         bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_HOOK_ID;
+        _ids[0] = bytes4(bytes20(address(_hook)));
 
         // Generate the metadata
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -526,7 +551,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amountInEth, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -567,7 +593,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         // Pass the hook id
         bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_HOOK_ID;
+        _ids[0] = bytes4(bytes20(address(hook)));
 
         // Generate the metadata
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -586,8 +612,14 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 payer: msg.sender,
                 projectId: projectId,
                 rulesetId: 0,
-                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN,
+                    tiers[0].price * 2 + tiers[1].price,
+                    18,
+                    uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -622,7 +654,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         // Pass the hook id
         bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_HOOK_ID;
+        _ids[0] = bytes4(bytes20(address(hook)));
 
         // Generate the metadata
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -641,8 +673,14 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 payer: msg.sender,
                 projectId: projectId,
                 rulesetId: 0,
-                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN,
+                    tiers[0].price * 2 + tiers[1].price,
+                    18,
+                    uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -678,7 +716,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         // Pass the hook id
         bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_HOOK_ID;
+        _ids[0] = bytes4(bytes20(address(hook)));
 
         // Generate the metadata
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -692,16 +730,19 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 amount: JBTokenAmount(
-                    JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price - 1, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
-                ),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
+                    JBConstants.NATIVE_TOKEN,
+                    tiers[0].price * 2 + tiers[1].price - 1,
+                    18,
+                    uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
                 hookMetadata: new bytes(0),
                 payerMetadata: _delegateMetadata
-            }
-            )
+            })
         );
 
         // Make sure no new NFT was minted
@@ -732,7 +773,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
             // Pass the hook id
             bytes4[] memory _ids = new bytes4[](1);
-            _ids[0] = PAY_HOOK_ID;
+            _ids[0] = bytes4(bytes20(address(hook)));
 
             // Generate the metadata
             bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -749,8 +790,12 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     payer: msg.sender,
                     projectId: projectId,
                     rulesetId: 0,
-                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
+                    amount: JBTokenAmount(
+                        JBConstants.NATIVE_TOKEN, tiers[0].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
+                        ),
+                    forwardedAmount: JBTokenAmount(
+                        JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
+                        ), // 0 fwd to hook
                     weight: 10 ** 18,
                     projectTokenCount: 0,
                     beneficiary: msg.sender,
@@ -790,18 +835,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         hook.afterPayRecordedWith(
             JBAfterPayRecordedContext({
-                    payer: msg.sender,
-                    projectId: projectId,
-                    rulesetId: 0,
-                    amount: JBTokenAmount(address(0), 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
-                    weight: 10 ** 18,
-                    projectTokenCount: 0,
-                    beneficiary: msg.sender,
-                    hookMetadata: new bytes(0),
-                    payerMetadata: new bytes(0)
-            }
-            )
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(address(0), 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: new bytes(0)
+            })
         );
     }
 
@@ -819,16 +864,17 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
             JBAfterPayRecordedContext({
-                    payer: msg.sender,
-                    projectId: projectId,
-                    rulesetId: 0,
-                    amount: JBTokenAmount(token, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
-                    weight: 10 ** 18,
-                    projectTokenCount: 0,
-                    beneficiary: msg.sender,
-                    hookMetadata: new bytes(0),
-                    payerMetadata: new bytes(0)
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(token, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: new bytes(0)
             })
         );
 
@@ -862,7 +908,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         // Pass the hook id
         bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_HOOK_ID;
+        _ids[0] = bytes4(bytes20(address(hook)));
 
         // Generate the metadata
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -877,19 +923,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
             JBAfterPayRecordedContext({
-
-                    payer: beneficiary,
-                    projectId: projectId,
-                    rulesetId: 0,
-                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
-                    weight: 10 ** 18,
-                    projectTokenCount: 0,
-                    beneficiary: beneficiary,
-                    hookMetadata: new bytes(0),
-                    payerMetadata: _delegateMetadata
-            }
-            )
+                payer: beneficiary,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: beneficiary,
+                hookMetadata: new bytes(0),
+                payerMetadata: _delegateMetadata
+            })
         );
 
         uint256 _totalSupplyBefore = hook.STORE().totalSupplyOf(address(hook));
@@ -916,17 +961,19 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
             JBAfterPayRecordedContext({
-
-                    payer: beneficiary,
-                    projectId: projectId,
-                    rulesetId: 0,
-                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
-                    weight: 10 ** 18,
-                    projectTokenCount: 0,
-                    beneficiary: beneficiary,
-                    hookMetadata: new bytes(0),
-                    payerMetadata: _delegateMetadata
+                payer: beneficiary,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: beneficiary,
+                hookMetadata: new bytes(0),
+                payerMetadata: _delegateMetadata
             })
         );
 
@@ -953,7 +1000,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         // Pass the hook id
         bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_HOOK_ID;
+        _ids[0] = bytes4(bytes20(address(hook)));
 
         // Generate the metadata
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -961,18 +1008,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         vm.expectRevert(abi.encodeWithSelector(JB721TiersHook.OVERSPENDING.selector));
         hook.afterPayRecordedWith(
             JBAfterPayRecordedContext({
-                    payer: msg.sender,
-                    projectId: projectId,
-                    rulesetId: 0,
-                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
-                    weight: 10 ** 18,
-                    projectTokenCount: 0,
-                    beneficiary: beneficiary,
-                    hookMetadata: new bytes(0),
-                    payerMetadata: _delegateMetadata
-            }
-            )
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: beneficiary,
+                hookMetadata: new bytes(0),
+                payerMetadata: _delegateMetadata
+            })
         );
     }
 
@@ -1022,18 +1069,18 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
             JBAfterPayRecordedContext({
-                    payer: msg.sender,
-                    projectId: projectId,
-                    rulesetId: 0,
-                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
-                    weight: 10 ** 18,
-                    projectTokenCount: 0,
-                    beneficiary: beneficiary,
-                    hookMetadata: new bytes(0),
-                    payerMetadata: _metadata
-            }
-            )
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, _amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: beneficiary,
+                hookMetadata: new bytes(0),
+                payerMetadata: _metadata
+            })
         );
     }
 
@@ -1099,7 +1146,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         // Pass the hook id
         bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_HOOK_ID;
+        _ids[0] = bytes4(bytes20(address(_hook)));
 
         // Generate the metadata
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -1107,16 +1154,22 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         vm.prank(mockTerminalAddress);
         _hook.afterPayRecordedWith(
             JBAfterPayRecordedContext({
-                    payer: msg.sender,
-                    projectId: projectId,
-                    rulesetId: 0,
-                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
-                    weight: 10 ** 18,
-                    projectTokenCount: 0,
-                    beneficiary: msg.sender,
-                    hookMetadata: new bytes(0),
-                    payerMetadata: _delegateMetadata
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN,
+                    tiers[0].price * 2 + tiers[1].price,
+                    18,
+                    uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: _delegateMetadata
             })
         );
 
@@ -1152,7 +1205,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         // Pass the hook id
         bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_HOOK_ID;
+        _ids[0] = bytes4(bytes20(address(_hook)));
 
         // Generate the metadata
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -1160,18 +1213,23 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         vm.prank(mockTerminalAddress);
         _hook.afterPayRecordedWith(
             JBAfterPayRecordedContext({
-                    payer: msg.sender,
-                    projectId: projectId,
-                    rulesetId: 0,
-                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
-                    weight: 10 ** 18,
-                    projectTokenCount: 0,
-                    beneficiary: msg.sender,
-                    hookMetadata: new bytes(0),
-                    payerMetadata: _delegateMetadata
-            }
-            )
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN,
+                    tiers[0].price * 2 + tiers[1].price,
+                    18,
+                    uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: _delegateMetadata
+            })
         );
 
         uint256 _tokenId = _generateTokenId(1, 1);
@@ -1208,7 +1266,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
             _data[0] = abi.encode(true, rawMetadata);
 
             // Pass the hook id
-            _ids[0] = PAY_HOOK_ID;
+            _ids[0] = bytes4(bytes20(address(_hook)));
 
             // Generate the metadata
             _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -1219,18 +1277,20 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         vm.prank(mockTerminalAddress);
         _hook.afterPayRecordedWith(
             JBAfterPayRecordedContext({
-                    payer: _holder,
-                    projectId: projectId,
-                    rulesetId: 0,
-                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
-                    weight: 10 ** 18,
-                    projectTokenCount: 0,
-                    beneficiary: _holder,
-                    hookMetadata: new bytes(0),
-                    payerMetadata: _delegateMetadata
-            }
-            )
+                payer: _holder,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN, tiers[0].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: _holder,
+                hookMetadata: new bytes(0),
+                payerMetadata: _delegateMetadata
+            })
         );
 
         uint256[] memory _tokenToRedeem = new uint256[](1);
@@ -1240,7 +1300,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         _data[0] = abi.encode(_tokenToRedeem);
 
         // Pass the hook id
-        _ids[0] = REDEEM_HOOK_ID;
+        _ids[0] = bytes4(bytes20(address(_hook)));
 
         // Generate the metadata
         _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -1252,10 +1312,20 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 1,
                 redeemCount: 0,
-                reclaimedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}),
-                forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}), // 0
+                reclaimedAmount: JBTokenAmount({
+                    token: address(0),
+                    value: 0,
+                    decimals: 18,
+                    currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
+                }),
+                forwardedAmount: JBTokenAmount({
+                    token: address(0),
+                    value: 0,
+                    decimals: 18,
+                    currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
+                }), // 0
                 redemptionRate: 5000,
-                    // fwd to hook
+                // fwd to hook
                 beneficiary: payable(_holder),
                 hookMetadata: bytes(""),
                 redeemerMetadata: _delegateMetadata

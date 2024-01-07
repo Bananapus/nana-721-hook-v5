@@ -105,14 +105,7 @@ contract TestBaseWorkflow is Test {
         vm.label(address(jbSplits), "JBSplits");
 
         jbController = new JBController(
-            jbPermissions,
-            jbProjects,
-            jbDirectory,
-            jbRulesets,
-            jbTokens,
-            jbSplits,
-            jbFundAccessLimits,
-            address(0)
+            jbPermissions, jbProjects, jbDirectory, jbRulesets, jbTokens, jbSplits, jbFundAccessLimits, address(0)
         );
         vm.label(address(jbController), "JBController");
 

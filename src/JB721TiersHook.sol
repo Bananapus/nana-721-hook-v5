@@ -42,6 +42,15 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
     error TIER_TRANSFERS_PAUSED();
 
     //*********************************************************************//
+    // --------------- public immutable stored properties ---------------- //
+    //*********************************************************************//
+
+    /// @notice The address of the original `JB721TiersHook`.
+    /// @dev Used in `initialize(...)` to check if this is the original `JB721TiersHook`, and to revert initialization
+    /// if it is.
+    address public immutable override CODE_ORIGIN;
+
+    //*********************************************************************//
     // --------------------- internal stored properties ------------------ //
     //*********************************************************************//
 
@@ -54,16 +63,11 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
     /// - currency in bits 0-47 (48 bits),
     /// - pricing decimals in bits 48-95 (48 bits), and
     /// - prices contract in bits 96-255 (160 bits).
-    uint256 internal packedPricingContext;
+    uint256 internal _packedPricingContext;
 
     //*********************************************************************//
     // --------------------- public stored properties -------------------- //
     //*********************************************************************//
-
-    /// @notice The address of the original `JB721TiersHook`.
-    /// @dev Used in `initialize(...)` to check if this is the original `JB721TiersHook`, and to revert initialization
-    /// if it is.
-    address public override codeOrigin;
 
     /// @notice The contract that stores and manages data for this contract's NFTs.
     IJB721TiersHookStore public override STORE;
@@ -109,7 +113,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
     /// @return prices The prices contract used to resolve the value of payments in currencies other than `currency`.
     function pricingContext() external view override returns (uint256 currency, uint256 decimals, IJBPrices prices) {
         // Get a reference to the packed pricing context.
-        uint256 packed = packedPricingContext;
+        uint256 packed = _packedPricingContext;
         // currency in bits 0-47 (48 bits).
         currency = uint256(uint48(packed));
         // pricing decimals in bits 48-95 (48 bits).
@@ -190,18 +194,14 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
 
     /// @param directory A directory of terminals and controllers for projects.
     /// @param permissions A contract storing permissions.
-    /// @param metadataPayHookId This contract's pay hook ID; used for parsing payment metadata.
-    /// @param metadataRedeemHookId This contract's redeem hook ID; used for parsing redemption metadata.
     constructor(
         IJBDirectory directory,
-        IJBPermissions permissions,
-        bytes4 metadataPayHookId,
-        bytes4 metadataRedeemHookId
+        IJBPermissions permissions
     )
         JBOwnable(directory.PROJECTS(), permissions)
-        JB721Hook(directory, metadataPayHookId, metadataRedeemHookId)
+        JB721Hook(directory)
     {
-        codeOrigin = address(this);
+        CODE_ORIGIN = address(this);
     }
 
     /// @notice Initializes a cloned copy of the original `JB721Hook` contract.
@@ -249,7 +249,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         // pack the prices contract in bits 96-255 (160 bits).
         packed |= uint256(uint160(address(tiersConfig.prices))) << 96;
         // Store the packed value.
-        packedPricingContext = packed;
+        _packedPricingContext = packed;
 
         // Store the base URI if provided.
         if (bytes(baseUri).length != 0) baseURI = baseUri;
@@ -307,7 +307,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         // Keep a reference to the token ID being iterated upon.
         uint256 tokenId;
 
-        for (uint256 i; i < numberOfNfts;) {
+        for (uint256 i; i < numberOfNfts; i++) {
             // Set the token ID.
             tokenId = tokenIds[i];
 
@@ -315,10 +315,6 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
             _mint(beneficiary, tokenId);
 
             emit Mint(tokenId, tierIds[i], beneficiary, 0, msg.sender);
-
-            unchecked {
-                ++i;
-            }
         }
     }
 
@@ -329,16 +325,12 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         // Keep a reference to the number of tiers to mint reserves for.
         uint256 numberOfTiers = reserveMintParams.length;
 
-        for (uint256 i; i < numberOfTiers;) {
+        for (uint256 i; i < numberOfTiers; i++) {
             // Get a reference to the params being iterated upon.
             JB721TiersMintReservesParams memory params = reserveMintParams[i];
 
             // Mint pending reserved NFTs from the tier.
             mintPendingReservesFor(params.tierId, params.count);
-
-            unchecked {
-                ++i;
-            }
         }
     }
 
@@ -364,11 +356,8 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
             STORE.recordRemoveTierIds(tierIdsToRemove);
 
             // Emit events for each removed tier.
-            for (uint256 i; i < numberOfTiersToRemove;) {
+            for (uint256 i; i < numberOfTiersToRemove;  i++) {
                 emit RemoveTier(tierIdsToRemove[i], msg.sender);
-                unchecked {
-                    ++i;
-                }
             }
         }
 
@@ -378,11 +367,8 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
             uint256[] memory tierIdsAdded = STORE.recordAddTiers(tiersToAdd);
 
             // Emit events for each added tier.
-            for (uint256 i; i < numberOfTiersToAdd;) {
+            for (uint256 i; i < numberOfTiersToAdd; i++) {
                 emit AddTier(tierIdsAdded[i], tiersToAdd[i], msg.sender);
-                unchecked {
-                    ++i;
-                }
             }
         }
     }
@@ -462,7 +448,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         // Keep a reference to the token ID being iterated upon.
         uint256 tokenId;
 
-        for (uint256 i; i < count;) {
+        for (uint256 i; i < count; i++) {
             // Set the token ID.
             tokenId = tokenIds[i];
 
@@ -470,17 +456,13 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
             _mint(reserveBeneficiary, tokenId);
 
             emit MintReservedNft(tokenId, tierId, reserveBeneficiary, msg.sender);
-
-            unchecked {
-                ++i;
-            }
         }
     }
 
     //*********************************************************************//
     // ------------------------ internal functions ----------------------- //
     //*********************************************************************//
-    
+
     /// @notice Process a payment, minting NFTs and updating credits as necessary.
     /// @param context Payment context provided by the terminal after it has recorded the payment in the terminal store.
     function _processPayment(JBAfterPayRecordedContext calldata context) internal virtual override {
@@ -488,7 +470,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         uint256 value;
 
         {
-            uint256 packed = packedPricingContext;
+            uint256 packed = _packedPricingContext;
             // pricing currency in bits 0-47 (48 bits).
             uint256 pricingCurrency = uint256(uint48(packed));
             if (context.amount.currency == pricingCurrency) {
@@ -502,7 +484,12 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
                     value = mulDiv(
                         context.amount.value,
                         10 ** pricingDecimals,
-                        prices.pricePerUnitOf({ projectId: projectId, pricingCurrency: context.amount.currency, unitCurrency: pricingCurrency, decimals: context.amount.decimals})
+                        prices.pricePerUnitOf({
+                            projectId: projectId,
+                            pricingCurrency: context.amount.currency,
+                            unitCurrency: pricingCurrency,
+                            decimals: context.amount.decimals
+                        })
                     );
                 } else {
                     return;
@@ -531,8 +518,11 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         // allowed. Defaults to false.
         bool allowOverspending;
 
+        // The metadata ID is the first 4 bytes of this contract's address.
+        bytes4 metadataId = bytes4(bytes20(address(this)));
+
         // Resolve the metadata.
-        (bool found, bytes memory metadata) = JBMetadataResolver.getDataFor(metadataPayHookId, context.payerMetadata);
+        (bool found, bytes memory metadata) = JBMetadataResolver.getDataFor(metadataId, context.payerMetadata);
 
         if (found) {
             // Keep a reference to the IDs of the tier be to minted.
@@ -623,7 +613,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         uint256 tokenId;
 
         // Loop through each token ID and mint the corresponding NFT.
-        for (uint256 i; i < mintsLength;) {
+        for (uint256 i; i < mintsLength; i++) {
             // Get a reference to the token ID being iterated on.
             tokenId = tokenIds[i];
 
@@ -631,10 +621,6 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
             _mint(beneficiary, tokenId);
 
             emit Mint(tokenId, mintTierIds[i], beneficiary, amount, msg.sender);
-
-            unchecked {
-                ++i;
-            }
         }
     }
 
@@ -645,7 +631,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         // Get a reference to the tier.
         JB721Tier memory tier = STORE.tierOfTokenId(address(this), tokenId, false);
 
-        // Keep a reference to where the token is coming from.        
+        // Keep a reference to where the token is coming from.
         from = _ownerOf(tokenId);
 
         // Transfers must not be paused (when not minting or burning).

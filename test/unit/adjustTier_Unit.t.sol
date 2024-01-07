@@ -146,8 +146,7 @@ contract TestJuice721dDelegate_adjustTier_Unit is UnitTestSetup {
         // Initialize first tiers to add
         JB721TiersHook _hook = _initializeDelegateDefaultTiers(initialNumberOfTiers);
 
-        JB721Tier[] memory _defaultStoredTiers =
-            _hook.STORE().tiersOf(address(_hook), new uint256[](0), false, 0, 100);
+        JB721Tier[] memory _defaultStoredTiers = _hook.STORE().tiersOf(address(_hook), new uint256[](0), false, 0, 100);
 
         // Create new tiers to add
         (JB721TierConfig[] memory _tiersParamsToAdd, JB721Tier[] memory _tiersToAdd) =
@@ -311,8 +310,7 @@ contract TestJuice721dDelegate_adjustTier_Unit is UnitTestSetup {
         // Add the new tiers
         _tiersLeft = _addDeleteTiers(_hook, _tiersLeft, 0, _tiersParams);
 
-        JB721Tier[] memory _allStoredTiers =
-            _hook.STORE().tiersOf(address(_hook), new uint256[](0), false, 0, 100);
+        JB721Tier[] memory _allStoredTiers = _hook.STORE().tiersOf(address(_hook), new uint256[](0), false, 0, 100);
 
         uint256[] memory _categories = new uint256[](1);
         _categories[0] = 102;
@@ -464,9 +462,8 @@ contract TestJuice721dDelegate_adjustTier_Unit is UnitTestSetup {
 
         uint256[] memory _categories = new uint256[](1);
         _categories[0] = 101;
-        JB721Tier[] memory _storedTiers = _hook.STORE().tiersOf(
-            address(_hook), _categories, false, 0, initialNumberOfTiers + floorTiersToAdd.length
-        );
+        JB721Tier[] memory _storedTiers =
+            _hook.STORE().tiersOf(address(_hook), _categories, false, 0, initialNumberOfTiers + floorTiersToAdd.length);
         // check no of tiers
         assertEq(_storedTiers.length, floorTiersToAdd.length);
         // Check: Are all the tiers sorted?
@@ -669,7 +666,12 @@ contract TestJuice721dDelegate_adjustTier_Unit is UnitTestSetup {
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
-            JB721InitTiersConfig({tiers: _tierParams, currency: uint32(uint160(JBConstants.NATIVE_TOKEN)), decimals: 18, prices: IJBPrices(address(0))}),
+            JB721InitTiersConfig({
+                tiers: _tierParams,
+                currency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
+                decimals: 18,
+                prices: IJBPrices(address(0))
+            }),
             IJB721TiersHookStore(address(_store)),
             JB721TiersHookFlags({
                 preventOverspending: false,
@@ -1119,7 +1121,12 @@ contract TestJuice721dDelegate_adjustTier_Unit is UnitTestSetup {
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
-            JB721InitTiersConfig({tiers: _tierParams, currency: uint32(uint160(JBConstants.NATIVE_TOKEN)), decimals: 18, prices: IJBPrices(address(0))}),
+            JB721InitTiersConfig({
+                tiers: _tierParams,
+                currency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
+                decimals: 18,
+                prices: IJBPrices(address(0))
+            }),
             IJB721TiersHookStore(address(_store)),
             JB721TiersHookFlags({
                 preventOverspending: false,
@@ -1386,8 +1393,7 @@ contract TestJuice721dDelegate_adjustTier_Unit is UnitTestSetup {
         JB721TiersHook _hook = _initializeDelegateDefaultTiers(0);
 
         // Try to get _size tiers
-        JB721Tier[] memory _intialTiers =
-            _hook.STORE().tiersOf(address(_hook), new uint256[](0), false, 0, _size);
+        JB721Tier[] memory _intialTiers = _hook.STORE().tiersOf(address(_hook), new uint256[](0), false, 0, _size);
 
         // Check: Array of size 0?
         assertEq(_intialTiers.length, 0, "Length mismatch");

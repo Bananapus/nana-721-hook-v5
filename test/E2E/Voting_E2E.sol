@@ -42,18 +42,18 @@ contract TestJB721TiersHookGovernance is TestJBTieredNFTRewardDelegateE2E {
 
                 // Pass the hook id
                 bytes4[] memory _ids = new bytes4[](1);
-                _ids[0] = metadataPayHookId;
+                _ids[0] = bytes4(bytes20(address(_hook)));
 
                 // Generate the metadata
                 _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
             }
             jbMultiTerminal.pay{value: _payAmount}({
-                projectId: projectId, 
-                amount: 100, 
+                projectId: projectId,
+                amount: 100,
                 token: JBConstants.NATIVE_TOKEN,
-                beneficiary: _user, 
-                minReturnedTokens: 0, 
-                memo: "Take my money!", 
+                beneficiary: _user,
+                minReturnedTokens: 0,
+                memo: "Take my money!",
                 metadata: _delegateMetadata
             });
         }
@@ -116,7 +116,7 @@ contract TestJB721TiersHookGovernance is TestJBTieredNFTRewardDelegateE2E {
 
             // Pass the hook id
             bytes4[] memory _ids = new bytes4[](1);
-            _ids[0] = metadataPayHookId;
+            _ids[0] = bytes4(bytes20(address(_hook)));
 
             // Generate the metadata
             bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -124,12 +124,12 @@ contract TestJB721TiersHookGovernance is TestJBTieredNFTRewardDelegateE2E {
             // Pay and mint an NFT
             vm.deal(_user, _payAmount);
             jbMultiTerminal.pay{value: _payAmount}({
-                projectId: projectId, 
-                amount: 100, 
+                projectId: projectId,
+                amount: 100,
                 token: JBConstants.NATIVE_TOKEN,
-                beneficiary: _user, 
-                minReturnedTokens: 0,  
-                memo: "Take my money!", 
+                beneficiary: _user,
+                minReturnedTokens: 0,
+                memo: "Take my money!",
                 metadata: _delegateMetadata
             });
         }

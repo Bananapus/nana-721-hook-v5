@@ -19,9 +19,6 @@ contract DeployMainnet is Script {
     IJBDirectory jbDirectory = IJBDirectory(0x65572FB928b46f9aDB7cfe5A4c41226F636161ea);
     IJBPermissions jbOperatorStore = IJBPermissions(0x6F3C5afCa0c9eDf3926eF2dDF17c8ae6391afEfb);
 
-    bytes4 metadataPayHookId = bytes4("721P");
-    bytes4 metadataRedeemHookId = bytes4("721R");
-
     JB721TiersHookDeployer hookDeployer;
     JB721TiersHookProjectDeployer projectDeployer;
     JB721TiersHookStore store;
@@ -29,9 +26,7 @@ contract DeployMainnet is Script {
     function run() external {
         IJBAddressRegistry registry = IJBAddressRegistry(
             stdJson.readAddress(
-                vm.readFile(
-                    "lib/juice-address-registry/broadcast/Deploy.s.sol/1/run-latest.json"
-                ),
+                vm.readFile("lib/juice-address-registry/broadcast/Deploy.s.sol/1/run-latest.json"),
                 ".transactions[0].contractAddress"
             )
         );
@@ -41,10 +36,8 @@ contract DeployMainnet is Script {
 
         vm.startBroadcast();
 
-        JB721TiersHook noGovernance =
-            new JB721TiersHook(jbDirectory, jbOperatorStore, metadataPayHookId, metadataRedeemHookId);
-        JBGoverned721TiersHook onchainGovernance =
-            new JBGoverned721TiersHook(jbDirectory, jbOperatorStore, metadataPayHookId, metadataRedeemHookId);
+        JB721TiersHook noGovernance = new JB721TiersHook(jbDirectory, jbOperatorStore);
+        JBGoverned721TiersHook onchainGovernance = new JBGoverned721TiersHook(jbDirectory, jbOperatorStore);
 
         hookDeployer = new JB721TiersHookDeployer(onchainGovernance, noGovernance, registry);
 
@@ -72,9 +65,7 @@ contract DeployGoerli is Script {
     function run() external {
         IJBAddressRegistry registry = IJBAddressRegistry(
             stdJson.readAddress(
-                vm.readFile(
-                    "lib/juice-address-registry/broadcast/Deploy.s.sol/1/run-latest.json"
-                ),
+                vm.readFile("lib/juice-address-registry/broadcast/Deploy.s.sol/1/run-latest.json"),
                 ".transactions[0].contractAddress"
             )
         );
@@ -84,10 +75,8 @@ contract DeployGoerli is Script {
 
         vm.startBroadcast();
 
-        JB721TiersHook noGovernance =
-            new JB721TiersHook(jbDirectory, jbOperatorStore, metadataPayHookId, metadataRedeemHookId);
-        JBGoverned721TiersHook onchainGovernance =
-            new JBGoverned721TiersHook(jbDirectory, jbOperatorStore, metadataPayHookId, metadataRedeemHookId);
+        JB721TiersHook noGovernance = new JB721TiersHook(jbDirectory, jbOperatorStore);
+        JBGoverned721TiersHook onchainGovernance = new JBGoverned721TiersHook(jbDirectory, jbOperatorStore);
 
         hookDeployer = new JB721TiersHookDeployer(onchainGovernance, noGovernance, registry);
 

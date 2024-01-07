@@ -174,7 +174,7 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         internal
     {
         // Keep a reference to how many ruleset configurations there are.
-        uint256 numberOfRulesetConfigurations = launchProjectConfig.rulesetConfigurations.length; 
+        uint256 numberOfRulesetConfigurations = launchProjectConfig.rulesetConfigurations.length;
 
         // Initialize an array of ruleset configurations.
         JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](numberOfRulesetConfigurations);
@@ -243,7 +243,7 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         returns (uint256)
     {
         // Keep a reference to how many ruleset configurations there are.
-        uint256 numberOfRulesetConfigurations = launchRulesetsConfig.rulesetConfigurations.length; 
+        uint256 numberOfRulesetConfigurations = launchRulesetsConfig.rulesetConfigurations.length;
 
         // Initialize an array of ruleset configurations.
         JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](numberOfRulesetConfigurations);
@@ -311,7 +311,7 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         returns (uint256)
     {
         // Keep a reference to how many ruleset configurations there are.
-        uint256 numberOfRulesetConfigurations = queueRulesetsConfig.rulesetConfigurations.length; 
+        uint256 numberOfRulesetConfigurations = queueRulesetsConfig.rulesetConfigurations.length;
 
         // Initialize an array of ruleset configurations.
         JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](numberOfRulesetConfigurations);

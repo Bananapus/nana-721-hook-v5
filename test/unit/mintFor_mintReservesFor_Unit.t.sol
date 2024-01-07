@@ -143,7 +143,7 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
                             dataHook: address(0),
                             metadata: 2 // == 010_2
                         })
-                    )
+                        )
                 })
             )
         );
@@ -262,8 +262,7 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         }
 
         // fetching existing tiers
-        JB721Tier[] memory _storedTiers =
-            _hook.test_store().tiersOf(address(_hook), new uint256[](0), false, 0, 10);
+        JB721Tier[] memory _storedTiers = _hook.test_store().tiersOf(address(_hook), new uint256[](0), false, 0, 10);
 
         // making sure reserved rate is 0
         for (uint256 i; i < 10; i++) {

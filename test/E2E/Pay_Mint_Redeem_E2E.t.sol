@@ -47,23 +47,19 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         bytes32(0x7D5A99F603F231D53A4F39D1521F98D2E8BB279CF29BEBFD0687DC98458E7F89),
         bytes32(0x7D5A99F603F231D53A4F39D1521F98D2E8BB279CF29BEBFD0687DC98458E7F89)
     ];
-    bytes4 metadataPayHookId = bytes4(hex"70");
-    bytes4 metadataRedeemHookId = bytes4(hex"71");
 
     JB721TiersHookProjectDeployer deployer;
     JBAddressRegistry addressRegistry;
 
     function setUp() public override {
         super.setUp();
-        noGovernance = new JB721TiersHook(jbDirectory, jbPermissions, metadataPayHookId, metadataRedeemHookId);
-        JBGoverned721TiersHook onchainGovernance =
-            new JBGoverned721TiersHook(jbDirectory, jbPermissions, metadataPayHookId, metadataRedeemHookId);
+        noGovernance = new JB721TiersHook(jbDirectory, jbPermissions);
+        JBGoverned721TiersHook onchainGovernance = new JBGoverned721TiersHook(jbDirectory, jbPermissions);
         addressRegistry = new JBAddressRegistry();
         JB721TiersHookDeployer hookDeployer =
             new JB721TiersHookDeployer(onchainGovernance, noGovernance, addressRegistry);
-        deployer = new JB721TiersHookProjectDeployer(
-            IJBDirectory(jbDirectory), hookDeployer, IJBPermissions(jbPermissions)
-        );
+        deployer =
+            new JB721TiersHookProjectDeployer(IJBDirectory(jbDirectory), hookDeployer, IJBPermissions(jbPermissions));
 
         metadataHelper = new MetadataResolverHelper();
     }
@@ -96,9 +92,11 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         bytes[] memory _data = new bytes[](1);
         _data[0] = abi.encode(true, rawMetadata);
 
+        address NFTRewardDataHook = jbRulesets.currentOf(projectId).dataHook();
+
         // Pass the hook id
         bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = metadataPayHookId;
+        _ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
 
         // Generate the metadata
         bytes memory _hookMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -124,7 +122,6 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         });
         uint256 tokenId = _generateTokenId(highestTier, 1);
         // Check: NFT actually received?
-        address NFTRewardDataHook = jbRulesets.currentOf(projectId).dataHook();
         if (valueSent < 10) {
             assertEq(IERC721(NFTRewardDataHook).balanceOf(beneficiary), 0);
         } else {
@@ -171,9 +168,11 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         bytes[] memory _data = new bytes[](1);
         _data[0] = abi.encode(true, rawMetadata);
 
+        address NFTRewardDataHook = jbRulesets.currentOf(projectId).dataHook();
+
         // Pass the hook id
         bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = metadataPayHookId;
+        _ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
 
         // Generate the metadata
         bytes memory _hookMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -190,7 +189,6 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         });
 
         // Check: NFT actually received?
-        address NFTRewardDataHook = jbRulesets.currentOf(projectId).dataHook();
         assertEq(IERC721(NFTRewardDataHook).balanceOf(beneficiary), 5);
         for (uint256 i = 1; i <= 5; i++) {
             uint256 tokenId = _generateTokenId(i, 1);
@@ -280,7 +278,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
 
         // Pass the hook id
         bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = metadataPayHookId;
+        _ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
 
         // Generate the metadata
         bytes memory _hookMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -350,6 +348,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         bytes memory _hookMetadata;
         bytes[] memory _data;
         bytes4[] memory _ids;
+        address NFTRewardDataHook = jbRulesets.currentOf(projectId).dataHook();
         {
             uint16[] memory rawMetadata = new uint16[](1);
             rawMetadata[0] = uint16(highestTier);
@@ -360,7 +359,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
 
             // Pass the hook id
             _ids = new bytes4[](1);
-            _ids[0] = metadataPayHookId;
+            _ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
 
             // Generate the metadata
             _hookMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -376,6 +375,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             metadata: _hookMetadata
         });
 
+
         {
             uint256 tokenId = _generateTokenId(highestTier, 1);
 
@@ -387,13 +387,12 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             _data[0] = abi.encode(redemptionId);
 
             // Pass the hook id
-            _ids[0] = metadataRedeemHookId;
+            _ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
 
             // Generate the metadata
             _hookMetadata = metadataHelper.createMetadata(_ids, _data);
         }
 
-        address NFTRewardDataHook = jbRulesets.currentOf(projectId).dataHook();
         // New token balance
         uint256 tokenBalance = IERC721(NFTRewardDataHook).balanceOf(beneficiary);
 
@@ -448,9 +447,11 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         bytes[] memory _data = new bytes[](1);
         _data[0] = abi.encode(true, rawMetadata);
 
+        address NFTRewardDataHook = jbRulesets.currentOf(projectId).dataHook();
+
         // Pass the hook id
         bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = metadataPayHookId;
+        _ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
 
         // Generate the metadata
         bytes memory _hookMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -466,7 +467,6 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             metadata: _hookMetadata
         });
 
-        address NFTRewardDataHook = jbRulesets.currentOf(projectId).dataHook();
         // New token balance
         uint256 tokenBalance = IERC721(NFTRewardDataHook).balanceOf(beneficiary);
         // Reserved token available to mint
@@ -489,7 +489,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         _data[0] = abi.encode(redemptionId);
 
         // Pass the hook id
-        _ids[0] = metadataRedeemHookId;
+        _ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
 
         // Generate the metadata
         _hookMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -515,7 +515,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         _data[0] = abi.encode(true, rawMetadata);
 
         // Pass the hook id
-        _ids[0] = metadataPayHookId;
+        _ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
 
         // Generate the metadata
         _hookMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -577,7 +577,12 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             baseUri: baseUri,
             tokenUriResolver: IJB721TokenUriResolver(address(0)),
             contractUri: contractUri,
-            tiersConfig: JB721InitTiersConfig({tiers: tierParams, currency: uint32(uint160(JBConstants.NATIVE_TOKEN)), decimals: 18, prices: IJBPrices(address(0))}),
+            tiersConfig: JB721InitTiersConfig({
+                tiers: tierParams,
+                currency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
+                decimals: 18,
+                prices: IJBPrices(address(0))
+            }),
             reserveBeneficiary: reserveBeneficiary,
             store: new JB721TiersHookStore(),
             flags: JB721TiersHookFlags({

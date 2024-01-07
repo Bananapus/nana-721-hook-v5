@@ -43,12 +43,11 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
 
         // Pass the hook id
         bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = REDEEM_HOOK_ID;
+        _ids[0] = bytes4(bytes20(address(_hook)));
 
         // Generate the metadata
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
-        (uint256 reclaimAmount, JBRedeemHookSpecification[] memory _returnedDelegate) = _hook
-            .beforeRedeemRecordedWith(
+        (uint256 reclaimAmount, JBRedeemHookSpecification[] memory _returnedDelegate) = _hook.beforeRedeemRecordedWith(
             JBBeforeRedeemRecordedContext({
                 terminal: address(0),
                 holder: beneficiary,
@@ -57,7 +56,12 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                 redeemCount: 0,
                 totalSupply: 0,
                 surplus: SURPLUS,
-                reclaimAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}),
+                reclaimAmount: JBTokenAmount({
+                    token: address(0),
+                    value: 0,
+                    decimals: 18,
+                    currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
+                }),
                 useTotalSurplus: true,
                 redemptionRate: REDEMPTION_RATE,
                 metadata: _delegateMetadata
@@ -109,8 +113,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
             _weight += (i + 1) * (i + 1) * 10;
         }
 
-        (uint256 reclaimAmount, JBRedeemHookSpecification[] memory _returnedDelegate) = _hook
-            .beforeRedeemRecordedWith(
+        (uint256 reclaimAmount, JBRedeemHookSpecification[] memory _returnedDelegate) = _hook.beforeRedeemRecordedWith(
             JBBeforeRedeemRecordedContext({
                 terminal: address(0),
                 holder: beneficiary,
@@ -119,7 +122,12 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                 redeemCount: 0,
                 totalSupply: 0,
                 surplus: _surplus,
-                reclaimAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}),
+                reclaimAmount: JBTokenAmount({
+                    token: address(0),
+                    value: 0,
+                    decimals: 18,
+                    currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
+                }),
                 useTotalSurplus: true,
                 redemptionRate: _redemptionRate,
                 metadata: abi.encode(bytes32(0), type(IJB721Hook).interfaceId, _tokenList)
@@ -168,7 +176,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
 
         // Pass the hook id
         bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = REDEEM_HOOK_ID;
+        _ids[0] = bytes4(bytes20(address(_hook)));
 
         // Generate the metadata
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -181,7 +189,12 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
             redeemCount: 0,
             totalSupply: 0,
             surplus: SURPLUS,
-            reclaimAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}),
+            reclaimAmount: JBTokenAmount({
+                token: address(0),
+                value: 0,
+                decimals: 18,
+                currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
+            }),
             useTotalSurplus: true,
             redemptionRate: REDEMPTION_RATE,
             metadata: _delegateMetadata
@@ -210,7 +223,12 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                 redeemCount: _tokenCount,
                 totalSupply: 0,
                 surplus: 100,
-                reclaimAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}),
+                reclaimAmount: JBTokenAmount({
+                    token: address(0),
+                    value: 0,
+                    decimals: 18,
+                    currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
+                }),
                 useTotalSurplus: true,
                 redemptionRate: 100,
                 metadata: new bytes(0)
@@ -247,7 +265,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
 
             // Pass the hook id
             _ids = new bytes4[](1);
-            _ids[0] = PAY_HOOK_ID;
+            _ids[0] = bytes4(bytes20(address(_hook)));
 
             // Generate the metadata
             _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -256,16 +274,17 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
             // which leads to underflow on redeem
             vm.prank(mockTerminalAddress);
             JBAfterPayRecordedContext memory _payData = JBAfterPayRecordedContext({
-                    payer: beneficiary,
-                    projectId: projectId,
-                    rulesetId: 0,
-                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 10, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0 fwd to hook
-                    weight: 10 ** 18,
-                    projectTokenCount: 0,
-                    beneficiary: beneficiary,
-                    hookMetadata: new bytes(0),
-                    payerMetadata: _delegateMetadata
+                payer: beneficiary,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 10, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                    // fwd to hook
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: beneficiary,
+                hookMetadata: new bytes(0),
+                payerMetadata: _delegateMetadata
             });
 
             _hook.afterPayRecordedWith(_payData);
@@ -282,7 +301,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
 
         // Pass the hook id
         _ids = new bytes4[](1);
-        _ids[0] = REDEEM_HOOK_ID;
+        _ids[0] = bytes4(bytes20(address(_hook)));
 
         // Generate the metadata
         _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -294,10 +313,20 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 1,
                 redeemCount: 0,
-                reclaimedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}),
-                forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}), // 0
+                reclaimedAmount: JBTokenAmount({
+                    token: address(0),
+                    value: 0,
+                    decimals: 18,
+                    currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
+                }),
+                forwardedAmount: JBTokenAmount({
+                    token: address(0),
+                    value: 0,
+                    decimals: 18,
+                    currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
+                }), // 0
                 redemptionRate: 5000,
-                    // fwd to hook
+                // fwd to hook
                 beneficiary: payable(beneficiary),
                 hookMetadata: bytes(""),
                 redeemerMetadata: _delegateMetadata
@@ -335,10 +364,20 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                 projectId: _wrongProjectId,
                 rulesetId: 1,
                 redeemCount: 0,
-                reclaimedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}),
-                forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}), //sv
+                reclaimedAmount: JBTokenAmount({
+                    token: address(0),
+                    value: 0,
+                    decimals: 18,
+                    currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
+                }),
+                forwardedAmount: JBTokenAmount({
+                    token: address(0),
+                    value: 0,
+                    decimals: 18,
+                    currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
+                }), //sv
                 redemptionRate: 5000,
-                    // 0 fwd to hook
+                // 0 fwd to hook
                 beneficiary: payable(beneficiary),
                 hookMetadata: bytes(""),
                 redeemerMetadata: abi.encode(type(IJB721TiersHook).interfaceId, _tokenList)
@@ -366,8 +405,18 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 1,
                 redeemCount: 0,
-                reclaimedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}),
-                forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}), // 0
+                reclaimedAmount: JBTokenAmount({
+                    token: address(0),
+                    value: 0,
+                    decimals: 18,
+                    currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
+                }),
+                forwardedAmount: JBTokenAmount({
+                    token: address(0),
+                    value: 0,
+                    decimals: 18,
+                    currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
+                }), // 0
                 redemptionRate: 5000,
                 beneficiary: payable(beneficiary),
                 hookMetadata: bytes(""),
@@ -398,7 +447,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
 
         // Pass the hook id
         bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = REDEEM_HOOK_ID;
+        _ids[0] = bytes4(bytes20(address(_hook)));
 
         // Generate the metadata
         bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
@@ -419,10 +468,20 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 1,
                 redeemCount: 0,
-                reclaimedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}),
-                forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN))}), // 0
+                reclaimedAmount: JBTokenAmount({
+                    token: address(0),
+                    value: 0,
+                    decimals: 18,
+                    currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
+                }),
+                forwardedAmount: JBTokenAmount({
+                    token: address(0),
+                    value: 0,
+                    decimals: 18,
+                    currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
+                }), // 0
                 redemptionRate: 5000,
-                    // fwd to hook
+                // fwd to hook
                 beneficiary: payable(_wrongHolder),
                 hookMetadata: bytes(""),
                 redeemerMetadata: _delegateMetadata

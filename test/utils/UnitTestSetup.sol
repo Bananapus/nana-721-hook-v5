@@ -26,9 +26,6 @@ import "lib/juice-address-registry/src/JBAddressRegistry.sol";
 import "lib/juice-contracts-v4/src/libraries/JBCurrencyIds.sol";
 import "lib/juice-contracts-v4/src/libraries/JBConstants.sol";
 
-bytes4 constant PAY_HOOK_ID = bytes4(hex"70");
-bytes4 constant REDEEM_HOOK_ID = bytes4(hex"71");
-
 // TODO: Find new name for _tiers return variables
 contract UnitTestSetup is Test {
     address beneficiary;
@@ -203,18 +200,13 @@ contract UnitTestSetup is Test {
         vm.mockCall(mockJBDirectory, abi.encodeWithSelector(IJBDirectory.PROJECTS.selector), abi.encode(mockJBProjects));
 
         vm.mockCall(
-            mockJBDirectory,
-            abi.encodeWithSelector(IJBPermissioned.PERMISSIONS.selector),
-            abi.encode(mockJBPermissions)
+            mockJBDirectory, abi.encodeWithSelector(IJBPermissioned.PERMISSIONS.selector), abi.encode(mockJBPermissions)
         );
 
-        noGovernanceOrigin = new JB721TiersHook(
-            IJBDirectory(mockJBDirectory), IJBPermissions(mockJBPermissions), PAY_HOOK_ID, REDEEM_HOOK_ID
-        );
+        noGovernanceOrigin = new JB721TiersHook(IJBDirectory(mockJBDirectory), IJBPermissions(mockJBPermissions));
 
-        JBGoverned721TiersHook onchainGovernance = new JBGoverned721TiersHook(
-            IJBDirectory(mockJBDirectory), IJBPermissions(mockJBPermissions), PAY_HOOK_ID, REDEEM_HOOK_ID
-        );
+        JBGoverned721TiersHook onchainGovernance =
+            new JBGoverned721TiersHook(IJBDirectory(mockJBDirectory), IJBPermissions(mockJBPermissions));
 
         addressRegistry = new JBAddressRegistry();
 
@@ -229,7 +221,12 @@ contract UnitTestSetup is Test {
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
-            JB721InitTiersConfig({tiers: tiers, currency: uint32(uint160(JBConstants.NATIVE_TOKEN)), decimals: 18, prices: IJBPrices(address(0))}),
+            JB721InitTiersConfig({
+                tiers: tiers,
+                currency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
+                decimals: 18,
+                prices: IJBPrices(address(0))
+            }),
             address(0),
             store,
             JB721TiersHookFlags({
@@ -567,7 +564,9 @@ contract UnitTestSetup is Test {
     }
 
     function _initializeDelegateDefaultTiers(uint256 initialNumberOfTiers) internal returns (JB721TiersHook) {
-        return _initializeDelegateDefaultTiers(initialNumberOfTiers, false, uint32(uint160(JBConstants.NATIVE_TOKEN)), 18, address(0));
+        return _initializeDelegateDefaultTiers(
+            initialNumberOfTiers, false, uint32(uint160(JBConstants.NATIVE_TOKEN)), 18, address(0)
+        );
     }
 
     function _initializeDelegateDefaultTiers(
@@ -577,7 +576,9 @@ contract UnitTestSetup is Test {
         internal
         returns (JB721TiersHook)
     {
-        return _initializeDelegateDefaultTiers(initialNumberOfTiers, preventOverspending, uint32(uint160(JBConstants.NATIVE_TOKEN)), 18, address(0));
+        return _initializeDelegateDefaultTiers(
+            initialNumberOfTiers, preventOverspending, uint32(uint160(JBConstants.NATIVE_TOKEN)), 18, address(0)
+        );
     }
 
     function _initializeDelegateDefaultTiers(
@@ -632,10 +633,7 @@ contract UnitTestSetup is Test {
         tiersHook.transferOwnership(owner);
     }
 
-    function _initializeForTestHook(uint256 initialNumberOfTiers)
-        internal
-        returns (ForTest_JB721TiersHook tiersHook)
-    {
+    function _initializeForTestHook(uint256 initialNumberOfTiers) internal returns (ForTest_JB721TiersHook tiersHook) {
         // Initialize first tiers to add
         (JB721TierConfig[] memory tiersParams,) = _createTiers(defaultTierConfig, initialNumberOfTiers);
 
@@ -702,7 +700,12 @@ contract UnitTestSetup is Test {
             baseUri: baseUri,
             tokenUriResolver: IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri: contractUri,
-            tiersConfig: JB721InitTiersConfig({tiers: tierParams, currency: uint32(uint160(JBConstants.NATIVE_TOKEN)), decimals: 18, prices: IJBPrices(address(0))}),
+            tiersConfig: JB721InitTiersConfig({
+                tiers: tierParams,
+                currency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
+                decimals: 18,
+                prices: IJBPrices(address(0))
+            }),
             reserveBeneficiary: reserveBeneficiary,
             store: store,
             flags: JB721TiersHookFlags({
@@ -745,7 +748,8 @@ contract UnitTestSetup is Test {
         terminalConfigurations = new JBTerminalConfig[](1);
         address[] memory tokensToAccept = new address[](1);
         tokensToAccept[0] = JBConstants.NATIVE_TOKEN;
-        terminalConfigurations[0] = JBTerminalConfig({terminal: IJBTerminal(mockTerminalAddress), tokensToAccept: tokensToAccept});
+        terminalConfigurations[0] =
+            JBTerminalConfig({terminal: IJBTerminal(mockTerminalAddress), tokensToAccept: tokensToAccept});
 
         launchProjectConfig = JBLaunchProjectConfig({
             projectMetadata: projectMetadata,

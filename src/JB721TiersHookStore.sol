@@ -40,53 +40,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
 
     /// @notice Just a kind reminder to our readers.
     /// @dev Used in NFT token ID generation.
-    uint256 private constant ONE_BILLION = 1_000_000_000;
-
-    //*********************************************************************//
-    // --------------------- internal stored properties ------------------ //
-    //*********************************************************************//
-
-    /// @notice Returns the ID of the tier which comes after the provided tier ID (sorted by price).
-    /// @dev If empty, assume the next tier ID should come after.
-    /// @custom:param nft The address of the NFT contract to get the next tier ID from.
-    /// @custom:param tierId The ID of the tier to get the next tier ID in relation to.
-    /// @custom:returns The following tier's ID.
-    mapping(address nft => mapping(uint256 tierId => uint256)) internal tierIdAfter;
-
-    /// @notice Returns the reserve beneficiary (if there is one) for the provided tier ID on the provided
-    /// `IJB721TiersHook` contract.
-    /// @custom:param nft The address of the NFT contract to get the reserve beneficiary from.
-    /// @custom:param tierId The ID of the tier to get the reserve beneficiary of.
-    /// @custom:returns The address of the reserved token beneficiary.
-    mapping(address nft => mapping(uint256 tierId => address)) internal _reserveBeneficiaryOf;
-
-    /// @notice Returns the stored tier of the provided tier ID on the provided `IJB721TiersHook` contract.
-    /// @custom:param nft The address of the NFT contract to get the tier from.
-    /// @custom:param tierId The ID of the tier to get.
-    /// @custom:returns The stored tier, as a `JBStored721Tier` struct.
-    mapping(address nft => mapping(uint256 tierId => JBStored721Tier)) internal _storedTierOf;
-
-    /// @notice Returns the flags which dictate the behavior of the provided `IJB721TiersHook` contract.
-    /// @custom:param nft The address of the NFT contract to get the flags for.
-    /// @custom:returns The flags.
-    mapping(address nft => JB721TiersHookFlags) internal _flagsOf;
-
-    /// @notice Get the bitmap word at the provided depth from the provided NFT contract's tier removal bitmap.
-    /// @dev See `JBBitmap` for more information.
-    /// @custom:param nft The NFT contract to get the bitmap word from.
-    /// @custom:param depth The depth of the bitmap row to get. Each row stores 256 tiers.
-    /// @custom:returns word The bitmap row's content.
-    mapping(address nft => mapping(uint256 depth => uint256 word)) internal _removedTiersBitmapWordOf;
-
-    /// @notice Return the ID of the last sorted tier from the provided NFT contract.
-    /// @dev If not set, it is assumed the `maxTierIdOf` is the last sorted tier ID.
-    /// @custom:param nft The NFT contract to get the last sorted tier ID from.
-    mapping(address nft => uint256) internal _lastTrackedSortedTierIdOf;
-
-    /// @notice Returns the ID of the first tier in the provided category on the provided NFT contract.
-    /// @custom:param nft The NFT contract to get the category's first tier ID from.
-    /// @custom:param category The category to get the first tier ID of.
-    mapping(address nft => mapping(uint256 category => uint256)) internal _startingTierIdOfCategory;
+    uint256 private constant _ONE_BILLION = 1_000_000_000;
 
     //*********************************************************************//
     // --------------------- public stored properties -------------------- //
@@ -132,6 +86,53 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @custom:param tierId The ID of the tier to get the encoded IPFS URI of.
     /// @custom:returns The encoded IPFS URI.
     mapping(address nft => mapping(uint256 tierId => bytes32)) public override encodedIPFSUriOf;
+
+    //*********************************************************************//
+    // --------------------- internal stored properties ------------------ //
+    //*********************************************************************//
+
+    /// @notice Returns the ID of the tier which comes after the provided tier ID (sorted by price).
+    /// @dev If empty, assume the next tier ID should come after.
+    /// @custom:param nft The address of the NFT contract to get the next tier ID from.
+    /// @custom:param tierId The ID of the tier to get the next tier ID in relation to.
+    /// @custom:returns The following tier's ID.
+    mapping(address nft => mapping(uint256 tierId => uint256)) internal _tierIdAfter;
+
+    /// @notice Returns the reserve beneficiary (if there is one) for the provided tier ID on the provided
+    /// `IJB721TiersHook` contract.
+    /// @custom:param nft The address of the NFT contract to get the reserve beneficiary from.
+    /// @custom:param tierId The ID of the tier to get the reserve beneficiary of.
+    /// @custom:returns The address of the reserved token beneficiary.
+    mapping(address nft => mapping(uint256 tierId => address)) internal _reserveBeneficiaryOf;
+
+    /// @notice Returns the stored tier of the provided tier ID on the provided `IJB721TiersHook` contract.
+    /// @custom:param nft The address of the NFT contract to get the tier from.
+    /// @custom:param tierId The ID of the tier to get.
+    /// @custom:returns The stored tier, as a `JBStored721Tier` struct.
+    mapping(address nft => mapping(uint256 tierId => JBStored721Tier)) internal _storedTierOf;
+
+    /// @notice Returns the flags which dictate the behavior of the provided `IJB721TiersHook` contract.
+    /// @custom:param nft The address of the NFT contract to get the flags for.
+    /// @custom:returns The flags.
+    mapping(address nft => JB721TiersHookFlags) internal _flagsOf;
+
+    /// @notice Get the bitmap word at the provided depth from the provided NFT contract's tier removal bitmap.
+    /// @dev See `JBBitmap` for more information.
+    /// @custom:param nft The NFT contract to get the bitmap word from.
+    /// @custom:param depth The depth of the bitmap row to get. Each row stores 256 tiers.
+    /// @custom:returns word The bitmap row's content.
+    mapping(address nft => mapping(uint256 depth => uint256 word)) internal _removedTiersBitmapWordOf;
+
+    /// @notice Return the ID of the last sorted tier from the provided NFT contract.
+    /// @dev If not set, it is assumed the `maxTierIdOf` is the last sorted tier ID.
+    /// @custom:param nft The NFT contract to get the last sorted tier ID from.
+    mapping(address nft => uint256) internal _lastTrackedSortedTierIdOf;
+
+    /// @notice Returns the ID of the first tier in the provided category on the provided NFT contract.
+    /// @custom:param nft The NFT contract to get the category's first tier ID from.
+    /// @custom:param category The category to get the first tier ID of.
+    mapping(address nft => mapping(uint256 category => uint256)) internal _startingTierIdOfCategory;
+
 
     //*********************************************************************//
     // ------------------------- external views -------------------------- //
@@ -419,12 +420,8 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         uint256 numberOfTokenIds = tokenIds.length;
 
         // Add each NFT's price (from its tier) to the weight.
-        for (uint256 i; i < numberOfTokenIds;) {
+        for (uint256 i; i < numberOfTokenIds; i++) {
             weight += _storedTierOf[nft][tierIdOfToken(tokenIds[i])].price;
-
-            unchecked {
-                ++i;
-            }
         }
     }
 
@@ -439,7 +436,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         JBStored721Tier memory storedTier;
 
         // Add each NFT's price (from its tier) to the weight.
-        for (uint256 i; i < maxTierId;) {
+        for (uint256 i; i < maxTierId; i++) {
             // Keep a reference to the stored tier.
             unchecked {
                 storedTier = _storedTierOf[nft][i + 1];
@@ -451,10 +448,6 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
                     (storedTier.initialSupply - storedTier.remainingSupply)
                         + _numberOfPendingReservesFor(nft, i + 1, storedTier)
                 );
-
-            unchecked {
-                ++i;
-            }
         }
     }
 
@@ -463,7 +456,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @param tokenId The token ID of the NFT to get the tier ID of.
     /// @return The ID of the NFT's tier.
     function tierIdOfToken(uint256 tokenId) public pure override returns (uint256) {
-        return tokenId / ONE_BILLION;
+        return tokenId / _ONE_BILLION;
     }
 
     /// @notice The reserve beneficiary for the provided tier ID on the provided NFT contract.
@@ -523,13 +516,13 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Keep a reference to the NFT contract's flags.
         JB721TiersHookFlags memory flags = _flagsOf[msg.sender];
 
-        for (uint256 i; i < numberOfNewTiers;) {
+        for (uint256 i; i < numberOfNewTiers; i++) {
             // Set the tier being iterated upon.
             tierToAdd = tiersToAdd[i];
 
             // Make sure the supply maximum is enforced. If it's greater than one billion, it would overflow into the
             // next tier.
-            if (tierToAdd.initialSupply > ONE_BILLION - 1) revert INVALID_QUANTITY();
+            if (tierToAdd.initialSupply > _ONE_BILLION - 1) revert INVALID_QUANTITY();
 
             // Keep a reference to the previous tier.
             JB721TierConfig memory previousTier;
@@ -583,7 +576,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             });
 
             // If this is the first tier in a new category, store it as the first tier in that category.
-            // The `_startingTierIdOfCategory` of the category "0" will always be the same as the `tierIdAfter` the 0th
+            // The `_startingTierIdOfCategory` of the category "0" will always be the same as the `_tierIdAfter` the 0th
             // tier.
             if (previousTier.category != tierToAdd.category && tierToAdd.category != 0) {
                 _startingTierIdOfCategory[msg.sender][tierToAdd.category] = tierId;
@@ -623,10 +616,10 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
                         tierToAdd.category <= _storedTierOf[msg.sender][currentSortedTierId].category
                             && currentSortedTierId <= currentMaxTierIdOf
                     ) {
-                        // If the tier ID being iterated on isn't the next tier ID, set the `tierIdAfter` (next tier
+                        // If the tier ID being iterated on isn't the next tier ID, set the `_tierIdAfter` (next tier
                         // ID).
                         if (currentSortedTierId != tierId + 1) {
-                            tierIdAfter[msg.sender][tierId] = currentSortedTierId;
+                            _tierIdAfter[msg.sender][tierId] = currentSortedTierId;
                         }
 
                         // If this is the first tier being added, track it as the current last sorted tier ID (if it's
@@ -635,11 +628,11 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
                             _lastTrackedSortedTierIdOf[msg.sender] = currentLastSortedTierId;
                         }
 
-                        // If the previous tier's `tierIdAfter` was set to something else, update it.
-                        if (previousTierId != tierId - 1 || tierIdAfter[msg.sender][previousTierId] != 0) {
-                            // Set the the previous tier's `tierIdAfter` to the tier being added, or 0 if the tier ID is
+                        // If the previous tier's `_tierIdAfter` was set to something else, update it.
+                        if (previousTierId != tierId - 1 || _tierIdAfter[msg.sender][previousTierId] != 0) {
+                            // Set the the previous tier's `_tierIdAfter` to the tier being added, or 0 if the tier ID is
                             // incremented.
-                            tierIdAfter[msg.sender][previousTierId] = previousTierId == tierId - 1 ? 0 : tierId;
+                            _tierIdAfter[msg.sender][previousTierId] = previousTierId == tierId - 1 ? 0 : tierId;
                         }
 
                         // When the next tier is being added, start at the sorted tier just set.
@@ -654,7 +647,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
                     // If the tier being iterated on is the last tier, add the new tier after it.
                     else if (nextTierId == 0 || nextTierId > currentMaxTierIdOf) {
                         if (tierId != currentSortedTierId + 1) {
-                            tierIdAfter[msg.sender][currentSortedTierId] = tierId;
+                            _tierIdAfter[msg.sender][currentSortedTierId] = tierId;
                         }
 
                         // For the next tier being added, start at this current tier ID.
@@ -679,10 +672,6 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
 
             // Add the tier ID to the array being returned.
             tierIds[i] = tierId;
-
-            unchecked {
-                ++i;
-            }
         }
 
         // Update the maximum tier ID to include the new tiers.
@@ -720,15 +709,11 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Keep a reference to the number of NFTs burned within the tier.
         uint256 numberOfBurnedFromTier = numberOfBurnedFor[msg.sender][tierId];
 
-        for (uint256 i; i < count;) {
+        for (uint256 i; i < count; i++) {
             // Generate the NFTs.
             tokenIds[i] = _generateTokenId(
                 tierId, storedTier.initialSupply - --storedTier.remainingSupply + numberOfBurnedFromTier
             );
-
-            unchecked {
-                ++i;
-            }
         }
     }
 
@@ -761,16 +746,12 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Keep a reference to the tier ID being iterated upon.
         uint256 tierId;
 
-        for (uint256 i; i < numTiers;) {
+        for (uint256 i; i < numTiers; i++) {
             // Set the tier being iterated upon (0-indexed).
             tierId = tierIds[i];
 
             // Remove the tier by marking it as removed in the bitmap.
             _removedTiersBitmapWordOf[msg.sender].removeTier(tierId);
-
-            unchecked {
-                ++i;
-            }
         }
     }
 
@@ -807,7 +788,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Initialize a `JBBitmapWord` for checking whether tiers have been removed.
         JBBitmapWord memory bitmapWord;
 
-        for (uint256 i; i < numberOfTiers;) {
+        for (uint256 i; i < numberOfTiers; i++) {
             // Set the tier ID being iterated on.
             tierId = tierIds[i];
 
@@ -840,12 +821,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
                     tierId,
                     storedTier.initialSupply - --storedTier.remainingSupply + numberOfBurnedFor[msg.sender][tierId]
                 );
-            }
-
-            // Update the amount remaining.
-            unchecked {
                 leftoverAmount = leftoverAmount - storedTier.price;
-                ++i;
             }
         }
     }
@@ -860,7 +836,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         uint256 tokenId;
 
         // Iterate through all token IDs to increment the burn count.
-        for (uint256 i; i < numberOfTokenIds;) {
+        for (uint256 i; i < numberOfTokenIds; i++) {
             // Set the NFT's token ID.
             tokenId = tokenIds[i];
 
@@ -871,10 +847,6 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
 
             // Increment the remaining supply of the tier.
             _storedTierOf[msg.sender][tierId].remainingSupply++;
-
-            unchecked {
-                ++i;
-            }
         }
     }
 
@@ -916,16 +888,16 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         while (currentSortedTierId != 0) {
             // If the current tier ID being iterated on isn't an increment of the previous one,
             if (!_isTierRemovedWithRefresh(nft, currentSortedTierId, bitmapWord)) {
-                // Update its `tierIdAfter` if needed.
+                // Update its `_tierIdAfter` if needed.
                 if (currentSortedTierId != previousSortedTierId + 1) {
-                    if (tierIdAfter[nft][previousSortedTierId] != currentSortedTierId) {
-                        tierIdAfter[nft][previousSortedTierId] = currentSortedTierId;
+                    if (_tierIdAfter[nft][previousSortedTierId] != currentSortedTierId) {
+                        _tierIdAfter[nft][previousSortedTierId] = currentSortedTierId;
                     }
                     // Otherwise, if the current tier ID IS an increment of the previous one,
                     // AND the tier ID after it isn't 0,
-                } else if (tierIdAfter[nft][previousSortedTierId] != 0) {
-                    // Set its `tierIdAfter` to 0.
-                    tierIdAfter[nft][previousSortedTierId] = 0;
+                } else if (_tierIdAfter[nft][previousSortedTierId] != 0) {
+                    // Set its `_tierIdAfter` to 0.
+                    _tierIdAfter[nft][previousSortedTierId] = 0;
                 }
 
                 // Iterate by setting the previous tier ID for the next loop to the current tier ID.
@@ -1070,7 +1042,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @param tokenNumber The token number of the NFT within the tier.
     /// @return The token ID of the NFT.
     function _generateTokenId(uint256 tierId, uint256 tokenNumber) internal pure returns (uint256) {
-        return (tierId * ONE_BILLION) + tokenNumber;
+        return (tierId * _ONE_BILLION) + tokenNumber;
     }
 
     /// @notice Get the tier ID which comes after the provided one when sorted by price.
@@ -1083,7 +1055,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         if (id == max) return 0;
 
         // If a tier ID is saved to come after the provided ID, return it.
-        uint256 storedNext = tierIdAfter[nft][id];
+        uint256 storedNext = _tierIdAfter[nft][id];
 
         if (storedNext != 0) return storedNext;
 
@@ -1097,7 +1069,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// which might not be in the 0th category if the 0th category does not exist.
     /// @return id The first sorted tier ID within the provided category.
     function _firstSortedTierIdOf(address nft, uint256 category) internal view returns (uint256 id) {
-        id = category == 0 ? tierIdAfter[nft][0] : _startingTierIdOfCategory[nft][category];
+        id = category == 0 ? _tierIdAfter[nft][0] : _startingTierIdOfCategory[nft][category];
         // Start at the first tier ID if nothing is specified.
         if (id == 0) id = 1;
     }
