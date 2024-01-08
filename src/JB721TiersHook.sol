@@ -60,9 +60,9 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
 
     /// @notice Packed context for the pricing of this contract's tiers.
     /// @dev Packed into a uint256:
-    /// - currency in bits 0-47 (48 bits),
-    /// - pricing decimals in bits 48-95 (48 bits), and
-    /// - prices contract in bits 96-255 (160 bits).
+    /// - currency in bits 0-31 (32 bits),
+    /// - pricing decimals in bits 32-39 (8 bits), and
+    /// - prices contract in bits 40-199 (160 bits).
     uint256 internal _packedPricingContext;
 
     //*********************************************************************//
