@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import "../utils/UnitTestSetup.sol";
@@ -5,7 +6,7 @@ import "../utils/UnitTestSetup.sol";
 contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
     using stdStorage for StdStorage;
 
-    function testJBTieredNFTRewardDelegate_tiers_returnsAllTiers(uint256 numberOfTiers) public {
+    function test721TiersHook_tiers_returnsAllTiers(uint256 numberOfTiers) public {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
         (, JB721Tier[] memory _tiers) = _createTiers(defaultTierConfig, numberOfTiers);
@@ -16,7 +17,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertTrue(_isIn(_tiers, _hook.test_store().tiersOf(address(_hook), new uint256[](0), false, 0, numberOfTiers)));
     }
 
-    function testJBTieredNFTRewardDelegate_pricing_packingFunctionsAsExpected(
+    function test721TiersHook_pricing_packingFunctionsAsExpected(
         uint48 _currency,
         uint48 _decimals,
         address _prices
@@ -50,7 +51,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertEq(address(__prices), _prices);
     }
 
-    function testJBTieredNFTRewardDelegate_bools_packingFunctionsAsExpected(bool _a, bool _b, bool _c) public {
+    function test721TiersHook_bools_packingFunctionsAsExpected(bool _a, bool _b, bool _c) public {
         ForTest_JB721TiersHookStore _ForTest_store = new ForTest_JB721TiersHookStore();
         uint8 _packed = _ForTest_store.ForTest_packBools(_a, _b, _c);
         (bool __a, bool __b, bool __c) = _ForTest_store.ForTest_unpackBools(_packed);
@@ -59,7 +60,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertEq(_c, __c);
     }
 
-    function testJBTieredNFTRewardDelegate_tiers_returnsAllTiersWithResolver(uint256 numberOfTiers) public {
+    function test721TiersHook_tiers_returnsAllTiersWithResolver(uint256 numberOfTiers) public {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
         // use non-null resolved uri
@@ -85,7 +86,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertTrue(_isIn(_tiers, _hook.test_store().tiersOf(address(_hook), new uint256[](0), true, 0, 100)));
     }
 
-    function testJBTieredNFTRewardDelegate_tiers_returnsAllTiersExcludingRemovedOnes(
+    function test721TiersHook_tiers_returnsAllTiersExcludingRemovedOnes(
         uint256 numberOfTiers,
         uint256 firstRemovedTier,
         uint256 secondRemovedTier
@@ -125,7 +126,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertTrue(_isIn(_nonRemovedTiers, _storedTiers));
     }
 
-    function testJBTieredNFTRewardDelegate_tier_returnsTheGivenTier(uint256 numberOfTiers, uint16 givenTier) public {
+    function test721TiersHook_tier_returnsTheGivenTier(uint256 numberOfTiers, uint16 givenTier) public {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
         (, JB721Tier[] memory _tiers) = _createTiers(defaultTierConfig, numberOfTiers);
@@ -155,7 +156,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         }
     }
 
-    function testJBTieredNFTRewardDelegate_totalSupply_returnsTotalSupply(uint256 numberOfTiers) public {
+    function test721TiersHook_totalSupply_returnsTotalSupply(uint256 numberOfTiers) public {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
         ForTest_JB721TiersHook _hook = _initializeForTestHook(numberOfTiers);
@@ -178,7 +179,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertEq(_hook.test_store().totalSupplyOf(address(_hook)), ((numberOfTiers * (numberOfTiers + 1)) / 2));
     }
 
-    function testJBTieredNFTRewardDelegate_balanceOf_returnsCompleteBalance(
+    function test721TiersHook_balanceOf_returnsCompleteBalance(
         uint256 numberOfTiers,
         address holder
     )
@@ -194,7 +195,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertEq(_hook.balanceOf(holder), 10 * ((numberOfTiers * (numberOfTiers + 1)) / 2));
     }
 
-    function testJBTieredNFTRewardDelegate_numberOfPendingReservesFor_returnsOutstandingReserved() public {
+    function test721TiersHook_numberOfPendingReservesFor_returnsOutstandingReserved() public {
         // 120 are minted, 10 out of these are reserved, meaning 110 non-reserved are minted. The reserveFrequency is
         // 9 (1 reserved token for every 9 non-reserved minted) -> total reserved is 13 (  ceil(110 / 9)), still 3 to
         // mint
@@ -227,7 +228,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         }
     }
 
-    function testJBTieredNFTRewardDelegate_getvotingUnits_returnsTheTotalVotingUnits(
+    function test721TiersHook_getvotingUnits_returnsTheTotalVotingUnits(
         uint256 numberOfTiers,
         uint256 votingUnits,
         uint256 balances
@@ -267,7 +268,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         );
     }
 
-    function testJBTieredNFTRewardDelegate_tierIdOfToken_returnsCorrectTierNumber(
+    function test721TiersHook_tierIdOfToken_returnsCorrectTierNumber(
         uint16 _tierId,
         uint16 _tokenNumber
     )
@@ -278,7 +279,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertEq(hook.STORE().tierOfTokenId(address(hook), tokenId, false).id, _tierId);
     }
 
-    function testJBTieredNFTRewardDelegate_tokenURI_returnsCorrectUriIfResolverUsed(uint256 tokenId) public {
+    function test721TiersHook_tokenURI_returnsCorrectUriIfResolverUsed(uint256 tokenId) public {
         mockTokenUriResolver = makeAddr("mockTokenUriResolver");
 
         ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
@@ -295,7 +296,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertEq(_hook.tokenURI(tokenId), "resolverURI");
     }
 
-    function testJBTieredNFTRewardDelegate_tokenURI_returnsCorrectUriIfNoResolverUsed() public {
+    function test721TiersHook_tokenURI_returnsCorrectUriIfNoResolverUsed() public {
         ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
 
         for (uint256 i = 1; i <= 10; i++) {
@@ -304,7 +305,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         }
     }
 
-    function testJBTieredNFTRewardDelegate_setEncodedIPFSUriOf_returnsCorrectUriIfEncodedAdded() public {
+    function test721TiersHook_setEncodedIPFSUriOf_returnsCorrectUriIfEncodedAdded() public {
         ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
 
         uint256 tokenId = _generateTokenId(1, 1);
@@ -316,7 +317,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertEq(_hook.tokenURI(tokenId), string(abi.encodePacked(baseUri, theoreticHashes[1])));
     }
 
-    function testJBTieredNFTRewardDelegate_redemptionWeightOf_returnsCorrectWeightAsFloorsCumSum(
+    function test721TiersHook_redemptionWeightOf_returnsCorrectWeightAsFloorsCumSum(
         uint256 numberOfTiers,
         uint256 firstTier,
         uint256 lastTier
@@ -348,7 +349,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertEq(_hook.test_store().redemptionWeightOf(address(_hook), _tierToGetWeightOf), _theoreticalWeight);
     }
 
-    function testJBTieredNFTRewardDelegate_totalRedemptionWeight_returnsCorrectTotalWeightAsFloorsCumSum(
+    function test721TiersHook_totalRedemptionWeight_returnsCorrectTotalWeightAsFloorsCumSum(
         uint256 numberOfTiers
     )
         public
@@ -378,7 +379,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertEq(_hook.test_store().totalRedemptionWeight(address(_hook)), _theoreticalWeight);
     }
 
-    function testJBTieredNFTRewardDelegate_firstOwnerOf_shouldReturnCurrentOwnerIfFirstOwner(
+    function test721TiersHook_firstOwnerOf_shouldReturnCurrentOwnerIfFirstOwner(
         uint256 tokenId,
         address _owner
     )
@@ -390,7 +391,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertEq(_hook.firstOwnerOf(tokenId), _owner);
     }
 
-    function testJBTieredNFTRewardDelegate_firstOwnerOf_shouldReturnFirstOwnerIfOwnerChanged(
+    function test721TiersHook_firstOwnerOf_shouldReturnFirstOwnerIfOwnerChanged(
         address _owner,
         address _previousOwner
     )
@@ -420,12 +421,12 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertEq(_hook.firstOwnerOf(_tokenId), _previousOwner);
     }
 
-    function testJBTieredNFTRewardDelegate_firstOwnerOf_shouldReturnAddressZeroIfNotMinted(uint256 tokenId) public {
+    function test721TiersHook_firstOwnerOf_shouldReturnAddressZeroIfNotMinted(uint256 tokenId) public {
         ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
         assertEq(_hook.firstOwnerOf(tokenId), address(0));
     }
 
-    function testJBTieredNFTRewardDelegate_constructor_deployIfNoEmptyinitialSupply(uint256 nbTiers) public {
+    function test721TiersHook_constructor_deployIfNoEmptyinitialSupply(uint256 nbTiers) public {
         nbTiers = bound(nbTiers, 0, 10);
         // Create new tiers array
         ForTest_JB721TiersHook _hook = _initializeForTestHook(nbTiers);
@@ -444,7 +445,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertTrue(_isIn(_tiers, _hook.STORE().tiersOf(address(_hook), new uint256[](0), false, 0, nbTiers)));
     }
 
-    function testJBTieredNFTRewardDelegate_constructor_revertDeploymentIfOneEmptyinitialSupply(
+    function test721TiersHook_constructor_revertDeploymentIfOneEmptyinitialSupply(
         uint256 nbTiers,
         uint256 errorIndex
     )

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import "../utils/UnitTestSetup.sol";
@@ -5,7 +6,7 @@ import "../utils/UnitTestSetup.sol";
 contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
     using stdStorage for StdStorage;
 
-    function testJBTieredNFTRewardDelegate_mintReservesFor_MintReservedNft() public {
+    function test721TiersHook_mintReservesFor_MintReservedNft() public {
         // 120 are minted, 1 out of these is reserved, meaning 119 non-reserved are minted. The reserveFrequency is 40%
         // (4000/10000)
         // meaning there are 47 total reserved to mint, 1 being already minted, 46 are outstanding
@@ -50,7 +51,7 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         }
     }
 
-    function testJBTieredNFTRewardDelegate_mintReservesFor_mintMultipleReservedToken() public {
+    function test721TiersHook_mintReservesFor_mintMultipleReservedToken() public {
         // 120 are minted, 1 out of these is reserved, meaning 119 non-reserved are minted. The reserveFrequency is 40%
         // (4000/10000)
         // meaning there are 47 total reserved to mint, 1 being already minted, 46 are outstanding
@@ -101,7 +102,7 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         assertEq(_hook.balanceOf(reserveBeneficiary), _totalMintable);
     }
 
-    function testJBTieredNFTRewardDelegate_mintReservesFor_revertIfReservedMintingIsPausedInFundingCycle() public {
+    function test721TiersHook_mintReservesFor_revertIfReservedMintingIsPausedInFundingCycle() public {
         // 120 are minted, 1 out of these is reserved, meaning 119 non-reserved are minted. The reserveFrequency is 40%
         // (4000/10000)
         // meaning there are 47 total reserved to mint, 1 being already minted, 46 are outstanding
@@ -235,7 +236,7 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         }
     }
 
-    function testJBTieredNFTRewardDelegate_no_reserved_rate_if_nobeneficiary_set() public {
+    function test721TiersHook_no_reserved_rate_if_nobeneficiary_set() public {
         uint256 initialSupply = 200;
         uint256 totalMinted = 120;
         uint256 reservedMinted = 10;
@@ -277,7 +278,7 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         }
     }
 
-    function testJBTieredNFTRewardDelegate_mintFor_mintArrayOfTiers() public {
+    function test721TiersHook_mintFor_mintArrayOfTiers() public {
         uint256 nbTiers = 3;
 
         defaultTierConfig.allowOwnerMint = true;
@@ -302,7 +303,7 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         assertEq(_hook.ownerOf(_generateTokenId(3, 2)), beneficiary);
     }
 
-    function testJBTieredNFTRewardDelegate_mintFor_revertIfManualMintNotAllowed() public {
+    function test721TiersHook_mintFor_revertIfManualMintNotAllowed() public {
         uint256 nbTiers = 10;
 
         uint16[] memory _tiersToMint = new uint16[](nbTiers * 2);

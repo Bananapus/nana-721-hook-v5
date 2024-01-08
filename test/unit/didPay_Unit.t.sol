@@ -6,7 +6,7 @@ import "../utils/UnitTestSetup.sol";
 contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
     using stdStorage for StdStorage;
 
-    function testJBTieredNFTRewardDelegate_afterPayRecordedWith_mintCorrectAmountsAndReserved(
+    function test721TiersHook_afterPayRecordedWith_mintCorrectAmountsAndReserved(
         uint256 _initialSupply,
         uint256 _tokenToMint,
         uint256 _reserveFrequency
@@ -81,11 +81,11 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
     }
 
     // If the amount payed is below the price to receive an NFT the pay should not revert if no metadata passed
-    function testJBTieredNFTRewardDelegate_afterPayRecordedWith_doesRevertOnAmountBelowPriceIfNoMetadataIfPreventOverspending(
+    function test721TiersHook_afterPayRecordedWith_doesRevertOnAmountBelowPriceIfNoMetadataIfPreventOverspending(
     )
         public
     {
-        JB721TiersHook _hook = _initializeDelegateDefaultTiers(10, true);
+        JB721TiersHook _hook = _initHookDefaultTiers(10, true);
 
         // Mock the directory call
         mockAndExpect(
@@ -120,7 +120,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
     // If the amount payed is below the price to receive an NFT the pay should revert if no metadata passed and the
     // allow overspending flag is false.
-    function testJBTieredNFTRewardDelegate_afterPayRecordedWith_doesNotRevertOnAmountBelowPriceIfNoMetadata() public {
+    function test721TiersHook_afterPayRecordedWith_doesNotRevertOnAmountBelowPriceIfNoMetadata() public {
         // Mock the directory call
         mockAndExpect(
             address(mockJBDirectory),
@@ -153,7 +153,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
     }
 
     // If the amount is above contribution floor and a tier is passed, mint as many corresponding tier as possible
-    function testJBTieredNFTRewardDelegate_afterPayRecordedWith_mintCorrectTier() public {
+    function test721TiersHook_afterPayRecordedWith_mintCorrectTier() public {
         // Mock the directory call
         mockAndExpect(
             address(mockJBDirectory),
@@ -210,7 +210,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         assertEq(hook.ownerOf(_generateTokenId(2, 1)), msg.sender);
     }
 
-    function testJBTieredNFTRewardDelegate_afterPayRecordedWith_mintNoneIfNonePassed(uint8 _amount) public {
+    function test721TiersHook_afterPayRecordedWith_mintNoneIfNonePassed(uint8 _amount) public {
         // Mock the directory call
         mockAndExpect(
             address(mockJBDirectory),
@@ -246,7 +246,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         assertEq(_totalSupplyBeforePay, hook.STORE().totalSupplyOf(address(hook)));
     }
 
-    function testJBTieredNFTRewardDelegate_afterPayRecordedWith_mintTierAndTrackLeftover() public {
+    function test721TiersHook_afterPayRecordedWith_mintTierAndTrackLeftover() public {
         uint256 _leftover = tiers[0].price - 1;
         uint256 _amount = tiers[0].price + _leftover;
 
@@ -301,7 +301,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
     // Mint a given tier with a leftover, mint another given tier then, if the accumulated credit is enough, mint an
     // extra tier
-    function testJBTieredNFTRewardDelegate_afterPayRecordedWith_mintCorrectTiersWhenUsingPartialCredits() public {
+    function test721TiersHook_afterPayRecordedWith_mintCorrectTiersWhenUsingPartialCredits() public {
         uint256 _leftover = tiers[0].price + 1; // + 1 to avoid rounding error
         uint256 _amount = tiers[0].price * 2 + tiers[1].price + _leftover / 2;
 
@@ -416,7 +416,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         assertEq(hook.payCreditsOf(beneficiary), 0);
     }
 
-    function testJBTieredNFTRewardDelegate_afterPayRecordedWith_doNotMintWithSomeoneElseCredit() public {
+    function test721TiersHook_afterPayRecordedWith_doNotMintWithSomeoneElseCredit() public {
         uint256 _leftover = tiers[0].price + 1; // + 1 to avoid rounding error
         uint256 _amount = tiers[0].price * 2 + tiers[1].price + _leftover / 2;
 
@@ -503,12 +503,12 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
     // Terminal is in currency 1 with 18 decimal, hook is in currency 2, with 9 decimals
     // The conversion rate is set at 1:2
-    function testJBTieredNFTRewardDelegate_afterPayRecordedWith_mintCorrectTierWithAnotherCurrency() public {
+    function test721TiersHook_afterPayRecordedWith_mintCorrectTierWithAnotherCurrency() public {
         address _jbPrice = address(bytes20(keccak256("MockJBPrice")));
         vm.etch(_jbPrice, new bytes(1));
 
         // currency 2 with 9 decimals
-        JB721TiersHook _hook = _initializeDelegateDefaultTiers(10, false, 2, 9, _jbPrice);
+        JB721TiersHook _hook = _initHookDefaultTiers(10, false, 2, 9, _jbPrice);
 
         // Mock the directory call
         mockAndExpect(
@@ -571,7 +571,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
     }
 
     // If the tier has been removed, revert
-    function testJBTieredNFTRewardDelegate_afterPayRecordedWith_revertIfTierRemoved() public {
+    function test721TiersHook_afterPayRecordedWith_revertIfTierRemoved() public {
         // Mock the directory call
         mockAndExpect(
             address(mockJBDirectory),
@@ -632,7 +632,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         assertEq(_totalSupplyBeforePay, hook.STORE().totalSupplyOf(address(hook)));
     }
 
-    function testJBTieredNFTRewardDelegate_afterPayRecordedWith_revertIfNonExistingTier(uint256 _invalidTier) public {
+    function test721TiersHook_afterPayRecordedWith_revertIfNonExistingTier(uint256 _invalidTier) public {
         _invalidTier = bound(_invalidTier, tiers.length + 1, type(uint16).max);
 
         // Mock the directory call
@@ -694,7 +694,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
     }
 
     // If the amount is not enought to cover all the tiers requested, revert
-    function testJBTieredNFTRewardDelegate_afterPayRecordedWith_revertIfAmountTooLow() public {
+    function test721TiersHook_afterPayRecordedWith_revertIfAmountTooLow() public {
         // Mock the directory call
         mockAndExpect(
             address(mockJBDirectory),
@@ -749,7 +749,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         assertEq(_totalSupplyBeforePay, hook.STORE().totalSupplyOf(address(hook)));
     }
 
-    function testJBTieredNFTRewardDelegate_afterPayRecordedWith_revertIfAllowanceRunsOutInParticularTier() public {
+    function test721TiersHook_afterPayRecordedWith_revertIfAllowanceRunsOutInParticularTier() public {
         // Mock the directory call
         mockAndExpect(
             address(mockJBDirectory),
@@ -814,7 +814,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         }
     }
 
-    function testJBTieredNFTRewardDelegate_afterPayRecordedWith_revertIfCallerIsNotATerminalOfProjectId(
+    function test721TiersHook_afterPayRecordedWith_revertIfCallerIsNotATerminalOfProjectId(
         address _terminal
     )
         public
@@ -850,7 +850,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         );
     }
 
-    function testJBTieredNFTRewardDelegate_afterPayRecordedWith_doNotMintIfNotUsingCorrectToken(address token) public {
+    function test721TiersHook_afterPayRecordedWith_doNotMintIfNotUsingCorrectToken(address token) public {
         vm.assume(token != JBConstants.NATIVE_TOKEN);
 
         // Mock the directory call
@@ -882,7 +882,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         assertEq(hook.STORE().totalSupplyOf(address(hook)), 0);
     }
 
-    function testJBTieredNFTRewardDelegate_afterPayRecordedWith_mintTiersWhenUsingExistingCredits_when_existing_credits_more_than_new_credits(
+    function test721TiersHook_afterPayRecordedWith_mintTiersWhenUsingExistingCredits_when_existing_credits_more_than_new_credits(
     )
         public
     {
@@ -981,7 +981,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         assertEq(_totalSupplyBefore + 1, hook.STORE().totalSupplyOf(address(hook)));
     }
 
-    function testJBTieredNFTRewardDelegate_afterPayRecordedWith_revertIfUnexpectedLeftover() public {
+    function test721TiersHook_afterPayRecordedWith_revertIfUnexpectedLeftover() public {
         uint256 _leftover = tiers[1].price - 1;
         uint256 _amount = tiers[0].price + _leftover;
 
@@ -1023,7 +1023,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         );
     }
 
-    function testJBTieredNFTRewardDelegate_afterPayRecordedWith_revertIfUnexpectedLeftoverAndPrevented(bool _prevent)
+    function test721TiersHook_afterPayRecordedWith_revertIfUnexpectedLeftoverAndPrevented(bool _prevent)
         public
     {
         uint256 _leftover = tiers[1].price - 1;
@@ -1086,9 +1086,9 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
     // Mint are still possible, transfer to other addresses than 0 (ie burn) are reverting (if hook flag pausable is
     // true)
-    function testJBTieredNFTRewardDelegate_beforeTransferHook_revertTransferIfTransferPausedInFundingCycle() public {
+    function test721TiersHook_beforeTransferHook_revertTransferIfTransferPausedInFundingCycle() public {
         defaultTierConfig.transfersPausable = true;
-        JB721TiersHook _hook = _initializeDelegateDefaultTiers(10);
+        JB721TiersHook _hook = _initHookDefaultTiers(10);
 
         // Mock the directory call
         mockAndExpect(
@@ -1183,7 +1183,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
     // If FC has the pause transfer flag but the hook flag 'pausable' is false, transfer are not paused
     // (this bypasses the call to the FC store)
-    function testJBTieredNFTRewardDelegate_beforeTransferHook_pauseFlagOverrideFundingCycleTransferPaused() public {
+    function test721TiersHook_beforeTransferHook_pauseFlagOverrideFundingCycleTransferPaused() public {
         // Mock the directory call
         mockAndExpect(
             address(mockJBDirectory),
@@ -1191,7 +1191,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
             abi.encode(true)
         );
 
-        JB721TiersHook _hook = _initializeDelegateDefaultTiers(10);
+        JB721TiersHook _hook = _initHookDefaultTiers(10);
 
         bool _allowOverspending;
         uint16[] memory _tierIdsToMint = new uint16[](3);
@@ -1240,10 +1240,10 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
     }
 
     // This bypasses the call to FC store
-    function testJBTieredNFTRewardDelegate_beforeTransferHook_redeemEvenIfTransferPausedInFundingCycle() public {
+    function test721TiersHook_beforeTransferHook_redeemEvenIfTransferPausedInFundingCycle() public {
         address _holder = address(bytes20(keccak256("_holder")));
 
-        JB721TiersHook _hook = _initializeDelegateDefaultTiers(10);
+        JB721TiersHook _hook = _initHookDefaultTiers(10);
 
         // Mock the directory call
         mockAndExpect(

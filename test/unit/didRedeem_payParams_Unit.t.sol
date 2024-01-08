@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import "../utils/UnitTestSetup.sol";
@@ -5,7 +6,7 @@ import "../utils/UnitTestSetup.sol";
 contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
     using stdStorage for StdStorage;
 
-    function testJBTieredNFTRewardDelegate_redeemParams_returnsCorrectAmount() public {
+    function test721TiersHook_redeemParams_returnsCorrectAmount() public {
         uint256 _weight;
         uint256 _totalWeight;
         ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
@@ -79,7 +80,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
         assertEq(address(_returnedDelegate[0].hook), address(_hook));
     }
 
-    function testJBTieredNFTRewardDelegate_redeemParams_returnsZeroAmountIfreserveFrequencyIsZero() public {
+    function test721TiersHook_redeemParams_returnsZeroAmountIfreserveFrequencyIsZero() public {
         uint256 _surplus = 10e18;
         uint256 _redemptionRate = 0;
         uint256 _weight;
@@ -138,7 +139,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
         assertEq(address(_returnedDelegate[0].hook), address(_hook));
     }
 
-    function testJBTieredNFTRewardDelegate_redeemParams_returnsPartOfOverflowOwnedIfRedemptionRateIsMaximum() public {
+    function test721TiersHook_redeemParams_returnsPartOfOverflowOwnedIfRedemptionRateIsMaximum() public {
         uint256 _weight;
         uint256 _totalWeight;
 
@@ -209,7 +210,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
         assertEq(address(_returnedDelegate[0].hook), address(_hook));
     }
 
-    function testJBTieredNFTRewardDelegate_redeemParams_revertIfNonZeroTokenCount(uint256 _tokenCount) public {
+    function test721TiersHook_redeemParams_revertIfNonZeroTokenCount(uint256 _tokenCount) public {
         vm.assume(_tokenCount > 0);
 
         vm.expectRevert(abi.encodeWithSelector(JB721Hook.UNEXPECTED_TOKEN_REDEEMED.selector));
@@ -236,7 +237,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
         );
     }
 
-    function testJBTieredNFTRewardDelegate_afterRedeemRecordedWith_burnRedeemedNFT(uint256 _numberOfNFT) public {
+    function test721TiersHook_afterRedeemRecordedWith_burnRedeemedNFT(uint256 _numberOfNFT) public {
         ForTest_JB721TiersHook _hook = _initializeForTestHook(5);
 
         // Has to all fit in tier 1 minus reserved
@@ -340,7 +341,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
         assertEq(_hook.test_store().numberOfBurnedFor(address(_hook), 1), _numberOfNFT);
     }
 
-    function testJBTieredNFTRewardDelegate_afterRedeemRecordedWith_revertIfNotCorrectProjectId(uint8 _wrongProjectId)
+    function test721TiersHook_afterRedeemRecordedWith_revertIfNotCorrectProjectId(uint8 _wrongProjectId)
         public
     {
         vm.assume(_wrongProjectId != projectId);
@@ -385,7 +386,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
         );
     }
 
-    function testJBTieredNFTRewardDelegate_afterRedeemRecordedWith_revertIfCallerIsNotATerminalOfTheProject() public {
+    function test721TiersHook_afterRedeemRecordedWith_revertIfCallerIsNotATerminalOfTheProject() public {
         uint256[] memory _tokenList = new uint256[](1);
         _tokenList[0] = 1;
 
@@ -425,7 +426,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
         );
     }
 
-    function testJBTieredNFTRewardDelegate_afterRedeemRecordedWith_RevertIfWrongHolder(
+    function test721TiersHook_afterRedeemRecordedWith_RevertIfWrongHolder(
         address _wrongHolder,
         uint8 tokenId
     )

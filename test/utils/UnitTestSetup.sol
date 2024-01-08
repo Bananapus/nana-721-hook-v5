@@ -563,25 +563,25 @@ contract UnitTestSetup is Test {
         return newNumberOfTiers;
     }
 
-    function _initializeDelegateDefaultTiers(uint256 initialNumberOfTiers) internal returns (JB721TiersHook) {
-        return _initializeDelegateDefaultTiers(
+    function _initHookDefaultTiers(uint256 initialNumberOfTiers) internal returns (JB721TiersHook) {
+        return _initHookDefaultTiers(
             initialNumberOfTiers, false, uint32(uint160(JBConstants.NATIVE_TOKEN)), 18, address(0)
         );
     }
 
-    function _initializeDelegateDefaultTiers(
+    function _initHookDefaultTiers(
         uint256 initialNumberOfTiers,
         bool preventOverspending
     )
         internal
         returns (JB721TiersHook)
     {
-        return _initializeDelegateDefaultTiers(
+        return _initHookDefaultTiers(
             initialNumberOfTiers, preventOverspending, uint32(uint160(JBConstants.NATIVE_TOKEN)), 18, address(0)
         );
     }
 
-    function _initializeDelegateDefaultTiers(
+    function _initHookDefaultTiers(
         uint256 initialNumberOfTiers,
         bool preventOverspending,
         uint48 currency,
@@ -592,7 +592,7 @@ contract UnitTestSetup is Test {
         returns (JB721TiersHook tiersHook)
     {
         // Initialize first tiers to add
-        (JB721TierConfig[] memory tiersParams,) = _createTiers(defaultTierConfig, initialNumberOfTiers);
+        (JB721TierConfig[] memory tierConfigs,) = _createTiers(defaultTierConfig, initialNumberOfTiers);
 
         // "Deploy" the hook
         vm.etch(hook_i, address(hook).code);
@@ -610,7 +610,7 @@ contract UnitTestSetup is Test {
         });
 
         JB721InitTiersConfig memory pricingParams = JB721InitTiersConfig({
-            tiers: tiersParams,
+            tiers: tierConfigs,
             currency: currency,
             decimals: decimals,
             prices: IJBPrices(oracle)
@@ -635,7 +635,7 @@ contract UnitTestSetup is Test {
 
     function _initializeForTestHook(uint256 initialNumberOfTiers) internal returns (ForTest_JB721TiersHook tiersHook) {
         // Initialize first tiers to add
-        (JB721TierConfig[] memory tiersParams,) = _createTiers(defaultTierConfig, initialNumberOfTiers);
+        (JB721TierConfig[] memory tierConfigs,) = _createTiers(defaultTierConfig, initialNumberOfTiers);
 
         // Deploy the For Test hook store
         ForTest_JB721TiersHookStore hookStore = new ForTest_JB721TiersHookStore();
@@ -650,7 +650,7 @@ contract UnitTestSetup is Test {
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
-            tiersParams,
+            tierConfigs,
             IJB721TiersHookStore(address(hookStore)),
             JB721TiersHookFlags({
                 preventOverspending: false,
