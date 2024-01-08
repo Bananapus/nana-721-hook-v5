@@ -39,8 +39,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
                 noNewTiersWithReserves: true,
                 noNewTiersWithVotes: true,
                 noNewTiersWithOwnerMinting: true
-            }),
-            JB721GovernanceType.NONE
+            })
         );
 
         JB721TiersHook _hook = JB721TiersHook(address(jbHookDeployer.deployHookFor(projectId, delegateData)));

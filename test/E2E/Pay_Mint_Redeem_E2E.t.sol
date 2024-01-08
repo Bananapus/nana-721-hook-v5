@@ -18,7 +18,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
 
     address reserveBeneficiary = address(bytes20(keccak256("reserveBeneficiary")));
 
-    JB721TiersHook noGovernance;
+    JB721TiersHook hook;
 
     MetadataResolverHelper metadataHelper;
 
@@ -54,11 +54,10 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
 
     function setUp() public override {
         super.setUp();
-        noGovernance = new JB721TiersHook(jbDirectory, jbPermissions);
-        JBGoverned721TiersHook onchainGovernance = new JBGoverned721TiersHook(jbDirectory, jbPermissions);
+        hook = new JB721TiersHook(jbDirectory, jbPermissions);
         addressRegistry = new JBAddressRegistry();
         JB721TiersHookDeployer hookDeployer =
-            new JB721TiersHookDeployer(onchainGovernance, noGovernance, addressRegistry);
+            new JB721TiersHookDeployer(hook, addressRegistry);
         deployer =
             new JB721TiersHookProjectDeployer(IJBDirectory(jbDirectory), IJBPermissions(jbPermissions), hookDeployer);
 
@@ -591,8 +590,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
                 noNewTiersWithReserves: false,
                 noNewTiersWithVotes: false,
                 noNewTiersWithOwnerMinting: true
-            }),
-            governanceType: JB721GovernanceType.NONE
+            })
         });
 
         JBPayDataHookRulesetMetadata memory _metadata = JBPayDataHookRulesetMetadata({

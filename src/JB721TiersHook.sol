@@ -675,30 +675,5 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
 
         // Record the transfer.
         store.recordTransferForTier(tier.id, from, to);
-
-        // Handle any other accounting (e.g. transfer voting units in the `JBGoverned721TiersHook`).
-        _afterTokenTransferAccounting(from, to, tokenId, tier);
-    }
-
-    /// @notice After transferring an NFT, handle any other accounting. This lets us use `tier` without fetching it
-    /// again.
-    /// @dev This function is used to transfer voting units in the `JBGoverned721TiersHook`.
-    /// @param from The address the NFT is being transferred from.
-    /// @param to The address the NFT is being transferred to.
-    /// @param tokenId The token ID of the NFT being transferred.
-    /// @param tier The NFT's tier as a `JB721Tier` struct.
-    function _afterTokenTransferAccounting(
-        address from,
-        address to,
-        uint256 tokenId,
-        JB721Tier memory tier
-    )
-        internal
-        virtual
-    {
-        from; // Prevents unused var compiler and natspec complaints.
-        to;
-        tokenId;
-        tier;
     }
 }

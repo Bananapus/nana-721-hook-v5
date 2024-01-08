@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import {IJBRulesets} from "lib/juice-contracts-v4/src/interfaces/IJBRulesets.sol";
-import {JB721GovernanceType} from "./../enums/JB721GovernanceType.sol";
 import {IJB721TokenUriResolver} from "./../interfaces/IJB721TokenUriResolver.sol";
 import {IJB721TiersHookStore} from "./../interfaces/IJB721TiersHookStore.sol";
 import {JB721InitTiersConfig} from "./JB721InitTiersConfig.sol";
@@ -18,7 +17,6 @@ import {JB721TiersHookFlags} from "./JB721TiersHookFlags.sol";
 /// @custom:member reserveBeneficiary The default reserved beneficiary for all tiers.
 /// @custom:member store The contract to store and manage this hook's data.
 /// @custom:member flags A set of boolean options to configure the hook with.
-/// @custom:member governanceType The type of governance to use the NFTs for (onchain or not).
 struct JBDeploy721TiersHookConfig {
     string name;
     string symbol;
@@ -30,5 +28,4 @@ struct JBDeploy721TiersHookConfig {
     address reserveBeneficiary;
     IJB721TiersHookStore store;
     JB721TiersHookFlags flags;
-    JB721GovernanceType governanceType;
 }

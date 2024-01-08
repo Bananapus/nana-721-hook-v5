@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 import "src/JB721TiersHookProjectDeployer.sol";
 import "src/JB721TiersHookStore.sol";
-import "src/enums/JB721GovernanceType.sol";
 import "src/interfaces/IJB721TiersHookProjectDeployer.sol";
 import "src/structs/JBLaunchProjectConfig.sol";
 import "src/structs/JB721InitTiersConfig.sol";

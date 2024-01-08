@@ -11,7 +11,6 @@ import {JB721TiersHookDeployer} from "src/JB721TiersHookDeployer.sol";
 import {JB721TiersHookProjectDeployer} from "src/JB721TiersHookProjectDeployer.sol";
 import {JB721TiersHookStore} from "src/JB721TiersHookStore.sol";
 import {JB721TiersHook} from "src/JB721TiersHook.sol";
-import {JBGoverned721TiersHook} from "src/JBGoverned721TiersHook.sol";
 
 contract Deploy is Script {
     function run() public {
@@ -52,9 +51,8 @@ contract Deploy is Script {
 
 
         vm.startBroadcast();
-        JB721TiersHook noGovernance = new JB721TiersHook(IJBDirectory(directoryAddress), IJBPermissions(permissionsAddress));
-        JBGoverned721TiersHook onchainGovernance = new JBGoverned721TiersHook(IJBDirectory(directoryAddress), IJBPermissions(permissionsAddress));
-        JB721TiersHookDeployer hookDeployer = new JB721TiersHookDeployer(onchainGovernance, noGovernance, IJBAddressRegistry(addressRegistryAddress));
+        JB721TiersHook hook = new JB721TiersHook(IJBDirectory(directoryAddress), IJBPermissions(permissionsAddress));
+        JB721TiersHookDeployer hookDeployer = new JB721TiersHookDeployer(hook, IJBAddressRegistry(addressRegistryAddress));
         new JB721TiersHookStore();
         new JB721TiersHookProjectDeployer(IJBDirectory(directoryAddress), IJBPermissions(permissionsAddress), hookDeployer);
         vm.stopBroadcast();

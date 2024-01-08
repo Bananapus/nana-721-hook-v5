@@ -5,12 +5,10 @@ import {Clones} from "lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
 import {IJBAddressRegistry} from "lib/juice-address-registry/src/interfaces/IJBAddressRegistry.sol";
 import {JBOwnable} from "lib/juice-ownable/src/JBOwnable.sol";
 
-import {JB721GovernanceType} from "./enums/JB721GovernanceType.sol";
 import {IJB721TiersHookDeployer} from "./interfaces/IJB721TiersHookDeployer.sol";
 import {IJB721TiersHook} from "./interfaces/IJB721TiersHook.sol";
 import {JBDeploy721TiersHookConfig} from "./structs/JBDeploy721TiersHookConfig.sol";
 import {JB721TiersHook} from "./JB721TiersHook.sol";
-import {JBGoverned721TiersHook} from "./JBGoverned721TiersHook.sol";
 
 /// @title JB721TiersHookDeployer
 /// @notice Deploys a `JB721TiersHook`.
@@ -32,11 +30,8 @@ contract JB721TiersHookDeployer is IJB721TiersHookDeployer {
     // --------------- public immutable stored properties ---------------- //
     //*********************************************************************//
 
-    /// @notice A 721 tiers hook that supports on-chain governance across all tiers.
-    JBGoverned721TiersHook public immutable ONCHAIN_GOVERNANCE;
-
-    /// @notice A 721 tiers hook without on-chain governance support.
-    JB721TiersHook public immutable NO_GOVERNANCE;
+    /// @notice A 721 tiers hook.
+    JB721TiersHook public immutable HOOK;
 
     /// @notice A registry which stores references to contracts and their deployers.
     IJBAddressRegistry public immutable ADDRESS_REGISTRY;
@@ -45,16 +40,13 @@ contract JB721TiersHookDeployer is IJB721TiersHookDeployer {
     // -------------------------- constructor ---------------------------- //
     //*********************************************************************//
 
-    /// @param onchainGovernance Reference copy of the hook which supports on-chain governance.
-    /// @param noGovernance Reference copy of a hook without on-chain governance support.
+    /// @param hook Reference copy of a hook.
     /// @param addressRegistry A registry which stores references to contracts and their deployers.
     constructor(
-        JBGoverned721TiersHook onchainGovernance,
-        JB721TiersHook noGovernance,
+        JB721TiersHook hook,
         IJBAddressRegistry addressRegistry
     ) {
-        ONCHAIN_GOVERNANCE = onchainGovernance;
-        NO_GOVERNANCE = noGovernance;
+        HOOK = hook;
         ADDRESS_REGISTRY = addressRegistry;
     }
 
@@ -75,13 +67,7 @@ contract JB721TiersHookDeployer is IJB721TiersHookDeployer {
         returns (IJB721TiersHook newHook)
     {
         // Deploy the governance variant specified by the config.
-        if (deployTiersHookConfig.governanceType == JB721GovernanceType.NONE) {
-            newHook = IJB721TiersHook(Clones.clone(address(NO_GOVERNANCE)));
-        } else if (deployTiersHookConfig.governanceType == JB721GovernanceType.ONCHAIN) {
-            newHook = IJB721TiersHook(Clones.clone(address(ONCHAIN_GOVERNANCE)));
-        } else {
-            revert INVALID_GOVERNANCE_TYPE();
-        }
+        newHook = IJB721TiersHook(Clones.clone(address(HOOK)));
 
         newHook.initialize(
             projectId,
@@ -102,8 +88,6 @@ contract JB721TiersHookDeployer is IJB721TiersHookDeployer {
         // Add the hook to the address registry. This contract's nonce starts at 1.
         ADDRESS_REGISTRY.registerAddress(address(this), ++_nonce);
 
-        emit HookDeployed(projectId, newHook, deployTiersHookConfig.governanceType);
-
-        return newHook;
+        emit HookDeployed(projectId, newHook);
     }
 }

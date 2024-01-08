@@ -85,7 +85,7 @@ contract UnitTestSetup is Test {
     JB721TierConfig[] tiers;
     JB721TiersHookStore store;
     JB721TiersHook hook;
-    JB721TiersHook noGovernanceOrigin; // noGovernanceOrigin
+    JB721TiersHook hookOrigin; 
     JBAddressRegistry addressRegistry;
     JB721TiersHookDeployer jbHookDeployer;
     MetadataResolverHelper metadataHelper;
@@ -204,14 +204,11 @@ contract UnitTestSetup is Test {
             mockJBDirectory, abi.encodeWithSelector(IJBPermissioned.PERMISSIONS.selector), abi.encode(mockJBPermissions)
         );
 
-        noGovernanceOrigin = new JB721TiersHook(IJBDirectory(mockJBDirectory), IJBPermissions(mockJBPermissions));
-
-        JBGoverned721TiersHook onchainGovernance =
-            new JBGoverned721TiersHook(IJBDirectory(mockJBDirectory), IJBPermissions(mockJBPermissions));
+        hookOrigin = new JB721TiersHook(IJBDirectory(mockJBDirectory), IJBPermissions(mockJBPermissions));
 
         addressRegistry = new JBAddressRegistry();
 
-        jbHookDeployer = new JB721TiersHookDeployer(onchainGovernance, noGovernanceOrigin, addressRegistry);
+        jbHookDeployer = new JB721TiersHookDeployer(hookOrigin, addressRegistry);
 
         store = new JB721TiersHookStore();
 
@@ -235,8 +232,7 @@ contract UnitTestSetup is Test {
                 noNewTiersWithReserves: true,
                 noNewTiersWithVotes: true,
                 noNewTiersWithOwnerMinting: true
-            }),
-            JB721GovernanceType.NONE
+            })
         );
 
         hook = JB721TiersHook(address(jbHookDeployer.deployHookFor(projectId, hookConfig)));
@@ -710,8 +706,7 @@ contract UnitTestSetup is Test {
                 noNewTiersWithReserves: true,
                 noNewTiersWithVotes: true,
                 noNewTiersWithOwnerMinting: true
-            }),
-            governanceType: JB721GovernanceType.NONE
+            })
         });
 
         projectMetadata = "myIPFSHash";
