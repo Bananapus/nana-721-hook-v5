@@ -242,7 +242,8 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         bytes4 metadataId = bytes4(bytes20(address(this)));
 
         // Fetch the redeem hook metadata using the corresponding metadata ID.
-        (bool metadataExists, bytes memory metadata) = JBMetadataResolver.getDataFor(metadataId, context.redeemerMetadata);
+        (bool metadataExists, bytes memory metadata) =
+            JBMetadataResolver.getDataFor(metadataId, context.redeemerMetadata);
 
         uint256[] memory decodedTokenIds;
 

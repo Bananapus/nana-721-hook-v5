@@ -49,10 +49,9 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
             payer: beneficiary,
             projectId: projectId,
             rulesetId: 0,
-            amount: JBTokenAmount(
-                JBConstants.NATIVE_TOKEN, 10 * nftsToMint, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
-                ),
-            forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+            amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 10 * nftsToMint, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+            forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                // forwarded to the hook.
             weight: 10 ** 18,
             projectTokenCount: 0,
             beneficiary: beneficiary,
@@ -79,11 +78,9 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         }
     }
 
-    // If the amount paid is less than the NFT's price, the payment should revert if overspending is not allowed and no metadata was passed.
-    function test721TiersHook_afterPayRecorded_doesRevertOnAmountBelowPriceIfNoMetadataIfPreventOverspending(
-    )
-        public
-    {
+    // If the amount paid is less than the NFT's price, the payment should revert if overspending is not allowed and no
+    // metadata was passed.
+    function test721TiersHook_afterPayRecorded_doesRevertOnAmountBelowPriceIfNoMetadataIfPreventOverspending() public {
         JB721TiersHook hook = _initHookDefaultTiers(10, true);
 
         // Mock the directory call.
@@ -102,8 +99,11 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 // 1 wei below the minimum amount
-                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), 
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -113,7 +113,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         );
     }
 
-    // If the amount paid is less than the NFT's price, the payment should not revert if overspending is allowed and no metadata was passed.
+    // If the amount paid is less than the NFT's price, the payment should not revert if overspending is allowed and no
+    // metadata was passed.
     function test721TiersHook_afterPayRecorded_doesNotRevertOnAmountBelowPriceIfNoMetadata() public {
         // Mock the directory call.
         mockAndExpect(
@@ -129,8 +130,11 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 // 1 wei below the minimum amount
-                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), 
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -175,8 +179,14 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 payer: msg.sender,
                 projectId: projectId,
                 rulesetId: 0,
-                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price * 2 + tiers[1].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN,
+                    tiers[0].price * 2 + tiers[1].price,
+                    18,
+                    uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -217,7 +227,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -269,7 +280,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: beneficiary,
@@ -326,7 +338,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: beneficiary,
@@ -368,7 +381,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: beneficiary,
@@ -432,7 +446,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: beneficiary,
@@ -452,7 +467,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: beneficiary,
@@ -529,7 +545,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, amountInEth, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -595,7 +612,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     18,
                     uint32(uint160(JBConstants.NATIVE_TOKEN))
                     ),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -655,7 +673,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     18,
                     uint32(uint160(JBConstants.NATIVE_TOKEN))
                     ),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -710,7 +729,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     18,
                     uint32(uint160(JBConstants.NATIVE_TOKEN))
                     ),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -764,8 +784,12 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     payer: msg.sender,
                     projectId: projectId,
                     rulesetId: 0,
-                    amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, tiers[0].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                    forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                    amount: JBTokenAmount(
+                        JBConstants.NATIVE_TOKEN, tiers[0].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
+                        ),
+                    forwardedAmount: JBTokenAmount(
+                        JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
+                        ), // 0, forwarded to the hook.
                     weight: 10 ** 18,
                     projectTokenCount: 0,
                     beneficiary: msg.sender,
@@ -784,11 +808,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         }
     }
 
-    function test721TiersHook_afterPayRecorded_revertIfCallerIsNotATerminalOfProjectId(
-        address terminal
-    )
-        public
-    {
+    function test721TiersHook_afterPayRecorded_revertIfCallerIsNotATerminalOfProjectId(address terminal) public {
         vm.assume(terminal != mockTerminalAddress);
 
         // Mock the directory call.
@@ -809,7 +829,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 amount: JBTokenAmount(address(0), 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -837,7 +858,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 amount: JBTokenAmount(token, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -895,7 +917,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: beneficiary,
@@ -906,7 +929,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
 
         uint256 totalSupplyBefore = hook.STORE().totalSupplyOf(address(hook));
         {
-            // We now attempt to mint an additional NFT from tier 1 by using the pay credits we collected from the last payment.
+            // We now attempt to mint an additional NFT from tier 1 by using the pay credits we collected from the last
+            // payment.
             uint16[] memory moreTierIdsToMint = new uint16[](1);
             moreTierIdsToMint[0] = 1;
 
@@ -934,7 +958,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 amount: JBTokenAmount(
                     JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
                     ),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: beneficiary,
@@ -978,7 +1003,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: beneficiary,
@@ -988,9 +1014,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         );
     }
 
-    function test721TiersHook_afterPayRecorded_revertIfUnexpectedLeftoverAndPrevented(bool prevent)
-        public
-    {
+    function test721TiersHook_afterPayRecorded_revertIfUnexpectedLeftoverAndPrevented(bool prevent) public {
         uint256 leftover = tiers[1].price - 1;
         uint256 amount = tiers[0].price + leftover;
 
@@ -1038,7 +1062,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 projectId: projectId,
                 rulesetId: 0,
                 amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: beneficiary,
@@ -1048,7 +1073,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         );
     }
 
-    // If transfers are paused, transfers which do not involve the zero address are reverted, as long as the `transfersPausable` flag must be true.
+    // If transfers are paused, transfers which do not involve the zero address are reverted, as long as the
+    // `transfersPausable` flag must be true.
     // Transfers involving the zero address (minting and burning) are not affected.
     function test721TiersHook_beforeTransferHook_revertTransferIfTransferPausedInRuleset() public {
         defaultTierConfig.transfersPausable = true;
@@ -1127,7 +1153,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     18,
                     uint32(uint160(JBConstants.NATIVE_TOKEN))
                     ),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -1186,7 +1213,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     18,
                     uint32(uint160(JBConstants.NATIVE_TOKEN))
                     ),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: msg.sender,
@@ -1245,7 +1273,8 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                 amount: JBTokenAmount(
                     JBConstants.NATIVE_TOKEN, tiers[0].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
                     ),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0, forwarded to the hook.
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,
                 beneficiary: holder,
@@ -1279,7 +1308,12 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
                     decimals: 18,
                     currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
                 }),
-                forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: uint32(uint160(JBConstants.NATIVE_TOKEN)) }), // 0, forwarded to the hook.
+                forwardedAmount: JBTokenAmount({
+                    token: address(0),
+                    value: 0,
+                    decimals: 18,
+                    currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
+                }), // 0, forwarded to the hook.
                 redemptionRate: 5000,
                 beneficiary: payable(holder),
                 hookMetadata: bytes(""),

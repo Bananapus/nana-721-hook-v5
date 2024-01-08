@@ -42,10 +42,7 @@ contract JB721TiersHookDeployer is IJB721TiersHookDeployer {
 
     /// @param hook Reference copy of a hook.
     /// @param addressRegistry A registry which stores references to contracts and their deployers.
-    constructor(
-        JB721TiersHook hook,
-        IJBAddressRegistry addressRegistry
-    ) {
+    constructor(JB721TiersHook hook, IJBAddressRegistry addressRegistry) {
         HOOK = hook;
         ADDRESS_REGISTRY = addressRegistry;
     }

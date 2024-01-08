@@ -47,14 +47,19 @@ contract Deploy is Script {
             string.concat("lib/juice-contracts-v4/broadcast/Deploy.s.sol/", chain, "/run-latest.json"), "JBPermissions"
         );
 
-        address addressRegistryAddress = _getDeploymentAddress(string.concat("lib/juice-address-registry/broadcast/Deploy.s.sol/", chain, "/run-latest.json"), "JBAddressRegistry");
-
+        address addressRegistryAddress = _getDeploymentAddress(
+            string.concat("lib/juice-address-registry/broadcast/Deploy.s.sol/", chain, "/run-latest.json"),
+            "JBAddressRegistry"
+        );
 
         vm.startBroadcast();
         JB721TiersHook hook = new JB721TiersHook(IJBDirectory(directoryAddress), IJBPermissions(permissionsAddress));
-        JB721TiersHookDeployer hookDeployer = new JB721TiersHookDeployer(hook, IJBAddressRegistry(addressRegistryAddress));
+        JB721TiersHookDeployer hookDeployer =
+            new JB721TiersHookDeployer(hook, IJBAddressRegistry(addressRegistryAddress));
         new JB721TiersHookStore();
-        new JB721TiersHookProjectDeployer(IJBDirectory(directoryAddress), IJBPermissions(permissionsAddress), hookDeployer);
+        new JB721TiersHookProjectDeployer(
+            IJBDirectory(directoryAddress), IJBPermissions(permissionsAddress), hookDeployer
+        );
         vm.stopBroadcast();
     }
 

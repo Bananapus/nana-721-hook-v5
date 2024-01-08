@@ -133,7 +133,6 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @custom:param category The category to get the first tier ID of.
     mapping(address hook => mapping(uint256 category => uint256)) internal _startingTierIdOfCategory;
 
-
     //*********************************************************************//
     // ------------------------- external views -------------------------- //
     //*********************************************************************//
@@ -229,7 +228,16 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @param includeResolvedUri If set to `true`, if the contract has a token URI resolver, its content will be
     /// resolved and included.
     /// @return The tier.
-    function tierOf(address hook, uint256 id, bool includeResolvedUri) public view override returns (JB721Tier memory) {
+    function tierOf(
+        address hook,
+        uint256 id,
+        bool includeResolvedUri
+    )
+        public
+        view
+        override
+        returns (JB721Tier memory)
+    {
         return _getTierFrom(hook, id, _storedTierOf[hook][id], includeResolvedUri);
     }
 
@@ -624,7 +632,8 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
 
                         // If the previous tier's `_tierIdAfter` was set to something else, update it.
                         if (previousTierId != tierId - 1 || _tierIdAfter[msg.sender][previousTierId] != 0) {
-                            // Set the the previous tier's `_tierIdAfter` to the tier being added, or 0 if the tier ID is
+                            // Set the the previous tier's `_tierIdAfter` to the tier being added, or 0 if the tier ID
+                            // is
                             // incremented.
                             _tierIdAfter[msg.sender][previousTierId] = previousTierId == tierId - 1 ? 0 : tierId;
                         }

@@ -178,12 +178,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertEq(hook.test_store().totalSupplyOf(address(hook)), ((numberOfTiers * (numberOfTiers + 1)) / 2));
     }
 
-    function test721TiersHook_balanceOf_returnsCompleteBalance(
-        uint256 numberOfTiers,
-        address holder
-    )
-        public
-    {
+    function test721TiersHook_balanceOf_returnsCompleteBalance(uint256 numberOfTiers, address holder) public {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
         ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
@@ -267,12 +262,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         );
     }
 
-    function test721TiersHook_tierIdOfToken_returnsCorrectTierNumber(
-        uint16 _tierId,
-        uint16 _tokenNumber
-    )
-        public
-    {
+    function test721TiersHook_tierIdOfToken_returnsCorrectTierNumber(uint16 _tierId, uint16 _tokenNumber) public {
         vm.assume(_tierId > 0 && _tokenNumber > 0);
         uint256 tokenId = _generateTokenId(_tierId, _tokenNumber);
         assertEq(hook.STORE().tierOfTokenId(address(hook), tokenId, false).id, _tierId);
@@ -348,9 +338,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertEq(hook.test_store().redemptionWeightOf(address(hook), _tierToGetWeightOf), _theoreticalWeight);
     }
 
-    function test721TiersHook_totalRedemptionWeight_returnsCorrectTotalWeightAsFloorsCumSum(
-        uint256 numberOfTiers
-    )
+    function test721TiersHook_totalRedemptionWeight_returnsCorrectTotalWeightAsFloorsCumSum(uint256 numberOfTiers)
         public
     {
         numberOfTiers = bound(numberOfTiers, 0, 30);

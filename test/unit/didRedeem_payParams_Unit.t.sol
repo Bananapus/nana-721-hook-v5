@@ -341,9 +341,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
         assertEq(hook.test_store().numberOfBurnedFor(address(hook), 1), _numberOfNFT);
     }
 
-    function test721TiersHook_afterRedeemRecordedWith_revertIfNotCorrectProjectId(uint8 _wrongProjectId)
-        public
-    {
+    function test721TiersHook_afterRedeemRecordedWith_revertIfNotCorrectProjectId(uint8 _wrongProjectId) public {
         vm.assume(_wrongProjectId != projectId);
 
         uint256[] memory _tokenList = new uint256[](1);
@@ -426,12 +424,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
         );
     }
 
-    function test721TiersHook_afterRedeemRecordedWith_RevertIfWrongHolder(
-        address _wrongHolder,
-        uint8 tokenId
-    )
-        public
-    {
+    function test721TiersHook_afterRedeemRecordedWith_RevertIfWrongHolder(address _wrongHolder, uint8 tokenId) public {
         vm.assume(beneficiary != _wrongHolder);
         vm.assume(tokenId != 0);
 

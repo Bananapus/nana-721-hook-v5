@@ -415,8 +415,7 @@ contract Test721Hook_adjustTier_Unit is UnitTestSetup {
 
         // Create new tiers to add (with category 102).
         defaultTierConfig.category = 102;
-        (tierConfigsToAdd,) =
-            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, floorTiersToAdd);
+        (tierConfigsToAdd,) = _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, floorTiersToAdd);
 
         // Add the 102 tiers.
         tiersLeft = _addDeleteTiers(hook, tiersLeft, 0, tierConfigsToAdd);
@@ -1131,7 +1130,8 @@ contract Test721Hook_adjustTier_Unit is UnitTestSetup {
         }
         JB721TiersHookStore store = new JB721TiersHookStore();
         vm.etch(hook_i, address(hook).code);
-        JB721TiersHook hook = JB721TiersHook(hook_i); // TODO: Maybe use a different name for hook here? Works, but confusing given line above.
+        JB721TiersHook hook = JB721TiersHook(hook_i); // TODO: Maybe use a different name for hook here? Works, but
+            // confusing given line above.
         hook.initialize(
             projectId,
             name,

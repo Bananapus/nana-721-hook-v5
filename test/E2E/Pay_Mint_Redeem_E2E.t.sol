@@ -56,8 +56,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         super.setUp();
         hook = new JB721TiersHook(jbDirectory, jbPermissions);
         addressRegistry = new JBAddressRegistry();
-        JB721TiersHookDeployer hookDeployer =
-            new JB721TiersHookDeployer(hook, addressRegistry);
+        JB721TiersHookDeployer hookDeployer = new JB721TiersHookDeployer(hook, addressRegistry);
         deployer =
             new JB721TiersHookProjectDeployer(IJBDirectory(jbDirectory), IJBPermissions(jbPermissions), hookDeployer);
 
@@ -374,7 +373,6 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             memo: "Take my money!",
             metadata: hookMetadata
         });
-
 
         {
             uint256 tokenId = _generateTokenId(highestTier, 1);

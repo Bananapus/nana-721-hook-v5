@@ -85,7 +85,7 @@ contract UnitTestSetup is Test {
     JB721TierConfig[] tiers;
     JB721TiersHookStore store;
     JB721TiersHook hook;
-    JB721TiersHook hookOrigin; 
+    JB721TiersHook hookOrigin;
     JBAddressRegistry addressRegistry;
     JB721TiersHookDeployer jbHookDeployer;
     MetadataResolverHelper metadataHelper;

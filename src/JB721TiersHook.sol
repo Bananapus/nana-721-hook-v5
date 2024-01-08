@@ -452,7 +452,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
 
         // Keep a reference to the store.
         IJB721TiersHookStore store = STORE;
-         
+
         // Record the reserved mint for the tier.
         uint256[] memory tokenIds = store.recordMintReservesFor(tierId, count);
 
@@ -531,10 +531,10 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         // Keep a reference to the boolean indicating whether paying more than the price of the NFTs being minted is
         // allowed. Defaults to false.
         bool allowOverspending;
-        
+
         // The metadata ID is the first 4 bytes of this contract's address.
         bytes4 metadataId = bytes4(bytes20(address(this)));
-  
+
         // Resolve the metadata.
         (bool found, bytes memory metadata) = JBMetadataResolver.getDataFor(metadataId, context.payerMetadata);
 
@@ -552,9 +552,8 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
 
             // Mint NFTs from the tiers as specified.
             if (tierIdsToMint.length != 0) {
-                leftoverAmount = _mintAll({
-                    amount: leftoverAmount, mintTierIds: tierIdsToMint, beneficiary: context.beneficiary
-                    });
+                leftoverAmount =
+                    _mintAll({amount: leftoverAmount, mintTierIds: tierIdsToMint, beneficiary: context.beneficiary});
             }
         } else if (!STORE.flagsOf(address(this)).preventOverspending) {
             allowOverspending = true;
@@ -648,9 +647,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         IJB721TiersHookStore store = STORE;
 
         // Get a reference to the tier.
-        JB721Tier memory tier = store.tierOfTokenId({
-            hook: address(this), tokenId: tokenId, includeResolvedUri: false}
-            );
+        JB721Tier memory tier = store.tierOfTokenId({hook: address(this), tokenId: tokenId, includeResolvedUri: false});
 
         // Record the transfers and keep a reference to where the token is coming from.
         from = super._update(to, tokenId, auth);
