@@ -2,12 +2,13 @@
 pragma solidity 0.8.23;
 
 import {mulDiv} from "lib/prb-math/src/Common.sol";
-import {IJBPermissions} from "lib/juice-contracts-v4/src/interfaces/IJBPermissions.sol";
 import {JBOwnable} from "lib/juice-ownable/src/JBOwnable.sol";
-import {JBRulesetMetadataResolver} from "lib/juice-contracts-v4/src/libraries/JBRulesetMetadataResolver.sol";
+import {JBOwnableOverrides} from "lib/juice-ownable/src/JBOwnableOverrides.sol";
+import {IJBPermissions} from "lib/juice-contracts-v4/src/interfaces/IJBPermissions.sol";
 import {IJBRulesets} from "lib/juice-contracts-v4/src/interfaces/IJBRulesets.sol";
 import {IJBPrices} from "lib/juice-contracts-v4/src/interfaces/IJBPrices.sol";
 import {IJBDirectory} from "lib/juice-contracts-v4/src/interfaces/IJBDirectory.sol";
+import {JBRulesetMetadataResolver} from "lib/juice-contracts-v4/src/libraries/JBRulesetMetadataResolver.sol";
 import {JBBeforeRedeemRecordedContext} from "lib/juice-contracts-v4/src/structs/JBBeforeRedeemRecordedContext.sol";
 import {JBAfterPayRecordedContext} from "lib/juice-contracts-v4/src/structs/JBAfterPayRecordedContext.sol";
 import {JBRuleset} from "lib/juice-contracts-v4/src/structs/JBRuleset.sol";
@@ -187,9 +188,9 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
 
     /// @notice Indicates if this contract adheres to the specified interface.
     /// @dev See {IERC165-supportsInterface}.
-    /// @param _interfaceId The ID of the interface to check for adherence to.
-    function supportsInterface(bytes4 _interfaceId) public view override returns (bool) {
-        return _interfaceId == type(IJB721TiersHook).interfaceId || super.supportsInterface(_interfaceId);
+    /// @param interfaceId The ID of the interface to check for adherence to.
+    function supportsInterface(bytes4 interfaceId) public view override(JB721Hook, JBOwnableOverrides) returns (bool) {
+        return interfaceId == type(IJB721TiersHook).interfaceId || super.supportsInterface(interfaceId);
     }
 
     //*********************************************************************//

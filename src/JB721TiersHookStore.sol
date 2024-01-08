@@ -210,7 +210,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             }
 
             unchecked {
-                ++i;
+                i++;
             }
         } while (i < categories.length);
 
