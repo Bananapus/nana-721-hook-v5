@@ -13,7 +13,7 @@ import {JB721TierConfig} from "./JB721TierConfig.sol";
 /// currencies. To only accept payments in `currency`, set `prices` to the zero address. See `JBPrices`.
 struct JB721InitTiersConfig {
     JB721TierConfig[] tiers;
-    uint48 currency;
-    uint48 decimals;
+    uint32 currency;
+    uint8 decimals;
     IJBPrices prices;
 }

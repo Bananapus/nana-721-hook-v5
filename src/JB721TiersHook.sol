@@ -115,12 +115,12 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
     function pricingContext() external view override returns (uint256 currency, uint256 decimals, IJBPrices prices) {
         // Get a reference to the packed pricing context.
         uint256 packed = _packedPricingContext;
-        // currency in bits 0-47 (48 bits).
-        currency = uint256(uint48(packed));
-        // pricing decimals in bits 48-95 (48 bits).
-        decimals = uint256(uint48(packed >> 48));
-        // prices contract in bits 96-255 (160 bits).
-        prices = IJBPrices(address(uint160(packed >> 96)));
+        // currency in bits 0-31 (32 bits).
+        currency = uint256(uint32(packed));
+        // pricing decimals in bits 32-39 (8 bits).
+        decimals = uint256(uint8(packed >> 32));
+        // prices contract in bits 40-199 (160 bits).
+        prices = IJBPrices(address(uint160(packed >> 40)));
     }
 
     //*********************************************************************//
@@ -246,12 +246,12 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
 
         // Pack pricing context from the `tiersConfig`.
         uint256 packed;
-        // pack the currency in bits 0-47 (48 bits).
+        // pack the currency in bits 0-31 (32 bits).
         packed |= uint256(tiersConfig.currency);
-        // pack the pricing decimals in bits 48-95 (48 bits).
-        packed |= uint256(tiersConfig.decimals) << 48;
-        // pack the prices contract in bits 96-255 (160 bits).
-        packed |= uint256(uint160(address(tiersConfig.prices))) << 96;
+        // pack the pricing decimals in bits 32-39 (8 bits).
+        packed |= uint256(tiersConfig.decimals) << 32;
+        // pack the prices contract in bits 40-199 (160 bits).
+        packed |= uint256(uint160(address(tiersConfig.prices))) << 40;
         // Store the packed value.
         _packedPricingContext = packed;
 
@@ -485,16 +485,16 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
 
         {
             uint256 packed = _packedPricingContext;
-            // pricing currency in bits 0-47 (48 bits).
-            uint256 pricingCurrency = uint256(uint48(packed));
+            // pricing currency in bits 0-31 (32 bits).
+            uint256 pricingCurrency = uint256(uint32(packed));
             if (context.amount.currency == pricingCurrency) {
                 value = context.amount.value;
             } else {
-                // prices in bits 96-255 (160 bits).
-                IJBPrices prices = IJBPrices(address(uint160(packed >> 96)));
+                // prices in bits 40-199 (160 bits).
+                IJBPrices prices = IJBPrices(address(uint160(packed >> 40)));
                 if (prices != IJBPrices(address(0))) {
-                    // pricing decimals in bits 48-95 (48 bits).
-                    uint256 pricingDecimals = uint256(uint48(packed >> 48));
+                    // pricing decimals in bits 32-39 (8 bits).
+                    uint256 pricingDecimals = uint256(uint8(packed >> 32));
                     value = mulDiv(
                         context.amount.value,
                         10 ** pricingDecimals,

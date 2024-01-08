@@ -581,8 +581,8 @@ contract UnitTestSetup is Test {
     function _initHookDefaultTiers(
         uint256 initialNumberOfTiers,
         bool preventOverspending,
-        uint48 currency,
-        uint48 decimals,
+        uint32 currency,
+        uint8 decimals,
         address oracle
     )
         internal

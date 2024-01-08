@@ -18,8 +18,8 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
     }
 
     function test721TiersHook_pricing_packingFunctionsAsExpected(
-        uint48 _currency,
-        uint48 _decimals,
+        uint32 _currency,
+        uint8 _decimals,
         address _prices
     )
         public
