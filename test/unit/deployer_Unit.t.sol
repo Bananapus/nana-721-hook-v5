@@ -33,13 +33,13 @@ contract TestJB721TiersHookProjectDeployer_Unit is UnitTestSetup {
     }
 
     function testLaunchProjectFor_shouldLaunchProject(uint256 previousProjectId) external {
-        // Include launching the protocol project (1)
+        // Include launching the protocol project (project ID 1).
         previousProjectId = bound(previousProjectId, 0, type(uint88).max - 1);
 
-        (JBDeploy721TiersHookConfig memory tiered721DeployerData, JBLaunchProjectConfig memory launchProjectConfig) =
+        (JBDeploy721TiersHookConfig memory deploy721TiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
 
-        // Mock and check
+        // Mock and check.
         mockAndExpect(
             mockJBDirectory, abi.encodeWithSelector(IJBDirectory.PROJECTS.selector), abi.encode(mockJBProjects)
         );
@@ -49,12 +49,12 @@ contract TestJB721TiersHookProjectDeployer_Unit is UnitTestSetup {
             mockJBController, abi.encodeWithSelector(IJBController.launchProjectFor.selector), abi.encode(true)
         );
 
-        // Test: launch project
-        uint256 _projectId = deployer.launchProjectFor(
-            owner, tiered721DeployerData, launchProjectConfig, IJBController(mockJBController)
+        // Test: launch project.
+        uint256 projectId = deployer.launchProjectFor(
+            owner, deploy721TiersHookConfig, launchProjectConfig, IJBController(mockJBController)
         );
 
-        // Check: correct project id?
-        assertEq(previousProjectId, _projectId - 1);
+        // Check: correct project ID (incremented by 1)?
+        assertEq(previousProjectId, projectId - 1);
     }
 }
