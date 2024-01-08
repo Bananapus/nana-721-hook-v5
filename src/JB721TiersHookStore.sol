@@ -264,16 +264,12 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Keep a reference to the greatest tier ID.
         uint256 maxTierId = maxTierIdOf[hook];
 
-        for (uint256 i = maxTierId; i != 0;) {
+        for (uint256 i = maxTierId; i != 0; i--) {
             // Set the tier being iterated on.
             storedTier = _storedTierOf[hook][i];
 
             // Increment the total supply by the number of tokens already minted.
             supply += storedTier.initialSupply - storedTier.remainingSupply;
-
-            unchecked {
-                --i;
-            }
         }
     }
 
@@ -304,7 +300,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         JBStored721Tier memory storedTier;
 
         // Loop through all tiers.
-        for (uint256 i = maxTierId; i != 0;) {
+        for (uint256 i = maxTierId; i != 0; i--) {
             // Get a reference to the account's balance in this tier.
             balance = tierBalanceOf[hook][account][i];
 
@@ -315,10 +311,6 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             // Add the voting units for the address' balance in this tier.
             // Use custom voting units if set. Otherwise, use the tier's price.
             units += balance * (useVotingUnits ? storedTier.votingUnits : storedTier.price);
-
-            unchecked {
-                --i;
-            }
         }
     }
 
@@ -346,8 +338,14 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
 
         if (balance == 0) return 0;
 
+        // Keep a reference to the stored tier.
+        JBStored721Tier memory storedTier = _storedTierOf[hook][tierId];
+
+        // Check if voting units should be used. Price will be used otherwise.
+        (,, bool useVotingUnits) = _unpackBools(storedTier.packedBools);
+
         // Return the address' voting units within the tier.
-        return balance * _storedTierOf[hook][tierId].votingUnits;
+        return balance * (useVotingUnits ? storedTier.votingUnits : storedTier.price);
     }
 
     /// @notice Resolves the encoded IPFS URI for the tier of the 721 with the provided token ID from the provided 721
@@ -390,13 +388,9 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         uint256 maxTierId = maxTierIdOf[hook];
 
         // Loop through all tiers.
-        for (uint256 i = maxTierId; i != 0;) {
+        for (uint256 i = maxTierId; i != 0; i--) {
             // Get a reference to the account's balance within this tier.
             balance += tierBalanceOf[hook][owner][i];
-
-            unchecked {
-                --i;
-            }
         }
     }
 
