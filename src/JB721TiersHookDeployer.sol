@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {Clones} from "lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
 import {IJBAddressRegistry} from "lib/juice-address-registry/src/interfaces/IJBAddressRegistry.sol";
-import {IJBDirectory} from "lib/juice-contracts-v4/src/interfaces/IJBDirectory.sol";
 import {JBOwnable} from "lib/juice-ownable/src/JBOwnable.sol";
 
 import {JB721GovernanceType} from "./enums/JB721GovernanceType.sol";

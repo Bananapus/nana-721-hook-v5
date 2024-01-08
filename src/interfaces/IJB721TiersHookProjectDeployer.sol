@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import {IJBDirectory} from "lib/juice-contracts-v4/src/interfaces/IJBDirectory.sol";
-import {IJBProjects} from "lib/juice-contracts-v4/src/interfaces/IJBProjects.sol";
 import {IJBController} from "lib/juice-contracts-v4/src/interfaces/IJBController.sol";
 
 import {JBDeploy721TiersHookConfig} from "../structs/JBDeploy721TiersHookConfig.sol";

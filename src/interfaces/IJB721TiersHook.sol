@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IJBDirectory} from "lib/juice-contracts-v4/src/interfaces/IJBDirectory.sol";
 import {IJBRulesets} from "lib/juice-contracts-v4/src/interfaces/IJBRulesets.sol";
 import {IJBPrices} from "lib/juice-contracts-v4/src/interfaces/IJBPrices.sol";
 

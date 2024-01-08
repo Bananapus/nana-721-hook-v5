@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "lib/juice-contracts-v4/src/structs/JBTerminalConfig.sol";
+import {JBTerminalConfig} from "lib/juice-contracts-v4/src/structs/JBTerminalConfig.sol";
 
-import "./JBPayDataHookRulesetConfig.sol";
+import {JBPayDataHookRulesetConfig} from "./JBPayDataHookRulesetConfig.sol";
 
 /// @custom:member projectId The ID of the project to launch rulesets for.
 /// @custom:member rulesetConfigurations The ruleset configurations to queue.

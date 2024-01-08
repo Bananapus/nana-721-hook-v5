@@ -15,6 +15,7 @@ import "lib/juice-contracts-v4/src/structs/JBAfterRedeemRecordedContext.sol";
 import "lib/juice-contracts-v4/src/structs/JBAfterPayRecordedContext.sol";
 import "lib/juice-contracts-v4/src/structs/JBAfterRedeemRecordedContext.sol";
 import "lib/juice-contracts-v4/src/structs/JBRedeemHookSpecification.sol";
+import "lib/juice-contracts-v4/src/structs/JBFundAccessLimitGroup.sol";
 import "lib/juice-contracts-v4/src/interfaces/terminal/IJBTerminal.sol";
 import "lib/juice-contracts-v4/src/interfaces/IJBRulesetApprovalHook.sol";
 

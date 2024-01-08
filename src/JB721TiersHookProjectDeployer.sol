@@ -18,7 +18,6 @@ import {JBLaunchRulesetsConfig} from "./structs/JBLaunchRulesetsConfig.sol";
 import {JBQueueRulesetsConfig} from "./structs/JBQueueRulesetsConfig.sol";
 import {JBLaunchProjectConfig} from "./structs/JBLaunchProjectConfig.sol";
 import {JBPayDataHookRulesetConfig} from "./structs/JBPayDataHookRulesetConfig.sol";
-import {JBPayDataHookRulesetMetadata} from "./structs/JBPayDataHookRulesetMetadata.sol";
 
 /// @title JB721TiersHookProjectDeployer
 /// @notice Deploys a project and a 721 tiers hook for it.

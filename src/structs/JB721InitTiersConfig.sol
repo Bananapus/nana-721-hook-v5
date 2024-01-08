@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "lib/juice-contracts-v4/src/interfaces/IJBPrices.sol";
-import "./JB721TierConfig.sol";
+import {IJBPrices} from "lib/juice-contracts-v4/src/interfaces/IJBPrices.sol";
+import {JB721TierConfig} from "./JB721TierConfig.sol";
 
 /// @notice Config to initialize a `JB721TiersHook` with tiers and price data.
 /// @dev The `tiers` must be sorted by price (from least to greatest).

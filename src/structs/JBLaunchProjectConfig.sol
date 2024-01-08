@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "lib/juice-contracts-v4/src/structs/JBTerminalConfig.sol";
+import {JBTerminalConfig} from "lib/juice-contracts-v4/src/structs/JBTerminalConfig.sol";
 
-import "./JBPayDataHookRulesetConfig.sol";
+import {JBPayDataHookRulesetConfig} from "./JBPayDataHookRulesetConfig.sol";
 
 /// @custom:member projectMetadata Metadata to associate with the project. This can be updated any time by the owner of
 /// the

@@ -4,7 +4,6 @@ pragma solidity 0.8.23;
 import {Votes} from "lib/openzeppelin-contracts/contracts/governance/utils/Votes.sol";
 import {EIP712} from "lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol";
 import {IJBDirectory} from "lib/juice-contracts-v4/src/interfaces/IJBDirectory.sol";
-import {IJBProjects} from "lib/juice-contracts-v4/src/interfaces/IJBProjects.sol";
 import {IJBPermissions} from "lib/juice-contracts-v4/src/interfaces/IJBPermissions.sol";
 
 import {JB721Tier} from "./structs/JB721Tier.sol";

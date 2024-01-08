@@ -32,7 +32,7 @@ library JB721TiersRulesetMetadataResolver {
     /// @notice Expand packed ruleset metadata for the 721 hook.
     /// @param packedMetadata The packed metadata to expand.
     /// @return metadata The metadata as a `JB721TiersRulesetMetadata` struct.
-    function expandMetadata(uint8 packedMetadata) internal pure returns (JB721TiersRulesetMetadata memory metadata) {
+    function expandMetadata(uint16 packedMetadata) internal pure returns (JB721TiersRulesetMetadata memory metadata) {
         return JB721TiersRulesetMetadata(transfersPaused(packedMetadata), mintPendingReservesPaused(packedMetadata));
     }
 }
