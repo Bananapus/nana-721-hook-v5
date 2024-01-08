@@ -18,7 +18,7 @@ library JB721TiersRulesetMetadataResolver {
     /// @notice Pack the ruleset metadata for the 721 hook into a single `uint256`.
     /// @param metadata The metadata to validate and pack.
     /// @return packed A `uint256` containing the packed metadata for the 721 hook.
-    function pack721TiersFundingCycleMetadata(JB721TiersRulesetMetadata memory metadata)
+    function pack721TiersRulesetMetadata(JB721TiersRulesetMetadata memory metadata)
         internal
         pure
         returns (uint256 packed)

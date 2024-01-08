@@ -19,7 +19,7 @@ pragma solidity 0.8.23;
 //     IJB721TiersHookProjectDeployer(PROJECT_DEPLOYER);
 //   IJBController jbController;
 //   IJBDirectory jbDirectory;
-//   IJBRulesets jbFundingCycleStore;
+//   IJBRulesets jbRulesetStore;
 //   IJBTerminal[] _terminals;
 //   JBFundAccessLimitGroup[] _fundAccessLimitGroups;
 
@@ -36,7 +36,7 @@ pragma solidity 0.8.23;
 //     projectOwner = msg.sender; // Change me
 //     jbController = deployer.controller();
 //     jbDirectory = jbController.DIRECTORY();
-//     jbFundingCycleStore = jbController.rulesets();
+//     jbRulesetStore = jbController.rulesets();
 //     name = ''; // Change me
 //     symbol = '';
 //     baseUri = '';
@@ -80,8 +80,8 @@ pragma solidity 0.8.23;
 //       ballot: IJBRulesetApprovalHook(address(0))
 //     });
 
-//     JBPayDataHookRulesetMetadata memory _metadata = JBPayDataHookRulesetMetadata({
-//       global: JBGlobalFundingCycleMetadata({
+//     JBPayDataHookRulesetMetadata memory metadata = JBPayDataHookRulesetMetadata({
+//       global: JBGlobalRulesetMetadata({
 //         allowSetTerminals: false,
 //         allowSetController: false,
 //         pauseTransfers: false
@@ -154,7 +154,7 @@ pragma solidity 0.8.23;
 //       directory: jbDirectory,
 //       name: name,
 //       symbol: symbol,
-//       rulesets: jbFundingCycleStore,
+//       rulesets: jbRulesetStore,
 //       baseUri: baseUri,
 //       tokenUriResolver: IJBTokenUriResolver(address(0)),
 //       contractUri: contractUri,
@@ -178,7 +178,7 @@ pragma solidity 0.8.23;
 //     launchProjectConfig = JBLaunchProjectConfig({
 //       projectMetadata: projectMetadata,
 //       config: _config,
-//       metadata: _metadata,
+//       metadata: metadata,
 //       mustStartAtOrAfter: 0,
 //       splitGroups: _splitGroups,
 //       fundAccessLimitGroups: _fundAccessLimitGroups,

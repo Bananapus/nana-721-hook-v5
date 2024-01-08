@@ -11,10 +11,10 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
 
         (, JB721Tier[] memory _tiers) = _createTiers(defaultTierConfig, numberOfTiers);
 
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(numberOfTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
 
-        assertTrue(_isIn(_hook.test_store().tiersOf(address(_hook), new uint256[](0), false, 0, numberOfTiers), _tiers));
-        assertTrue(_isIn(_tiers, _hook.test_store().tiersOf(address(_hook), new uint256[](0), false, 0, numberOfTiers)));
+        assertTrue(_isIn(hook.test_store().tiersOf(address(hook), new uint256[](0), false, 0, numberOfTiers), _tiers));
+        assertTrue(_isIn(_tiers, hook.test_store().tiersOf(address(hook), new uint256[](0), false, 0, numberOfTiers)));
     }
 
     function test721TiersHook_pricing_packingFunctionsAsExpected(
@@ -42,9 +42,9 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
             })
         );
 
-        JB721TiersHook _hook = JB721TiersHook(address(jbHookDeployer.deployHookFor(projectId, delegateData)));
+        JB721TiersHook hook = JB721TiersHook(address(jbHookDeployer.deployHookFor(projectId, delegateData)));
 
-        (uint256 __currency, uint256 __decimals, IJBPrices __prices) = _hook.pricingContext();
+        (uint256 __currency, uint256 __decimals, IJBPrices __prices) = hook.pricingContext();
         assertEq(__currency, uint256(_currency));
         assertEq(__decimals, uint256(_decimals));
         assertEq(address(__prices), _prices);
@@ -68,21 +68,21 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         (, JB721Tier[] memory _tiers) = _createTiers(defaultTierConfig, numberOfTiers);
 
         mockTokenUriResolver = makeAddr("mockTokenUriResolver");
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(numberOfTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
 
         for (uint256 i; i < numberOfTiers; i++) {
             // Mock the URI resolver call
             mockAndExpect(
                 mockTokenUriResolver,
                 abi.encodeWithSelector(
-                    IJB721TokenUriResolver.tokenUriOf.selector, address(_hook), _generateTokenId(i + 1, 0)
+                    IJB721TokenUriResolver.tokenUriOf.selector, address(hook), _generateTokenId(i + 1, 0)
                 ),
                 abi.encode(string(abi.encodePacked("resolverURI", _generateTokenId(i + 1, 0))))
             );
         }
 
-        assertTrue(_isIn(_hook.test_store().tiersOf(address(_hook), new uint256[](0), true, 0, 100), _tiers));
-        assertTrue(_isIn(_tiers, _hook.test_store().tiersOf(address(_hook), new uint256[](0), true, 0, 100)));
+        assertTrue(_isIn(hook.test_store().tiersOf(address(hook), new uint256[](0), true, 0, 100), _tiers));
+        assertTrue(_isIn(_tiers, hook.test_store().tiersOf(address(hook), new uint256[](0), true, 0, 100)));
     }
 
     function test721TiersHook_tiers_returnsAllTiersExcludingRemovedOnes(
@@ -109,13 +109,13 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
             }
         }
 
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(numberOfTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
 
-        _hook.test_store().ForTest_setIsTierRemoved(address(_hook), firstRemovedTier);
-        _hook.test_store().ForTest_setIsTierRemoved(address(_hook), secondRemovedTier);
+        hook.test_store().ForTest_setIsTierRemoved(address(hook), firstRemovedTier);
+        hook.test_store().ForTest_setIsTierRemoved(address(hook), secondRemovedTier);
 
         JB721Tier[] memory _storedTiers =
-            _hook.test_store().tiersOf(address(_hook), new uint256[](0), false, 0, numberOfTiers);
+            hook.test_store().tiersOf(address(hook), new uint256[](0), false, 0, numberOfTiers);
 
         // Check: tier array returned is resized
         assertEq(_storedTiers.length, numberOfTiers - 2);
@@ -129,14 +129,14 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
         (, JB721Tier[] memory _tiers) = _createTiers(defaultTierConfig, numberOfTiers);
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(numberOfTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
 
         // Check: correct tier, if exist?
         if (givenTier <= numberOfTiers && givenTier != 0) {
-            assertEq(_hook.test_store().tierOf(address(_hook), givenTier, false), _tiers[givenTier - 1]);
+            assertEq(hook.test_store().tierOf(address(hook), givenTier, false), _tiers[givenTier - 1]);
         } else {
             assertEq( // empty tier if not?
-                _hook.test_store().tierOf(address(_hook), givenTier, false),
+                hook.test_store().tierOf(address(hook), givenTier, false),
                 JB721Tier({
                     id: givenTier,
                     price: 0,
@@ -158,11 +158,11 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
     function test721TiersHook_totalSupply_returnsTotalSupply(uint256 numberOfTiers) public {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(numberOfTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
 
         for (uint256 i; i < numberOfTiers; i++) {
-            _hook.test_store().ForTest_setTier(
-                address(_hook),
+            hook.test_store().ForTest_setTier(
+                address(hook),
                 i + 1,
                 JBStored721Tier({
                     price: uint104((i + 1) * 10),
@@ -171,11 +171,11 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(0),
                     category: uint24(100),
-                    packedBools: _hook.test_store().ForTest_packBools(false, false, false)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, false)
                 })
             );
         }
-        assertEq(_hook.test_store().totalSupplyOf(address(_hook)), ((numberOfTiers * (numberOfTiers + 1)) / 2));
+        assertEq(hook.test_store().totalSupplyOf(address(hook)), ((numberOfTiers * (numberOfTiers + 1)) / 2));
     }
 
     function test721TiersHook_balanceOf_returnsCompleteBalance(
@@ -186,12 +186,12 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
     {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(numberOfTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
 
         for (uint256 i; i < numberOfTiers; i++) {
-            _hook.test_store().ForTest_setBalanceOf(address(_hook), holder, i + 1, (i + 1) * 10);
+            hook.test_store().ForTest_setBalanceOf(address(hook), holder, i + 1, (i + 1) * 10);
         }
-        assertEq(_hook.balanceOf(holder), 10 * ((numberOfTiers * (numberOfTiers + 1)) / 2));
+        assertEq(hook.balanceOf(holder), 10 * ((numberOfTiers * (numberOfTiers + 1)) / 2));
     }
 
     function test721TiersHook_numberOfPendingReservesFor_returnsOutstandingReserved() public {
@@ -203,11 +203,11 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         uint256 reservedMinted = 10;
         uint256 reserveFrequency = 9;
 
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
         for (uint256 i; i < 10; i++) {
-            _hook.test_store().ForTest_setTier(
-                address(_hook),
+            hook.test_store().ForTest_setTier(
+                address(hook),
                 i + 1,
                 JBStored721Tier({
                     price: uint104((i + 1) * 10),
@@ -216,14 +216,14 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: _hook.test_store().ForTest_packBools(false, false, false)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, false)
                 })
             );
-            _hook.test_store().ForTest_setReservesMintedFor(address(_hook), i + 1, reservedMinted);
+            hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
         }
 
         for (uint256 i; i < 10; i++) {
-            assertEq(_hook.test_store().numberOfPendingReservesFor(address(_hook), i + 1), 3);
+            assertEq(hook.test_store().numberOfPendingReservesFor(address(hook), i + 1), 3);
         }
     }
 
@@ -240,11 +240,11 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
 
         defaultTierConfig.useVotingUnits = true;
         defaultTierConfig.votingUnits = uint32(votingUnits);
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(numberOfTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
 
         // Set one tier voting unit to 0
-        _hook.test_store().ForTest_setTier(
-            address(_hook),
+        hook.test_store().ForTest_setTier(
+            address(hook),
             1,
             JBStored721Tier({
                 price: uint104(10),
@@ -253,16 +253,16 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
                 votingUnits: uint16(0),
                 reserveFrequency: uint16(100),
                 category: uint24(100),
-                packedBools: _hook.test_store().ForTest_packBools(false, false, true)
+                packedBools: hook.test_store().ForTest_packBools(false, false, true)
             })
         );
 
         for (uint256 i; i < numberOfTiers; i++) {
-            _hook.test_store().ForTest_setBalanceOf(address(_hook), beneficiary, i + 1, balances);
+            hook.test_store().ForTest_setBalanceOf(address(hook), beneficiary, i + 1, balances);
         }
 
         assertEq(
-            _hook.test_store().votingUnitsOf(address(_hook), beneficiary),
+            hook.test_store().votingUnitsOf(address(hook), beneficiary),
             numberOfTiers * votingUnits * balances - (votingUnits * balances) // One tier has a 0 voting power
         );
     }
@@ -281,39 +281,39 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
     function test721TiersHook_tokenURI_returnsCorrectUriIfResolverUsed(uint256 tokenId) public {
         mockTokenUriResolver = makeAddr("mockTokenUriResolver");
 
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
         // Mock the URI resolver call
         mockAndExpect(
             mockTokenUriResolver,
-            abi.encodeWithSelector(IJB721TokenUriResolver.tokenUriOf.selector, address(_hook), tokenId),
+            abi.encodeWithSelector(IJB721TokenUriResolver.tokenUriOf.selector, address(hook), tokenId),
             abi.encode("resolverURI")
         );
 
-        _hook.ForTest_setOwnerOf(tokenId, beneficiary);
+        hook.ForTest_setOwnerOf(tokenId, beneficiary);
 
-        assertEq(_hook.tokenURI(tokenId), "resolverURI");
+        assertEq(hook.tokenURI(tokenId), "resolverURI");
     }
 
     function test721TiersHook_tokenURI_returnsCorrectUriIfNoResolverUsed() public {
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
         for (uint256 i = 1; i <= 10; i++) {
             uint256 tokenId = _generateTokenId(i, 1);
-            assertEq(_hook.tokenURI(tokenId), string(abi.encodePacked(baseUri, theoreticHashes[i - 1])));
+            assertEq(hook.tokenURI(tokenId), string(abi.encodePacked(baseUri, theoreticHashes[i - 1])));
         }
     }
 
     function test721TiersHook_setEncodedIPFSUriOf_returnsCorrectUriIfEncodedAdded() public {
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
         uint256 tokenId = _generateTokenId(1, 1);
-        _hook.ForTest_setOwnerOf(tokenId, address(123));
+        hook.ForTest_setOwnerOf(tokenId, address(123));
 
         vm.prank(owner);
-        _hook.setMetadata("", "", IJB721TokenUriResolver(address(0)), 1, tokenUris[1]);
+        hook.setMetadata("", "", IJB721TokenUriResolver(address(0)), 1, tokenUris[1]);
 
-        assertEq(_hook.tokenURI(tokenId), string(abi.encodePacked(baseUri, theoreticHashes[1])));
+        assertEq(hook.tokenURI(tokenId), string(abi.encodePacked(baseUri, theoreticHashes[1])));
     }
 
     function test721TiersHook_redemptionWeightOf_returnsCorrectWeightAsFloorsCumSum(
@@ -327,7 +327,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         lastTier = bound(lastTier, 0, numberOfTiers);
         firstTier = bound(firstTier, 0, lastTier);
 
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(numberOfTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
 
         uint256 _maxNumberOfTiers = (numberOfTiers * (numberOfTiers + 1)) / 2; // "tier amount" of token mintable per
             // tier -> max == numberOfTiers!
@@ -345,7 +345,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
             }
         }
 
-        assertEq(_hook.test_store().redemptionWeightOf(address(_hook), _tierToGetWeightOf), _theoreticalWeight);
+        assertEq(hook.test_store().redemptionWeightOf(address(hook), _tierToGetWeightOf), _theoreticalWeight);
     }
 
     function test721TiersHook_totalRedemptionWeight_returnsCorrectTotalWeightAsFloorsCumSum(
@@ -355,13 +355,13 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
     {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(numberOfTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
 
         uint256 _theoreticalWeight;
 
         for (uint256 i = 1; i <= numberOfTiers; i++) {
-            _hook.test_store().ForTest_setTier(
-                address(_hook),
+            hook.test_store().ForTest_setTier(
+                address(hook),
                 i,
                 JBStored721Tier({
                     price: uint104(i * 10),
@@ -370,12 +370,12 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(0),
                     category: uint24(100),
-                    packedBools: _hook.test_store().ForTest_packBools(false, false, false)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, false)
                 })
             );
             _theoreticalWeight += (10 * i - 5 * i) * i * 10;
         }
-        assertEq(_hook.test_store().totalRedemptionWeight(address(_hook)), _theoreticalWeight);
+        assertEq(hook.test_store().totalRedemptionWeight(address(hook)), _theoreticalWeight);
     }
 
     function test721TiersHook_firstOwnerOf_shouldReturnCurrentOwnerIfFirstOwner(
@@ -384,10 +384,10 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
     )
         public
     {
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
-        _hook.ForTest_setOwnerOf(tokenId, _owner);
-        assertEq(_hook.firstOwnerOf(tokenId), _owner);
+        hook.ForTest_setOwnerOf(tokenId, _owner);
+        assertEq(hook.firstOwnerOf(tokenId), _owner);
     }
 
     function test721TiersHook_firstOwnerOf_shouldReturnFirstOwnerIfOwnerChanged(
@@ -402,46 +402,46 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
 
         defaultTierConfig.allowOwnerMint = true;
         defaultTierConfig.reserveFrequency = 0;
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
         uint16[] memory _tiersToMint = new uint16[](1);
         _tiersToMint[0] = 1;
 
-        uint256 _tokenId = _generateTokenId(_tiersToMint[0], 1);
+        uint256 tokenId = _generateTokenId(_tiersToMint[0], 1);
 
         vm.prank(owner);
-        _hook.mintFor(_tiersToMint, _previousOwner);
+        hook.mintFor(_tiersToMint, _previousOwner);
 
-        assertEq(_hook.firstOwnerOf(_tokenId), _previousOwner);
+        assertEq(hook.firstOwnerOf(tokenId), _previousOwner);
 
         vm.prank(_previousOwner);
-        IERC721(_hook).transferFrom(_previousOwner, _owner, _tokenId);
+        IERC721(hook).transferFrom(_previousOwner, _owner, tokenId);
 
-        assertEq(_hook.firstOwnerOf(_tokenId), _previousOwner);
+        assertEq(hook.firstOwnerOf(tokenId), _previousOwner);
     }
 
     function test721TiersHook_firstOwnerOf_shouldReturnAddressZeroIfNotMinted(uint256 tokenId) public {
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
-        assertEq(_hook.firstOwnerOf(tokenId), address(0));
+        ForTest_JB721TiersHook hook = _initializeForTestHook(10);
+        assertEq(hook.firstOwnerOf(tokenId), address(0));
     }
 
     function test721TiersHook_constructor_deployIfNoEmptyinitialSupply(uint256 nbTiers) public {
         nbTiers = bound(nbTiers, 0, 10);
         // Create new tiers array
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(nbTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(nbTiers);
         (, JB721Tier[] memory _tiers) = _createTiers(defaultTierConfig, nbTiers);
 
         // Check: hook has correct parameters?
-        assertEq(_hook.projectId(), projectId);
-        assertEq(address(_hook.DIRECTORY()), mockJBDirectory);
-        assertEq(_hook.name(), name);
-        assertEq(_hook.symbol(), symbol);
-        assertEq(address(_hook.STORE().tokenUriResolverOf(address(_hook))), mockTokenUriResolver);
-        assertEq(_hook.contractURI(), contractUri);
-        assertEq(_hook.owner(), owner);
-        assertTrue(_isIn(_hook.STORE().tiersOf(address(_hook), new uint256[](0), false, 0, nbTiers), _tiers)); // Order
+        assertEq(hook.projectId(), projectId);
+        assertEq(address(hook.DIRECTORY()), mockJBDirectory);
+        assertEq(hook.name(), name);
+        assertEq(hook.symbol(), symbol);
+        assertEq(address(hook.STORE().tokenUriResolverOf(address(hook))), mockTokenUriResolver);
+        assertEq(hook.contractURI(), contractUri);
+        assertEq(hook.owner(), owner);
+        assertTrue(_isIn(hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, nbTiers), _tiers)); // Order
             // is not insured
-        assertTrue(_isIn(_tiers, _hook.STORE().tiersOf(address(_hook), new uint256[](0), false, 0, nbTiers)));
+        assertTrue(_isIn(_tiers, hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, nbTiers)));
     }
 
     function test721TiersHook_constructor_revertDeploymentIfOneEmptyinitialSupply(
@@ -470,13 +470,13 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
             });
         }
         _tiers[errorIndex].initialSupply = 0;
-        JB721TiersHookStore _dataSourceStore = new JB721TiersHookStore();
+        JB721TiersHookStore dataSourceStore = new JB721TiersHookStore();
 
         // Expect the error at i+1 (as the floor is now smaller than i)
         vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.NO_SUPPLY.selector));
         vm.etch(hook_i, address(hook).code);
-        JB721TiersHook _hook = JB721TiersHook(hook_i);
-        _hook.initialize(
+        JB721TiersHook hook = JB721TiersHook(hook_i);
+        hook.initialize(
             projectId,
             name,
             symbol,
@@ -490,7 +490,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
                 decimals: 18,
                 prices: IJBPrices(address(0))
             }),
-            _dataSourceStore,
+            dataSourceStore,
             JB721TiersHookFlags({
                 preventOverspending: false,
                 noNewTiersWithReserves: true,

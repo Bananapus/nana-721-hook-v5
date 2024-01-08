@@ -16,11 +16,11 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         uint256 reserveFrequency = 4000;
         uint256 nbTiers = 3;
 
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(nbTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(nbTiers);
 
         for (uint256 i; i < nbTiers; i++) {
-            _hook.test_store().ForTest_setTier(
-                address(_hook),
+            hook.test_store().ForTest_setTier(
+                address(hook),
                 i + 1,
                 JBStored721Tier({
                     price: uint104((i + 1) * 10),
@@ -29,25 +29,25 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: _hook.test_store().ForTest_packBools(false, false, true)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true)
                 })
             );
-            _hook.test_store().ForTest_setReservesMintedFor(address(_hook), i + 1, reservedMinted);
+            hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
         }
 
         for (uint256 tier = 1; tier <= nbTiers; tier++) {
-            uint256 mintable = _hook.test_store().numberOfPendingReservesFor(address(_hook), tier);
+            uint256 mintable = hook.test_store().numberOfPendingReservesFor(address(hook), tier);
 
             for (uint256 token = 1; token <= mintable; token++) {
-                vm.expectEmit(true, true, true, true, address(_hook));
+                vm.expectEmit(true, true, true, true, address(hook));
                 emit MintReservedNft(_generateTokenId(tier, totalMinted + token), tier, reserveBeneficiary, owner);
             }
 
             vm.prank(owner);
-            _hook.mintPendingReservesFor(tier, mintable);
+            hook.mintPendingReservesFor(tier, mintable);
 
             // Check balance
-            assertEq(_hook.balanceOf(reserveBeneficiary), mintable * tier);
+            assertEq(hook.balanceOf(reserveBeneficiary), mintable * tier);
         }
     }
 
@@ -61,11 +61,11 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         uint256 reserveFrequency = 4000;
         uint256 nbTiers = 3;
 
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(nbTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(nbTiers);
 
         for (uint256 i; i < nbTiers; i++) {
-            _hook.test_store().ForTest_setTier(
-                address(_hook),
+            hook.test_store().ForTest_setTier(
+                address(hook),
                 i + 1,
                 JBStored721Tier({
                     price: uint104((i + 1) * 10),
@@ -74,10 +74,10 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: _hook.test_store().ForTest_packBools(false, false, true)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true)
                 })
             );
-            _hook.test_store().ForTest_setReservesMintedFor(address(_hook), i + 1, reservedMinted);
+            hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
         }
 
         uint256 _totalMintable; // Keep a running counter
@@ -85,24 +85,24 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         JB721TiersMintReservesParams[] memory _reservedToMint = new JB721TiersMintReservesParams[](nbTiers);
 
         for (uint256 tier = 1; tier <= nbTiers; tier++) {
-            uint256 mintable = _hook.test_store().numberOfPendingReservesFor(address(_hook), tier);
+            uint256 mintable = hook.test_store().numberOfPendingReservesFor(address(hook), tier);
             _reservedToMint[tier - 1] = JB721TiersMintReservesParams({tierId: tier, count: mintable});
             _totalMintable += mintable;
             for (uint256 token = 1; token <= mintable; token++) {
                 uint256 _tokenNonce = totalMinted + token; // Avoid stack too deep
-                vm.expectEmit(true, true, true, true, address(_hook));
+                vm.expectEmit(true, true, true, true, address(hook));
                 emit MintReservedNft(_generateTokenId(tier, _tokenNonce), tier, reserveBeneficiary, owner);
             }
         }
 
         vm.prank(owner);
-        _hook.mintPendingReservesFor(_reservedToMint);
+        hook.mintPendingReservesFor(_reservedToMint);
 
         // Check balance
-        assertEq(_hook.balanceOf(reserveBeneficiary), _totalMintable);
+        assertEq(hook.balanceOf(reserveBeneficiary), _totalMintable);
     }
 
-    function test721TiersHook_mintReservesFor_revertIfReservedMintingIsPausedInFundingCycle() public {
+    function test721TiersHook_mintReservesFor_revertIfReservedMintingIsPausedInRuleset() public {
         // 120 are minted, 1 out of these is reserved, meaning 119 non-reserved are minted. The reserveFrequency is 40%
         // (4000/10000)
         // meaning there are 47 total reserved to mint, 1 being already minted, 46 are outstanding
@@ -149,11 +149,11 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
             )
         );
 
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(nbTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(nbTiers);
 
         for (uint256 i; i < nbTiers; i++) {
-            _hook.test_store().ForTest_setTier(
-                address(_hook),
+            hook.test_store().ForTest_setTier(
+                address(hook),
                 i + 1,
                 JBStored721Tier({
                     price: uint104((i + 1) * 10),
@@ -162,17 +162,17 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: _hook.test_store().ForTest_packBools(false, false, true)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true)
                 })
             );
-            _hook.test_store().ForTest_setReservesMintedFor(address(_hook), i + 1, reservedMinted);
+            hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
         }
 
         for (uint256 tier = 1; tier <= nbTiers; tier++) {
-            uint256 mintable = _hook.test_store().numberOfPendingReservesFor(address(_hook), tier);
+            uint256 mintable = hook.test_store().numberOfPendingReservesFor(address(hook), tier);
             vm.prank(owner);
             vm.expectRevert(JB721TiersHook.MINT_RESERVE_NFTS_PAUSED.selector);
-            _hook.mintPendingReservesFor(tier, mintable);
+            hook.mintPendingReservesFor(tier, mintable);
         }
     }
 
@@ -182,11 +182,11 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         uint256 reservedMinted = 1;
         uint256 reserveFrequency = 4000;
 
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
         for (uint256 i; i < 10; i++) {
-            _hook.test_store().ForTest_setTier(
-                address(_hook),
+            hook.test_store().ForTest_setTier(
+                address(hook),
                 i + 1,
                 JBStored721Tier({
                     price: uint104((i + 1) * 10),
@@ -195,20 +195,20 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: _hook.test_store().ForTest_packBools(false, false, true)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true)
                 })
             );
-            _hook.test_store().ForTest_setReservesMintedFor(address(_hook), i + 1, reservedMinted);
+            hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
         }
 
         for (uint256 i = 1; i <= 10; i++) {
             // Get the amount that we can mint successfully
-            uint256 amount = _hook.test_store().numberOfPendingReservesFor(address(_hook), i);
+            uint256 amount = hook.test_store().numberOfPendingReservesFor(address(hook), i);
             // Increase it by 1 to cause an error
             amount++;
             vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.INSUFFICIENT_PENDING_RESERVES.selector));
             vm.prank(owner);
-            _hook.mintPendingReservesFor(i, amount);
+            hook.mintPendingReservesFor(i, amount);
         }
     }
 
@@ -217,11 +217,11 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         uint256 totalMinted = 120;
         uint256 reserveFrequency = 9;
 
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
         for (uint256 i; i < 10; i++) {
-            _hook.test_store().ForTest_setTier(
-                address(_hook),
+            hook.test_store().ForTest_setTier(
+                address(hook),
                 i + 1,
                 JBStored721Tier({
                     price: uint104((i + 1) * 10),
@@ -230,7 +230,7 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: _hook.test_store().ForTest_packBools(false, false, true)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true)
                 })
             );
         }
@@ -243,11 +243,11 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         uint256 reserveFrequency = 9;
 
         reserveBeneficiary = address(0);
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(10);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
         for (uint256 i; i < 10; i++) {
-            _hook.test_store().ForTest_setTier(
-                address(_hook),
+            hook.test_store().ForTest_setTier(
+                address(hook),
                 i + 1,
                 JBStored721Tier({
                     price: uint104((i + 1) * 10),
@@ -256,14 +256,14 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: _hook.test_store().ForTest_packBools(false, false, true)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true)
                 })
             );
-            _hook.test_store().ForTest_setReservesMintedFor(address(_hook), i + 1, reservedMinted);
+            hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
         }
 
         // fetching existing tiers
-        JB721Tier[] memory _storedTiers = _hook.test_store().tiersOf(address(_hook), new uint256[](0), false, 0, 10);
+        JB721Tier[] memory _storedTiers = hook.test_store().tiersOf(address(hook), new uint256[](0), false, 0, 10);
 
         // making sure reserved rate is 0
         for (uint256 i; i < 10; i++) {
@@ -271,7 +271,7 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         }
         for (uint256 i; i < 10; i++) {
             assertEq(
-                _hook.test_store().numberOfPendingReservesFor(address(_hook), i + 1),
+                hook.test_store().numberOfPendingReservesFor(address(hook), i + 1),
                 0,
                 "wrong outstanding reserved tokens"
             );
@@ -283,7 +283,7 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
 
         defaultTierConfig.allowOwnerMint = true;
         defaultTierConfig.reserveFrequency = 0;
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(nbTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(nbTiers);
 
         uint16[] memory _tiersToMint = new uint16[](nbTiers * 2);
         for (uint256 i; i < nbTiers; i++) {
@@ -292,15 +292,15 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         }
 
         vm.prank(owner);
-        _hook.mintFor(_tiersToMint, beneficiary);
+        hook.mintFor(_tiersToMint, beneficiary);
 
-        assertEq(_hook.balanceOf(beneficiary), 6);
-        assertEq(_hook.ownerOf(_generateTokenId(1, 1)), beneficiary);
-        assertEq(_hook.ownerOf(_generateTokenId(1, 2)), beneficiary);
-        assertEq(_hook.ownerOf(_generateTokenId(2, 1)), beneficiary);
-        assertEq(_hook.ownerOf(_generateTokenId(2, 2)), beneficiary);
-        assertEq(_hook.ownerOf(_generateTokenId(3, 1)), beneficiary);
-        assertEq(_hook.ownerOf(_generateTokenId(3, 2)), beneficiary);
+        assertEq(hook.balanceOf(beneficiary), 6);
+        assertEq(hook.ownerOf(_generateTokenId(1, 1)), beneficiary);
+        assertEq(hook.ownerOf(_generateTokenId(1, 2)), beneficiary);
+        assertEq(hook.ownerOf(_generateTokenId(2, 1)), beneficiary);
+        assertEq(hook.ownerOf(_generateTokenId(2, 2)), beneficiary);
+        assertEq(hook.ownerOf(_generateTokenId(3, 1)), beneficiary);
+        assertEq(hook.ownerOf(_generateTokenId(3, 2)), beneficiary);
     }
 
     function test721TiersHook_mintFor_revertIfManualMintNotAllowed() public {
@@ -313,10 +313,10 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         }
 
         defaultTierConfig.allowOwnerMint = false;
-        ForTest_JB721TiersHook _hook = _initializeForTestHook(nbTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(nbTiers);
 
         vm.prank(owner);
         vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.CANT_MINT_MANUALLY.selector));
-        _hook.mintFor(_tiersToMint, beneficiary);
+        hook.mintFor(_tiersToMint, beneficiary);
     }
 }

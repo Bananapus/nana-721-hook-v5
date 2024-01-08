@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-// import "lib/juice-contracts-v4/src/structs/JBGlobalFundingCycleMetadata.sol";
-
 /// @custom:member reservedRate The reserved rate of the ruleset. This number is a percentage calculated out of
 /// `JBConstants.MAX_RESERVED_RATE`.
 /// @custom:member redemptionRate The redemption rate of the ruleset. This number is a percentage calculated out of

@@ -88,18 +88,18 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         uint16[] memory rawMetadata = new uint16[](1);
         rawMetadata[0] = uint16(highestTier);
 
-        // Build the metadata with the tiers to mint and the overspending flag
-        bytes[] memory _data = new bytes[](1);
-        _data[0] = abi.encode(true, rawMetadata);
+        // Build the metadata using the tiers to mint and the overspending flag.
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encode(true, rawMetadata);
 
         address NFTRewardDataHook = jbRulesets.currentOf(projectId).dataHook();
 
-        // Pass the hook id
-        bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
+        // Pass the hook ID.
+        bytes4[] memory ids = new bytes4[](1);
+        ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
 
-        // Generate the metadata
-        bytes memory _hookMetadata = metadataHelper.createMetadata(_ids, _data);
+        // Generate the metadata.
+        bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
 
         // Check: correct tier and id?
         vm.expectEmit(true, true, true, true);
@@ -118,7 +118,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             beneficiary: beneficiary,
             minReturnedTokens: 0,
             memo: "Take my money!",
-            metadata: _hookMetadata
+            metadata: hookMetadata
         });
         uint256 tokenId = _generateTokenId(highestTier, 1);
         // Check: NFT actually received?
@@ -148,7 +148,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         uint256 projectId =
             deployer.launchProjectFor(projectOwner, tiered721DeployerData, launchProjectConfig, jbController);
         // 5 first tier floors
-        uint256 _amountNeeded = 50 + 40 + 30 + 20 + 10;
+        uint256 amountNeeded = 50 + 40 + 30 + 20 + 10;
         uint16[] memory rawMetadata = new uint16[](5);
         // Mint one per tier for the first 5 tiers
         for (uint256 i = 0; i < 5; i++) {
@@ -159,33 +159,33 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
                 _generateTokenId(i + 1, 1),
                 i + 1,
                 beneficiary,
-                _amountNeeded,
+                amountNeeded,
                 address(jbMultiTerminal) // msg.sender
             );
         }
 
-        // Build the metadata with the tiers to mint and the overspending flag
-        bytes[] memory _data = new bytes[](1);
-        _data[0] = abi.encode(true, rawMetadata);
+        // Build the metadata using the tiers to mint and the overspending flag.
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encode(true, rawMetadata);
 
         address NFTRewardDataHook = jbRulesets.currentOf(projectId).dataHook();
 
-        // Pass the hook id
-        bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
+        // Pass the hook ID.
+        bytes4[] memory ids = new bytes4[](1);
+        ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
 
-        // Generate the metadata
-        bytes memory _hookMetadata = metadataHelper.createMetadata(_ids, _data);
+        // Generate the metadata.
+        bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
 
         vm.prank(caller);
-        jbMultiTerminal.pay{value: _amountNeeded}({
+        jbMultiTerminal.pay{value: amountNeeded}({
             projectId: projectId,
-            amount: _amountNeeded,
+            amount: amountNeeded,
             token: JBConstants.NATIVE_TOKEN,
             beneficiary: beneficiary,
             minReturnedTokens: 0,
             memo: "Take my money!",
-            metadata: _hookMetadata
+            metadata: hookMetadata
         });
 
         // Check: NFT actually received?
@@ -208,10 +208,10 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         uint256 projectId =
             deployer.launchProjectFor(projectOwner, tiered721DeployerData, launchProjectConfig, jbController);
         address NFTRewardDataHook = jbRulesets.currentOf(projectId).dataHook();
-        bool _allowOverspending = true;
+        bool allowOverspending = true;
         uint16[] memory rawMetadata = new uint16[](0);
         bytes memory metadata =
-            abi.encode(bytes32(0), bytes32(0), type(IJB721TiersHook).interfaceId, _allowOverspending, rawMetadata);
+            abi.encode(bytes32(0), bytes32(0), type(IJB721TiersHook).interfaceId, allowOverspending, rawMetadata);
         vm.prank(caller);
         jbMultiTerminal.pay{value: valueSent}({
             projectId: projectId,
@@ -272,16 +272,16 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         uint16[] memory rawMetadata = new uint16[](1);
         rawMetadata[0] = uint16(highestTier); // reward tier
 
-        // Build the metadata with the tiers to mint and the overspending flag
-        bytes[] memory _data = new bytes[](1);
-        _data[0] = abi.encode(true, rawMetadata);
+        // Build the metadata using the tiers to mint and the overspending flag.
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encode(true, rawMetadata);
 
-        // Pass the hook id
-        bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
+        // Pass the hook ID.
+        bytes4[] memory ids = new bytes4[](1);
+        ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
 
-        // Generate the metadata
-        bytes memory _hookMetadata = metadataHelper.createMetadata(_ids, _data);
+        // Generate the metadata.
+        bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
 
         // Check: correct tier and id?
         vm.expectEmit(true, true, true, true);
@@ -300,7 +300,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             beneficiary: beneficiary,
             minReturnedTokens: 0,
             memo: "Take my money!",
-            metadata: _hookMetadata
+            metadata: hookMetadata
         });
         // Check: new reserved one (1 minted == 1 reserved, due to rounding up)
         assertEq(
@@ -345,24 +345,24 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         uint256 projectId =
             deployer.launchProjectFor(projectOwner, tiered721DeployerData, launchProjectConfig, jbController);
         // Craft the metadata: claim from the highest tier
-        bytes memory _hookMetadata;
-        bytes[] memory _data;
-        bytes4[] memory _ids;
+        bytes memory hookMetadata;
+        bytes[] memory data;
+        bytes4[] memory ids;
         address NFTRewardDataHook = jbRulesets.currentOf(projectId).dataHook();
         {
             uint16[] memory rawMetadata = new uint16[](1);
             rawMetadata[0] = uint16(highestTier);
 
-            // Build the metadata with the tiers to mint and the overspending flag
-            _data = new bytes[](1);
-            _data[0] = abi.encode(true, rawMetadata);
+            // Build the metadata using the tiers to mint and the overspending flag.
+            data = new bytes[](1);
+            data[0] = abi.encode(true, rawMetadata);
 
-            // Pass the hook id
-            _ids = new bytes4[](1);
-            _ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
+            // Pass the hook ID.
+            ids = new bytes4[](1);
+            ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
 
-            // Generate the metadata
-            _hookMetadata = metadataHelper.createMetadata(_ids, _data);
+            // Generate the metadata.
+            hookMetadata = metadataHelper.createMetadata(ids, data);
         }
         vm.prank(caller);
         jbMultiTerminal.pay{value: valueSent}({
@@ -372,7 +372,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             beneficiary: beneficiary,
             minReturnedTokens: 0,
             memo: "Take my money!",
-            metadata: _hookMetadata
+            metadata: hookMetadata
         });
 
 
@@ -384,13 +384,13 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             redemptionId[0] = tokenId;
 
             // Build the metadata with the tiers to redeem
-            _data[0] = abi.encode(redemptionId);
+            data[0] = abi.encode(redemptionId);
 
-            // Pass the hook id
-            _ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
+            // Pass the hook ID.
+            ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
 
-            // Generate the metadata
-            _hookMetadata = metadataHelper.createMetadata(_ids, _data);
+            // Generate the metadata.
+            hookMetadata = metadataHelper.createMetadata(ids, data);
         }
 
         // New token balance
@@ -404,7 +404,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             redeemCount: 0,
             minTokensReclaimed: 0,
             beneficiary: payable(beneficiary),
-            metadata: _hookMetadata
+            metadata: hookMetadata
         });
         // Check: NFT actually redeemed?
         assertEq(IERC721(NFTRewardDataHook).balanceOf(beneficiary), tokenBalance - 1);
@@ -443,18 +443,18 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             rawMetadata[i] = uint16(tier);
         }
 
-        // Build the metadata with the tiers to mint and the overspending flag
-        bytes[] memory _data = new bytes[](1);
-        _data[0] = abi.encode(true, rawMetadata);
+        // Build the metadata using the tiers to mint and the overspending flag.
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encode(true, rawMetadata);
 
         address NFTRewardDataHook = jbRulesets.currentOf(projectId).dataHook();
 
-        // Pass the hook id
-        bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
+        // Pass the hook ID.
+        bytes4[] memory ids = new bytes4[](1);
+        ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
 
-        // Generate the metadata
-        bytes memory _hookMetadata = metadataHelper.createMetadata(_ids, _data);
+        // Generate the metadata.
+        bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
 
         vm.prank(caller);
         jbMultiTerminal.pay{value: floor * rawMetadata.length}({
@@ -464,7 +464,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             beneficiary: beneficiary,
             minReturnedTokens: 0,
             memo: "Take my money!",
-            metadata: _hookMetadata
+            metadata: hookMetadata
         });
 
         // New token balance
@@ -486,13 +486,13 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         }
 
         // Build the metadata with the tiers to redeem
-        _data[0] = abi.encode(redemptionId);
+        data[0] = abi.encode(redemptionId);
 
-        // Pass the hook id
-        _ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
+        // Pass the hook ID.
+        ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
 
-        // Generate the metadata
-        _hookMetadata = metadataHelper.createMetadata(_ids, _data);
+        // Generate the metadata.
+        hookMetadata = metadataHelper.createMetadata(ids, data);
 
         vm.prank(beneficiary);
         jbMultiTerminal.redeemTokensOf({
@@ -502,7 +502,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             redeemCount: 0,
             minTokensReclaimed: 0,
             beneficiary: payable(beneficiary),
-            metadata: _hookMetadata
+            metadata: hookMetadata
         });
         // Check: NFT actually redeemed?
         assertEq(IERC721(NFTRewardDataHook).balanceOf(beneficiary), 0);
@@ -511,14 +511,14 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         // Check: Reserved left to mint is back to 0
         assertEq(IJB721TiersHook(NFTRewardDataHook).STORE().numberOfPendingReservesFor(NFTRewardDataHook, tier), 0);
 
-        // Build the metadata with the tiers to mint and the overspending flag
-        _data[0] = abi.encode(true, rawMetadata);
+        // Build the metadata using the tiers to mint and the overspending flag.
+        data[0] = abi.encode(true, rawMetadata);
 
-        // Pass the hook id
-        _ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
+        // Pass the hook ID.
+        ids[0] = bytes4(bytes20(address(NFTRewardDataHook)));
 
-        // Generate the metadata
-        _hookMetadata = metadataHelper.createMetadata(_ids, _data);
+        // Generate the metadata.
+        hookMetadata = metadataHelper.createMetadata(ids, data);
 
         // Check: Can mint again the token previously burned
         vm.prank(caller);
@@ -529,7 +529,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             beneficiary: beneficiary,
             minReturnedTokens: 0,
             memo: "Take my money!",
-            metadata: _hookMetadata
+            metadata: hookMetadata
         });
 
         // New token balance
@@ -593,7 +593,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             })
         });
 
-        JBPayDataHookRulesetMetadata memory _metadata = JBPayDataHookRulesetMetadata({
+        JBPayDataHookRulesetMetadata memory metadata = JBPayDataHookRulesetMetadata({
             reservedRate: 5000, //50%
             redemptionRate: 5000, //50%
             baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
@@ -617,7 +617,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         _rulesetConfigurations[0].weight = 1000 * 10 ** 18;
         _rulesetConfigurations[0].decayRate = 450_000_000;
         _rulesetConfigurations[0].approvalHook = IJBRulesetApprovalHook(address(0));
-        _rulesetConfigurations[0].metadata = _metadata;
+        _rulesetConfigurations[0].metadata = metadata;
 
         JBTerminalConfig[] memory _terminalConfigurations = new JBTerminalConfig[](1);
         address[] memory _tokensToAccept = new address[](1);
