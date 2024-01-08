@@ -831,7 +831,7 @@ contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
         // The caller is the _expectedCaller however the terminal in the calldata is not correct
         vm.prank(_terminal);
 
-        vm.expectRevert(abi.encodeWithSelector(JB721Hook.INVALID_PAY_EVENT.selector));
+        vm.expectRevert(abi.encodeWithSelector(JB721Hook.INVALID_PAY.selector));
 
         hook.afterPayRecordedWith(
             JBAfterPayRecordedContext({

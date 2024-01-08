@@ -60,7 +60,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         JB721TiersHookDeployer hookDeployer =
             new JB721TiersHookDeployer(onchainGovernance, noGovernance, addressRegistry);
         deployer =
-            new JB721TiersHookProjectDeployer(IJBDirectory(jbDirectory), hookDeployer, IJBPermissions(jbPermissions));
+            new JB721TiersHookProjectDeployer(IJBDirectory(jbDirectory), IJBPermissions(jbPermissions), hookDeployer);
 
         metadataHelper = new MetadataResolverHelper();
     }

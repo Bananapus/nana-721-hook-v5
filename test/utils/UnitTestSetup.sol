@@ -244,10 +244,6 @@ contract UnitTestSetup is Test {
         metadataHelper = new MetadataResolverHelper();
     }
 
-    function NATIVE() internal pure returns (uint256) {
-        return JBCurrencyIds.NATIVE;
-    }
-
     function USD() internal pure returns (uint256) {
         return JBCurrencyIds.USD;
     }

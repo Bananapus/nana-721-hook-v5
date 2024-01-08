@@ -31,8 +31,8 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     // --------------------------- custom errors ------------------------- //
     //*********************************************************************//
 
-    error INVALID_PAY_EVENT();
-    error INVALID_REDEEM_EVENT();
+    error INVALID_PAY();
+    error INVALID_REDEEM();
     error UNAUTHORIZED_TOKEN(uint256 tokenId);
     error UNEXPECTED_TOKEN_REDEEMED();
 
@@ -54,6 +54,11 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     // ------------------------- external views -------------------------- //
     //*********************************************************************//
 
+    /// @notice Required by the IJBRulesetDataHook interfaces. Return false to not leak any permissions.
+    function hasMintPermissionFor(uint256, address) external pure returns (bool) {
+        return false;
+    }
+
     /// @notice The data calculated before a payment is recorded in the terminal store. This data is provided to the
     /// terminal's `pay(...)` transaction.
     /// @dev Sets this contract as the pay hook. Part of `IJBRulesetDataHook`.
@@ -71,7 +76,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         // Forward the received weight and memo, and use this contract as the only pay hook.
         weight = context.weight;
         hookSpecifications = new JBPayHookSpecification[](1);
-        hookSpecifications[0] = JBPayHookSpecification(this, 0, bytes(""));
+        hookSpecifications[0] = JBPayHookSpecification({hook: this, amount: 0, metadata: bytes("")});
     }
 
     /// @notice The data calculated before a redemption is recorded in the terminal store. This data is provided to the
@@ -97,7 +102,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         bytes4 metadataId = bytes4(bytes20(address(this)));
 
         // Fetch the redeem hook metadata using the corresponding metadata ID.
-        (bool found, bytes memory metadata) = JBMetadataResolver.getDataFor(metadataId, context.metadata);
+        (bool metadataExists, bytes memory metadata) = JBMetadataResolver.getDataFor(metadataId, context.metadata);
 
         // Use this contract as the only redeem hook.
         hookSpecifications = new JBRedeemHookSpecification[](1);
@@ -106,7 +111,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         uint256[] memory decodedTokenIds;
 
         // Decode the metadata.
-        if (found) decodedTokenIds = abi.decode(metadata, (uint256[]));
+        if (metadataExists) decodedTokenIds = abi.decode(metadata, (uint256[]));
 
         // Get a reference to the redemption weight of the provided tokens.
         uint256 redemptionWeight = redemptionWeightOf(decodedTokenIds, context);
@@ -215,7 +220,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         if (
             msg.value != 0 || !DIRECTORY.isTerminalOf(_projectId, IJBTerminal(msg.sender))
                 || context.projectId != _projectId
-        ) revert INVALID_PAY_EVENT();
+        ) revert INVALID_PAY();
 
         // Process the payment.
         _processPayment(context);
@@ -231,18 +236,18 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         if (
             msg.value != 0 || !DIRECTORY.isTerminalOf(projectId, IJBTerminal(msg.sender))
                 || context.projectId != projectId
-        ) revert INVALID_REDEEM_EVENT();
+        ) revert INVALID_REDEEM();
 
         // The metadata ID is the first 4 bytes of this contract's address.
         bytes4 metadataId = bytes4(bytes20(address(this)));
 
         // Fetch the redeem hook metadata using the corresponding metadata ID.
-        (bool found, bytes memory metadata) = JBMetadataResolver.getDataFor(metadataId, context.redeemerMetadata);
+        (bool metadataExists, bytes memory metadata) = JBMetadataResolver.getDataFor(metadataId, context.redeemerMetadata);
 
         uint256[] memory decodedTokenIds;
 
         // Decode the metadata.
-        if (found) decodedTokenIds = abi.decode(metadata, (uint256[]));
+        if (metadataExists) decodedTokenIds = abi.decode(metadata, (uint256[]));
 
         // Get a reference to the number of NFT token IDs to check the owner of.
         uint256 numberOfTokenIds = decodedTokenIds.length;

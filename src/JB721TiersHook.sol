@@ -7,7 +7,6 @@ import {JBOwnable} from "lib/juice-ownable/src/JBOwnable.sol";
 import {JBRulesetMetadataResolver} from "lib/juice-contracts-v4/src/libraries/JBRulesetMetadataResolver.sol";
 import {IJBRulesets} from "lib/juice-contracts-v4/src/interfaces/IJBRulesets.sol";
 import {IJBPrices} from "lib/juice-contracts-v4/src/interfaces/IJBPrices.sol";
-import {IJBProjects} from "lib/juice-contracts-v4/src/interfaces/IJBProjects.sol";
 import {IJBDirectory} from "lib/juice-contracts-v4/src/interfaces/IJBDirectory.sol";
 import {JBBeforeRedeemRecordedContext} from "lib/juice-contracts-v4/src/structs/JBBeforeRedeemRecordedContext.sol";
 import {JBAfterPayRecordedContext} from "lib/juice-contracts-v4/src/structs/JBAfterPayRecordedContext.sol";
@@ -70,9 +69,11 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
     //*********************************************************************//
 
     /// @notice The contract that stores and manages data for this contract's NFTs.
+    /// @dev Set once in initializer.
     IJB721TiersHookStore public override STORE;
 
     /// @notice The contract storing and managing project rulesets.
+    /// @dev Set once in initializer.
     IJBRulesets public override RULESETS;
 
     /// @notice If an address pays more than the price of the NFT they received, the extra amount is stored as credits
@@ -140,21 +141,24 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
     /// @return The token URI from the `tokenUriResolver` if it is set. If it isn't set, the token URI for the NFT's
     /// tier.
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+        // Keep a reference to the store.
+        IJB721TiersHookStore store = STORE;
+
         // Get a reference to the `tokenUriResolver`.
-        IJB721TokenUriResolver resolver = STORE.tokenUriResolverOf(address(this));
+        IJB721TokenUriResolver resolver = store.tokenUriResolverOf(address(this));
 
         // If a `tokenUriResolver` is set, use it to resolve the token URI.
         if (address(resolver) != address(0)) return resolver.tokenUriOf(address(this), tokenId);
 
         // Otherwise, return the token URI corresponding with the NFT's tier.
-        return JBIpfsDecoder.decode(baseURI, STORE.encodedTierIPFSUriOf(address(this), tokenId));
+        return JBIpfsDecoder.decode(baseURI, store.encodedTierIPFSUriOf(address(this), tokenId));
     }
 
     /// @notice The combined redemption weight of the NFTs with the specified token IDs.
     /// @dev An NFT's redemption weight is its price.
     /// @dev To get their relative redemption weight, divide the result by the `totalRedemptionWeight(...)`.
     /// @param tokenIds The token IDs of the NFTs to get the cumulative redemption weight of.
-    /// @return The redemption weight of the tokenIds.
+    /// @return weight The redemption weight of the tokenIds.
     function redemptionWeightOf(
         uint256[] memory tokenIds,
         JBBeforeRedeemRecordedContext calldata
@@ -170,7 +174,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
 
     /// @notice The combined redemption weight of all outstanding NFTs.
     /// @dev An NFT's redemption weight is its price.
-    /// @return The total redemption weight.
+    /// @return weight The total redemption weight.
     function totalRedemptionWeight(JBBeforeRedeemRecordedContext calldata)
         public
         view
@@ -295,11 +299,11 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         _requirePermissionFrom({account: owner(), projectId: projectId, permissionId: JB721PermissionIds.MINT});
 
         // Record the mint. The token IDs returned correspond to the tiers passed in.
-        (tokenIds,) = STORE.recordMint(
-            type(uint256).max, // force the mint.
-            tierIds,
-            true // manual mint.
-        );
+        (tokenIds,) = STORE.recordMint({
+            amount: type(uint256).max, // force the mint.
+            tierIds: tierIds,
+            isOwnerMint: true // manual mint.
+        });
 
         // Keep a reference to the number of NFTs being minted.
         uint256 numberOfNfts = tierIds.length;
@@ -350,13 +354,16 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         // Get a reference to the number of tiers being removed.
         uint256 numberOfTiersToRemove = tierIdsToRemove.length;
 
+        // Keep a reference to the store.
+        IJB721TiersHookStore store = STORE;
+
         // Remove the tiers.
         if (numberOfTiersToRemove != 0) {
             // Record the removed tiers.
-            STORE.recordRemoveTierIds(tierIdsToRemove);
+            store.recordRemoveTierIds(tierIdsToRemove);
 
             // Emit events for each removed tier.
-            for (uint256 i; i < numberOfTiersToRemove;  i++) {
+            for (uint256 i; i < numberOfTiersToRemove; i++) {
                 emit RemoveTier(tierIdsToRemove[i], msg.sender);
             }
         }
@@ -364,7 +371,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         // Add the tiers.
         if (numberOfTiersToAdd != 0) {
             // Record the added tiers in the store.
-            uint256[] memory tierIdsAdded = STORE.recordAddTiers(tiersToAdd);
+            uint256[] memory tierIdsAdded = store.recordAddTiers(tiersToAdd);
 
             // Emit events for each added tier.
             for (uint256 i; i < numberOfTiersToAdd; i++) {
@@ -407,15 +414,19 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
             contractURI = contractUri;
             emit SetContractUri(contractUri, msg.sender);
         }
+
+        // Keep a reference to the store.
+        IJB721TiersHookStore store = STORE;
+
         if (tokenUriResolver != IJB721TokenUriResolver(address(this))) {
             // Store the new URI resolver.
-            STORE.recordSetTokenUriResolver(tokenUriResolver);
+            store.recordSetTokenUriResolver(tokenUriResolver);
 
             emit SetTokenUriResolver(tokenUriResolver, msg.sender);
         }
         if (encodedIPFSTUriTierId != 0 && encodedIPFSUri != bytes32(0)) {
             // Store the new encoded IPFS URI.
-            STORE.recordSetEncodedIPFSUriOf(encodedIPFSTUriTierId, encodedIPFSUri);
+            store.recordSetEncodedIPFSUriOf(encodedIPFSTUriTierId, encodedIPFSUri);
 
             emit SetEncodedIPFSUri(encodedIPFSTUriTierId, encodedIPFSUri, msg.sender);
         }
@@ -439,11 +450,14 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
             revert MINT_RESERVE_NFTS_PAUSED();
         }
 
+        // Keep a reference to the store.
+        IJB721TiersHookStore store = STORE;
+         
         // Record the reserved mint for the tier.
-        uint256[] memory tokenIds = STORE.recordMintReservesFor(tierId, count);
+        uint256[] memory tokenIds = store.recordMintReservesFor(tierId, count);
 
         // Keep a reference to the beneficiary.
-        address reserveBeneficiary = STORE.reserveBeneficiaryOf(address(this), tierId);
+        address reserveBeneficiary = store.reserveBeneficiaryOf(address(this), tierId);
 
         // Keep a reference to the token ID being iterated upon.
         uint256 tokenId;
@@ -517,10 +531,10 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         // Keep a reference to the boolean indicating whether paying more than the price of the NFTs being minted is
         // allowed. Defaults to false.
         bool allowOverspending;
-
+        
         // The metadata ID is the first 4 bytes of this contract's address.
         bytes4 metadataId = bytes4(bytes20(address(this)));
-
+  
         // Resolve the metadata.
         (bool found, bytes memory metadata) = JBMetadataResolver.getDataFor(metadataId, context.payerMetadata);
 
@@ -538,7 +552,9 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
 
             // Mint NFTs from the tiers as specified.
             if (tierIdsToMint.length != 0) {
-                leftoverAmount = _mintAll(leftoverAmount, tierIdsToMint, context.beneficiary);
+                leftoverAmount = _mintAll({
+                    amount: leftoverAmount, mintTierIds: tierIdsToMint, beneficiary: context.beneficiary
+                    });
             }
         } else if (!STORE.flagsOf(address(this)).preventOverspending) {
             allowOverspending = true;
@@ -600,11 +616,11 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         uint256[] memory tokenIds;
 
         // Record the NFT mints. The token IDs returned correspond to the tier IDs passed in.
-        (tokenIds, leftoverAmount) = STORE.recordMint(
-            amount,
-            mintTierIds,
-            false // Not a manual mint
-        );
+        (tokenIds, leftoverAmount) = STORE.recordMint({
+            amount: amount,
+            tierIds: mintTierIds,
+            isOwnerMint: false // Not a manual mint
+        });
 
         // Get a reference to the number of NFTs being minted.
         uint256 mintsLength = tokenIds.length;
@@ -628,8 +644,13 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
     /// @param to The address the NFT is being transferred to.
     /// @param tokenId The token ID of the NFT being transferred.
     function _update(address to, uint256 tokenId, address auth) internal virtual override returns (address from) {
+        // Keep a reference to the store.
+        IJB721TiersHookStore store = STORE;
+
         // Get a reference to the tier.
-        JB721Tier memory tier = STORE.tierOfTokenId(address(this), tokenId, false);
+        JB721Tier memory tier = store.tierOfTokenId({
+            hook: address(this), tokenId: tokenId, includeResolvedUri: false}
+            );
 
         // Record the transfers and keep a reference to where the token is coming from.
         from = super._update(to, tokenId, auth);
@@ -653,7 +674,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         }
 
         // Record the transfer.
-        STORE.recordTransferForTier(tier.id, from, to);
+        store.recordTransferForTier(tier.id, from, to);
 
         // Handle any other accounting (e.g. transfer voting units in the `JBGoverned721TiersHook`).
         _afterTokenTransferAccounting(from, to, tokenId, tier);

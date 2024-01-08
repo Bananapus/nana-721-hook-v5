@@ -1,11 +1,9 @@
 pragma solidity 0.8.23;
 
 import "lib/forge-std/src/Script.sol";
-import "lib/forge-std/src/StdJson.sol";
-import "lib/forge-std/src/Test.sol";
 
+import {Strings} from "lib/openzeppelin-contracts/contracts/utils/Strings.sol";
 import {IJBAddressRegistry} from "lib/juice-address-registry/src/interfaces/IJBAddressRegistry.sol";
-import {IJBProjects} from "lib/juice-contracts-v4/src/interfaces/IJBProjects.sol";
 import {IJBDirectory} from "lib/juice-contracts-v4/src/interfaces/IJBDirectory.sol";
 import {IJBPermissions} from "lib/juice-contracts-v4/src/interfaces/IJBPermissions.sol";
 
@@ -15,77 +13,72 @@ import {JB721TiersHookStore} from "src/JB721TiersHookStore.sol";
 import {JB721TiersHook} from "src/JB721TiersHook.sol";
 import {JBGoverned721TiersHook} from "src/JBGoverned721TiersHook.sol";
 
-contract DeployMainnet is Script {
-    IJBDirectory jbDirectory = IJBDirectory(0x65572FB928b46f9aDB7cfe5A4c41226F636161ea);
-    IJBPermissions jbOperatorStore = IJBPermissions(0x6F3C5afCa0c9eDf3926eF2dDF17c8ae6391afEfb);
+contract Deploy is Script {
+    function run() public {
+        uint256 chainId = block.chainid;
+        string memory chain;
 
-    JB721TiersHookDeployer hookDeployer;
-    JB721TiersHookProjectDeployer projectDeployer;
-    JB721TiersHookStore store;
+        // Ethereum Mainnet
+        if (chainId == 1) {
+            chain = "1";
+            // Ethereum Sepolia
+        } else if (chainId == 11_155_111) {
+            chain = "11155111";
+            // Optimism Mainnet
+        } else if (chainId == 420) {
+            chain = "420";
+            // Optimism Sepolia
+        } else if (chainId == 11_155_420) {
+            chain = "11155420";
+            // Polygon Mainnet
+        } else if (chainId == 137) {
+            chain = "137";
+            // Polygon Mumbai
+        } else if (chainId == 80_001) {
+            chain = "80001";
+        } else {
+            revert("Invalid RPC / no juice contracts deployed on this network");
+        }
 
-    function run() external {
-        IJBAddressRegistry registry = IJBAddressRegistry(
-            stdJson.readAddress(
-                vm.readFile("lib/juice-address-registry/broadcast/Deploy.s.sol/1/run-latest.json"),
-                ".transactions[0].contractAddress"
-            )
+        address directoryAddress = _getDeploymentAddress(
+            string.concat("lib/juice-contracts-v4/broadcast/Deploy.s.sol/", chain, "/run-latest.json"), "JBDirectory"
         );
 
-        // Make a static call for sanity check
-        assert(registry.deployerOf(address(0)) == address(0));
+        address permissionsAddress = _getDeploymentAddress(
+            string.concat("lib/juice-contracts-v4/broadcast/Deploy.s.sol/", chain, "/run-latest.json"), "JBPermissions"
+        );
+
+        address addressRegistryAddress = _getDeploymentAddress(string.concat("lib/juice-address-registry/broadcast/Deploy.s.sol/", chain, "/run-latest.json"), "JBAddressRegistry");
+
 
         vm.startBroadcast();
-
-        JB721TiersHook noGovernance = new JB721TiersHook(jbDirectory, jbOperatorStore);
-        JBGoverned721TiersHook onchainGovernance = new JBGoverned721TiersHook(jbDirectory, jbOperatorStore);
-
-        hookDeployer = new JB721TiersHookDeployer(onchainGovernance, noGovernance, registry);
-
-        store = JB721TiersHookStore(0x615B5b50F1Fc591AAAb54e633417640d6F2773Fd);
-
-        projectDeployer = new JB721TiersHookProjectDeployer(jbDirectory, hookDeployer, jbOperatorStore);
-
-        console.log("registry ", address(registry));
-        console.log("project deployer", address(projectDeployer));
-        console.log("store ", address(store));
+        JB721TiersHook noGovernance = new JB721TiersHook(IJBDirectory(directoryAddress), IJBPermissions(permissionsAddress));
+        JBGoverned721TiersHook onchainGovernance = new JBGoverned721TiersHook(IJBDirectory(directoryAddress), IJBPermissions(permissionsAddress));
+        JB721TiersHookDeployer hookDeployer = new JB721TiersHookDeployer(onchainGovernance, noGovernance, IJBAddressRegistry(addressRegistryAddress));
+        new JB721TiersHookStore();
+        new JB721TiersHookProjectDeployer(IJBDirectory(directoryAddress), IJBPermissions(permissionsAddress), hookDeployer);
+        vm.stopBroadcast();
     }
-}
 
-contract DeployGoerli is Script {
-    IJBDirectory jbDirectory = IJBDirectory(0x8E05bcD2812E1449f0EC3aE24E2C395F533d9A99);
-    IJBPermissions jbOperatorStore = IJBPermissions(0x99dB6b517683237dE9C494bbd17861f3608F3585);
+    /// @notice Get the address of a contract that was deployed by the Deploy script.
+    /// @dev Reverts if the contract was not found.
+    /// @param path The path to the deployment file.
+    /// @param contractName The name of the contract to get the address of.
+    /// @return The address of the contract.
+    function _getDeploymentAddress(string memory path, string memory contractName) internal view returns (address) {
+        string memory deploymentJson = vm.readFile(path);
+        uint256 nOfTransactions = stdJson.readStringArray(deploymentJson, ".transactions").length;
 
-    bytes4 metadataPayHookId = bytes4("721P");
-    bytes4 metadataRedeemHookId = bytes4("721R");
+        for (uint256 i = 0; i < nOfTransactions; i++) {
+            string memory currentKey = string.concat(".transactions", "[", Strings.toString(i), "]");
+            string memory currentContractName =
+                stdJson.readString(deploymentJson, string.concat(currentKey, ".contractName"));
 
-    JB721TiersHookDeployer hookDeployer;
-    JB721TiersHookProjectDeployer projectDeployer;
-    JB721TiersHookStore store;
+            if (keccak256(abi.encodePacked(currentContractName)) == keccak256(abi.encodePacked(contractName))) {
+                return stdJson.readAddress(deploymentJson, string.concat(currentKey, ".contractAddress"));
+            }
+        }
 
-    function run() external {
-        IJBAddressRegistry registry = IJBAddressRegistry(
-            stdJson.readAddress(
-                vm.readFile("lib/juice-address-registry/broadcast/Deploy.s.sol/1/run-latest.json"),
-                ".transactions[0].contractAddress"
-            )
-        );
-
-        // Make a static call for sanity check
-        assert(registry.deployerOf(address(0)) == address(0));
-
-        vm.startBroadcast();
-
-        JB721TiersHook noGovernance = new JB721TiersHook(jbDirectory, jbOperatorStore);
-        JBGoverned721TiersHook onchainGovernance = new JBGoverned721TiersHook(jbDirectory, jbOperatorStore);
-
-        hookDeployer = new JB721TiersHookDeployer(onchainGovernance, noGovernance, registry);
-
-        store = JB721TiersHookStore(0x155B49f303443a3334bB2EF42E10C628438a0656);
-
-        projectDeployer = new JB721TiersHookProjectDeployer(jbDirectory, hookDeployer, jbOperatorStore);
-
-        console.log("registry ", address(registry));
-        console.log("project deployer", address(projectDeployer));
-        console.log("store ", address(store));
+        revert(string.concat("Could not find contract with name '", contractName, "' in deployment file '", path, "'"));
     }
 }

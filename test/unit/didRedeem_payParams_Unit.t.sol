@@ -356,7 +356,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
             abi.encode(true)
         );
 
-        vm.expectRevert(abi.encodeWithSelector(JB721Hook.INVALID_REDEEM_EVENT.selector));
+        vm.expectRevert(abi.encodeWithSelector(JB721Hook.INVALID_REDEEM.selector));
 
         vm.prank(mockTerminalAddress);
         hook.afterRedeemRecordedWith(
@@ -397,7 +397,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
             abi.encode(false)
         );
 
-        vm.expectRevert(abi.encodeWithSelector(JB721Hook.INVALID_REDEEM_EVENT.selector));
+        vm.expectRevert(abi.encodeWithSelector(JB721Hook.INVALID_REDEEM.selector));
 
         vm.prank(mockTerminalAddress);
         hook.afterRedeemRecordedWith(

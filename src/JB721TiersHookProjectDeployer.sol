@@ -38,12 +38,12 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
     //*********************************************************************//
 
     /// @param directory The directory of terminals and controllers for projects.
-    /// @param hookDeployer The 721 tiers hook deployer.
     /// @param permissions A contract storing permissions.
+    /// @param hookDeployer The 721 tiers hook deployer.
     constructor(
         IJBDirectory directory,
-        IJB721TiersHookDeployer hookDeployer,
-        IJBPermissions permissions
+        IJBPermissions permissions,
+        IJB721TiersHookDeployer hookDeployer
     )
         JBPermissioned(permissions)
     {
