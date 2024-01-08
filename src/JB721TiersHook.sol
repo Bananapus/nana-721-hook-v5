@@ -189,7 +189,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
     /// @notice Indicates if this contract adheres to the specified interface.
     /// @dev See {IERC165-supportsInterface}.
     /// @param interfaceId The ID of the interface to check for adherence to.
-    function supportsInterface(bytes4 interfaceId) public view override(JB721Hook, JBOwnableOverrides) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view override returns (bool) {
         return interfaceId == type(IJB721TiersHook).interfaceId || super.supportsInterface(interfaceId);
     }
 
