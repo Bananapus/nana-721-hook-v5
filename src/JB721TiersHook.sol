@@ -568,17 +568,17 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
             // Increment the leftover amount.
             unchecked {
                 // Keep a reference to the amount of new NFT credits.
-                uint256 newpayCredits = leftoverAmount + unusedPayCredits;
+                uint256 newPayCredits = leftoverAmount + unusedPayCredits;
 
                 // Emit the change in NFT credits.
-                if (newpayCredits > payCredits) {
-                    emit AddPayCredits(newpayCredits - payCredits, newpayCredits, context.beneficiary, msg.sender);
-                } else if (payCredits > newpayCredits) {
-                    emit UsePayCredits(payCredits - newpayCredits, newpayCredits, context.beneficiary, msg.sender);
+                if (newPayCredits > payCredits) {
+                    emit AddPayCredits(newPayCredits - payCredits, newPayCredits, context.beneficiary, msg.sender);
+                } else if (payCredits > newPayCredits) {
+                    emit UsePayCredits(payCredits - newPayCredits, newPayCredits, context.beneficiary, msg.sender);
                 }
 
                 // Store the new NFT credits for the beneficiary.
-                payCreditsOf[context.beneficiary] = newpayCredits;
+                payCreditsOf[context.beneficiary] = newPayCredits;
             }
             // Otherwise, reset their NFT credits.
         } else if (payCredits != unusedPayCredits) {
