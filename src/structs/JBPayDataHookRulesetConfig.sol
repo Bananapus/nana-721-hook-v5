@@ -29,7 +29,7 @@ import {JBPayDataHookRulesetMetadata} from "./JBPayDataHookRulesetMetadata.sol";
 /// @custom:member splitGroups An array of splits to use for any number of groups while the ruleset is active.
 /// @custom:member fundAccessLimitGroups An array of structs which dictate the amount of funds a project can access from
 /// its balance in each payment terminal while the ruleset is active. Amounts are fixed point numbers using the same
-/// number of decimals as the corresponding terminal. The `_payoutLimit` and `_surplusAllowance` parameters must fit in
+/// number of decimals as the corresponding terminal. The `payoutLimit` and `surplusAllowance` parameters must fit in
 /// a `uint232`.
 struct JBPayDataHookRulesetConfig {
     uint256 mustStartAtOrAfter;

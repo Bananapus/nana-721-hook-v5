@@ -15,7 +15,7 @@ import "src/structs/JB721InitTiersConfig.sol";
 
 import "../utils/UnitTestSetup.sol";
 
-contract TestJB721TiersHookProjectDeployer_Unit is UnitTestSetup {
+contract Test721TiersHookProjectDeployer_Unit is UnitTestSetup {
     using stdStorage for StdStorage;
 
     // bytes4 PAY_HOOK_ID = bytes4(hex"70");

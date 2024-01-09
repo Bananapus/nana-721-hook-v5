@@ -3,15 +3,15 @@ pragma solidity 0.8.23;
 
 import "../utils/UnitTestSetup.sol";
 
-contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
+contract Test721TiersHook_redeem_Unit is UnitTestSetup {
     using stdStorage for StdStorage;
 
-    function test721TiersHook_redeemParams_returnsCorrectAmount() public {
-        uint256 _weight;
-        uint256 _totalWeight;
+    function test721TiersHook_beforeRedeemContext_returnsCorrectAmount() public {
+        uint256 weight;
+        uint256 totalWeight;
         ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
-        // Set 10 tiers, with half supply minted for each
+        // Set up 10 tiers, with half of the supply minted for each one.
         for (uint256 i = 1; i <= 10; i++) {
             hook.test_store().ForTest_setTier(
                 address(hook),
@@ -26,21 +26,21 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                     packedBools: hook.test_store().ForTest_packBools(false, false, false)
                 })
             );
-            _totalWeight += (10 * i - 5 * i) * i * 10;
+            totalWeight += (10 * i - 5 * i) * i * 10;
         }
 
-        // Redeem based on holding 1 NFT in each of the 5 first tiers
-        uint256[] memory _tokenList = new uint256[](5);
+        // Redeem as if the beneficiary has 1 NFT from each of the first five tiers.
+        uint256[] memory tokenList = new uint256[](5);
         for (uint256 i; i < 5; i++) {
             uint256 tokenId = _generateTokenId(i + 1, 1);
             hook.ForTest_setOwnerOf(tokenId, beneficiary);
-            _tokenList[i] = tokenId;
-            _weight += (i + 1) * 10;
+            tokenList[i] = tokenId;
+            weight += (i + 1) * 10;
         }
 
-        //Build the metadata with the tiers to redee
+        // Build the metadata with the tiers to redeem.
         bytes[] memory data = new bytes[](1);
-        data[0] = abi.encode(_tokenList);
+        data[0] = abi.encode(tokenList);
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
@@ -48,7 +48,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
-        (uint256 reclaimAmount, JBRedeemHookSpecification[] memory _returnedDelegate) = hook.beforeRedeemRecordedWith(
+        (uint256 reclaimAmount, JBRedeemHookSpecification[] memory returnedHook) = hook.beforeRedeemRecordedWith(
             JBBeforeRedeemRecordedContext({
                 terminal: address(0),
                 holder: beneficiary,
@@ -69,26 +69,26 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
             })
         );
 
-        // Portion of the surplus accessible (pro rata weight held)
-        uint256 _base = mulDiv(SURPLUS, _weight, _totalWeight);
-        uint256 _claimableOverflow = mulDiv(
-            _base,
-            REDEMPTION_RATE + mulDiv(_weight, MAX_RESERVED_RATE() - REDEMPTION_RATE, _totalWeight),
+        // Calculate what portion of the surplus should accessible (pro rata relative to weight of NFTs held).
+        uint256 base = mulDiv(SURPLUS, weight, totalWeight);
+        uint256 claimableSurplus = mulDiv(
+            base,
+            REDEMPTION_RATE + mulDiv(weight, MAX_RESERVED_RATE() - REDEMPTION_RATE, totalWeight),
             MAX_RESERVED_RATE()
         );
-        assertEq(reclaimAmount, _claimableOverflow);
-        assertEq(address(_returnedDelegate[0].hook), address(hook));
+        assertEq(reclaimAmount, claimableSurplus);
+        assertEq(address(returnedHook[0].hook), address(hook));
     }
 
-    function test721TiersHook_redeemParams_returnsZeroAmountIfreserveFrequencyIsZero() public {
-        uint256 _surplus = 10e18;
-        uint256 _redemptionRate = 0;
-        uint256 _weight;
-        uint256 _totalWeight;
+    function test721TiersHook_beforeRedeemContext_returnsZeroAmountIfReserveFrequencyIsZero() public {
+        uint256 surplus = 10e18;
+        uint256 redemptionRate = 0;
+        uint256 weight;
+        uint256 totalWeight;
 
         ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
-        // Set 10 tiers, with half supply minted for each
+        // Set up 10 tiers, with half of the supply minted for each one.
         for (uint256 i = 1; i <= 10; i++) {
             hook.test_store().ForTest_setTier(
                 address(hook),
@@ -103,18 +103,18 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                     packedBools: hook.test_store().ForTest_packBools(false, false, false)
                 })
             );
-            _totalWeight += (10 * i - 5 * i) * i * 10;
+            totalWeight += (10 * i - 5 * i) * i * 10;
         }
 
-        // Redeem based on holding 1 NFT in each of the 5 first tiers
-        uint256[] memory _tokenList = new uint256[](5);
+        // Redeem as if the beneficiary has 1 NFT from each of the first five tiers.
+        uint256[] memory tokenList = new uint256[](5);
         for (uint256 i; i < 5; i++) {
             hook.ForTest_setOwnerOf(i + 1, beneficiary);
-            _tokenList[i] = i + 1;
-            _weight += (i + 1) * (i + 1) * 10;
+            tokenList[i] = i + 1;
+            weight += (i + 1) * (i + 1) * 10;
         }
 
-        (uint256 reclaimAmount, JBRedeemHookSpecification[] memory _returnedDelegate) = hook.beforeRedeemRecordedWith(
+        (uint256 reclaimAmount, JBRedeemHookSpecification[] memory returnedHook) = hook.beforeRedeemRecordedWith(
             JBBeforeRedeemRecordedContext({
                 terminal: address(0),
                 holder: beneficiary,
@@ -122,7 +122,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                 rulesetId: 0,
                 redeemCount: 0,
                 totalSupply: 0,
-                surplus: _surplus,
+                surplus: surplus,
                 reclaimAmount: JBTokenAmount({
                     token: address(0),
                     value: 0,
@@ -130,22 +130,22 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                     currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
                 }),
                 useTotalSurplus: true,
-                redemptionRate: _redemptionRate,
-                metadata: abi.encode(bytes32(0), type(IJB721Hook).interfaceId, _tokenList)
+                redemptionRate: redemptionRate,
+                metadata: abi.encode(bytes32(0), type(IJB721Hook).interfaceId, tokenList)
             })
         );
 
         assertEq(reclaimAmount, 0);
-        assertEq(address(_returnedDelegate[0].hook), address(hook));
+        assertEq(address(returnedHook[0].hook), address(hook));
     }
 
-    function test721TiersHook_redeemParams_returnsPartOfOverflowOwnedIfRedemptionRateIsMaximum() public {
-        uint256 _weight;
-        uint256 _totalWeight;
+    function test721TiersHook_beforeRedeemContext_returnsPartOfOverflowOwnedIfRedemptionRateIsMaximum() public {
+        uint256 weight;
+        uint256 totalWeight;
 
         ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
-        // Set 10 tiers, with half supply minted for each
+        // Set up 10 tiers, with half of the supply minted for each one.
         for (uint256 i = 1; i <= 10; i++) {
             hook.test_store().ForTest_setTier(
                 address(hook),
@@ -160,20 +160,20 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                     packedBools: hook.test_store().ForTest_packBools(false, false, false)
                 })
             );
-            _totalWeight += (10 * i - 5 * i) * i * 10;
+            totalWeight += (10 * i - 5 * i) * i * 10;
         }
 
-        // Redeem based on holding 1 NFT in each of the 5 first tiers
-        uint256[] memory _tokenList = new uint256[](5);
+        // Redeem as if the beneficiary has 1 NFT from each of the first five tiers.
+        uint256[] memory tokenList = new uint256[](5);
         for (uint256 i; i < 5; i++) {
             hook.ForTest_setOwnerOf(_generateTokenId(i + 1, 1), beneficiary);
-            _tokenList[i] = _generateTokenId(i + 1, 1);
-            _weight += (i + 1) * 10;
+            tokenList[i] = _generateTokenId(i + 1, 1);
+            weight += (i + 1) * 10;
         }
 
-        //Build the metadata with the tiers to redee
+        // Build the metadata with the tiers to redeem.
         bytes[] memory data = new bytes[](1);
-        data[0] = abi.encode(_tokenList);
+        data[0] = abi.encode(tokenList);
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
@@ -182,7 +182,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
 
-        JBBeforeRedeemRecordedContext memory _redeemParams = JBBeforeRedeemRecordedContext({
+        JBBeforeRedeemRecordedContext memory beforeRedeemContext = JBBeforeRedeemRecordedContext({
             terminal: address(0),
             holder: beneficiary,
             projectId: projectId,
@@ -201,17 +201,17 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
             metadata: hookMetadata
         });
 
-        (uint256 reclaimAmount, JBRedeemHookSpecification[] memory _returnedDelegate) =
-            hook.beforeRedeemRecordedWith(_redeemParams);
+        (uint256 reclaimAmount, JBRedeemHookSpecification[] memory returnedHook) =
+            hook.beforeRedeemRecordedWith(beforeRedeemContext);
 
-        // Portion of the surplus accessible (pro rata weight held)
-        uint256 _base = mulDiv(SURPLUS, _weight, _totalWeight);
-        assertEq(reclaimAmount, _base);
-        assertEq(address(_returnedDelegate[0].hook), address(hook));
+        // Calculate what portion of the surplus should accessible (pro rata relative to weight of NFTs held).
+        uint256 base = mulDiv(SURPLUS, weight, totalWeight);
+        assertEq(reclaimAmount, base);
+        assertEq(address(returnedHook[0].hook), address(hook));
     }
 
-    function test721TiersHook_redeemParams_revertIfNonZeroTokenCount(uint256 _tokenCount) public {
-        vm.assume(_tokenCount > 0);
+    function test721TiersHook_beforeRedeemContext_revertIfNonZeroTokenCount(uint256 tokenCount) public {
+        vm.assume(tokenCount > 0);
 
         vm.expectRevert(abi.encodeWithSelector(JB721Hook.UNEXPECTED_TOKEN_REDEEMED.selector));
 
@@ -221,7 +221,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                 holder: beneficiary,
                 projectId: projectId,
                 rulesetId: 0,
-                redeemCount: _tokenCount,
+                redeemCount: tokenCount,
                 totalSupply: 0,
                 surplus: 100,
                 reclaimAmount: JBTokenAmount({
@@ -237,11 +237,11 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
         );
     }
 
-    function test721TiersHook_afterRedeemRecordedWith_burnRedeemedNFT(uint256 _numberOfNFT) public {
+    function test721TiersHook_afterRedeemRecordedWith_burnRedeemedNft(uint256 numberOfNfts) public {
         ForTest_JB721TiersHook hook = _initializeForTestHook(5);
 
-        // Has to all fit in tier 1 minus reserved
-        _numberOfNFT = bound(_numberOfNFT, 1, 90);
+        // Has to all fit in tier 1 (excluding reserve mints).
+        numberOfNfts = bound(numberOfNfts, 1, 90);
 
         // Mock the directory call.
         mockAndExpect(
@@ -250,13 +250,13 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
             abi.encode(true)
         );
 
-        uint256[] memory _tokenList = new uint256[](_numberOfNFT);
+        uint256[] memory tokenList = new uint256[](numberOfNfts);
 
         bytes memory hookMetadata;
         bytes[] memory data;
         bytes4[] memory ids;
 
-        for (uint256 i; i < _numberOfNFT; i++) {
+        for (uint256 i; i < numberOfNfts; i++) {
             uint16[] memory tierIdsToMint = new uint16[](1);
             tierIdsToMint[0] = 1;
 
@@ -271,10 +271,9 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
             // Generate the metadata.
             hookMetadata = metadataHelper.createMetadata(ids, data);
 
-            // We mint the NFTs otherwise the voting balance does not get incremented
-            // which leads to underflow on redeem
+            // Mint the NFTs. Otherwise, the voting balance is not incremented, which leads to an underflow upon redemption.
             vm.prank(mockTerminalAddress);
-            JBAfterPayRecordedContext memory _payData = JBAfterPayRecordedContext({
+            JBAfterPayRecordedContext memory afterPayContext = JBAfterPayRecordedContext({
                 payer: beneficiary,
                 projectId: projectId,
                 rulesetId: 0,
@@ -288,17 +287,17 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                 payerMetadata: hookMetadata
             });
 
-            hook.afterPayRecordedWith(_payData);
+            hook.afterPayRecordedWith(afterPayContext);
 
-            _tokenList[i] = _generateTokenId(1, i + 1);
+            tokenList[i] = _generateTokenId(1, i + 1);
 
-            // Assert that a new NFT was minted
+            // Assert that a new NFT was minted.
             assertEq(hook.balanceOf(beneficiary), i + 1);
         }
 
-        // Build the metadata with the tiers to redeem
+        // Build the metadata with the tiers to redeem.
         data = new bytes[](1);
-        data[0] = abi.encode(_tokenList);
+        data[0] = abi.encode(tokenList);
 
         // Pass the hook ID.
         ids = new bytes4[](1);
@@ -325,9 +324,8 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                     value: 0,
                     decimals: 18,
                     currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
-                }), // 0
+                }), // 0, forwarded to the hook.
                 redemptionRate: 5000,
-                // fwd to hook
                 beneficiary: payable(beneficiary),
                 hookMetadata: bytes(""),
                 redeemerMetadata: hookMetadata
@@ -337,15 +335,15 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
         // Balance should be 0 again
         assertEq(hook.balanceOf(beneficiary), 0);
 
-        // Burn should be counted (_numberOfNft in first tier)
-        assertEq(hook.test_store().numberOfBurnedFor(address(hook), 1), _numberOfNFT);
+        // Burn should be counted (`numberOfNfts` in first tier)
+        assertEq(hook.test_store().numberOfBurnedFor(address(hook), 1), numberOfNfts);
     }
 
-    function test721TiersHook_afterRedeemRecordedWith_revertIfNotCorrectProjectId(uint8 _wrongProjectId) public {
-        vm.assume(_wrongProjectId != projectId);
+    function test721TiersHook_afterRedeemRecordedWith_revertIfNotCorrectProjectId(uint8 wrongProjectId) public {
+        vm.assume(wrongProjectId != projectId);
 
-        uint256[] memory _tokenList = new uint256[](1);
-        _tokenList[0] = 1;
+        uint256[] memory tokenList = new uint256[](1);
+        tokenList[0] = 1;
 
         // Mock the directory call.
         mockAndExpect(
@@ -360,7 +358,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
         hook.afterRedeemRecordedWith(
             JBAfterRedeemRecordedContext({
                 holder: beneficiary,
-                projectId: _wrongProjectId,
+                projectId: wrongProjectId,
                 rulesetId: 1,
                 redeemCount: 0,
                 reclaimedAmount: JBTokenAmount({
@@ -374,19 +372,18 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                     value: 0,
                     decimals: 18,
                     currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
-                }), //sv
+                }), // 0, forwarded to the hook.
                 redemptionRate: 5000,
-                // 0 fwd to hook
                 beneficiary: payable(beneficiary),
                 hookMetadata: bytes(""),
-                redeemerMetadata: abi.encode(type(IJB721TiersHook).interfaceId, _tokenList)
+                redeemerMetadata: abi.encode(type(IJB721TiersHook).interfaceId, tokenList)
             })
         );
     }
 
     function test721TiersHook_afterRedeemRecordedWith_revertIfCallerIsNotATerminalOfTheProject() public {
-        uint256[] memory _tokenList = new uint256[](1);
-        _tokenList[0] = 1;
+        uint256[] memory tokenList = new uint256[](1);
+        tokenList[0] = 1;
 
         // Mock the directory call.
         mockAndExpect(
@@ -415,29 +412,29 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                     value: 0,
                     decimals: 18,
                     currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
-                }), // 0
+                }), // 0, forwarded to the hook.
                 redemptionRate: 5000,
                 beneficiary: payable(beneficiary),
                 hookMetadata: bytes(""),
-                redeemerMetadata: abi.encode(type(IJB721TiersHook).interfaceId, _tokenList)
+                redeemerMetadata: abi.encode(type(IJB721TiersHook).interfaceId, tokenList)
             })
         );
     }
 
-    function test721TiersHook_afterRedeemRecordedWith_RevertIfWrongHolder(address _wrongHolder, uint8 tokenId) public {
-        vm.assume(beneficiary != _wrongHolder);
+    function test721TiersHook_afterRedeemRecordedWith_revertIfWrongHolder(address wrongHolder, uint8 tokenId) public {
+        vm.assume(beneficiary != wrongHolder);
         vm.assume(tokenId != 0);
 
         ForTest_JB721TiersHook hook = _initializeForTestHook(1);
 
         hook.ForTest_setOwnerOf(tokenId, beneficiary);
 
-        uint256[] memory _tokenList = new uint256[](1);
-        _tokenList[0] = tokenId;
+        uint256[] memory tokenList = new uint256[](1);
+        tokenList[0] = tokenId;
 
-        //Build the metadata with the tiers to redee
+        // Build the metadata with the tiers to redeem.
         bytes[] memory data = new bytes[](1);
-        data[0] = abi.encode(_tokenList);
+        data[0] = abi.encode(tokenList);
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
@@ -458,7 +455,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
         vm.prank(mockTerminalAddress);
         hook.afterRedeemRecordedWith(
             JBAfterRedeemRecordedContext({
-                holder: _wrongHolder,
+                holder: wrongHolder,
                 projectId: projectId,
                 rulesetId: 1,
                 redeemCount: 0,
@@ -476,7 +473,7 @@ contract TestJuice721dDelegate_redemption_Unit is UnitTestSetup {
                 }), // 0
                 redemptionRate: 5000,
                 // fwd to hook
-                beneficiary: payable(_wrongHolder),
+                beneficiary: payable(wrongHolder),
                 hookMetadata: bytes(""),
                 redeemerMetadata: hookMetadata
             })

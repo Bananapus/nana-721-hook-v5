@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import "../utils/UnitTestSetup.sol";
 
-contract TestJuice721dDelegate_afterPayRecordedWith_Unit is UnitTestSetup {
+contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
     using stdStorage for StdStorage;
 
     function test721TiersHook_afterPayRecorded_mintCorrectAmountsAndReserved(

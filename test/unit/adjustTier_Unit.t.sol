@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import "../utils/UnitTestSetup.sol";
 
-contract Test721Hook_adjustTier_Unit is UnitTestSetup {
+contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
     using stdStorage for StdStorage;
 
     function test721TiersHook_adjust_tier_remove_tiers_multiple_times(
