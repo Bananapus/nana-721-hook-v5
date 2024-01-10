@@ -31,6 +31,7 @@ interface IJB721TiersHookStore_ForTest is IJB721TiersHookStore {
         returns (uint8);
 }
 
+// A customized 721 tiers hook for testing purposes.
 contract ForTest_JB721TiersHook is JB721TiersHook {
     IJB721TiersHookStore_ForTest public test_store;
     MetadataResolverHelper metadataHelper;
@@ -48,7 +49,7 @@ contract ForTest_JB721TiersHook is JB721TiersHook {
         IJB721TokenUriResolver tokenUriResolver,
         string memory contractUri,
         JB721TierConfig[] memory tiers,
-        IJB721TiersHookStore _test_store, // TODO: rename?
+        IJB721TiersHookStore store,
         JB721TiersHookFlags memory flags
     )
         // The directory is also `IJBPermissioned`.
@@ -70,10 +71,10 @@ contract ForTest_JB721TiersHook is JB721TiersHook {
                 decimals: 18,
                 prices: IJBPrices(address(0))
             }),
-            _test_store,
+            store,
             flags
         );
-        test_store = IJB721TiersHookStore_ForTest(address(_test_store));
+        test_store = IJB721TiersHookStore_ForTest(address(store));
 
         metadataHelper = new MetadataResolverHelper();
     }
@@ -83,6 +84,7 @@ contract ForTest_JB721TiersHook is JB721TiersHook {
     }
 }
 
+// A customized 721 tiers hook store for testing purposes.
 contract ForTest_JB721TiersHookStore is JB721TiersHookStore, IJB721TiersHookStore_ForTest {
     using JBBitmap for mapping(uint256 => uint256);
     using JBBitmap for JBBitmapWord;
@@ -102,7 +104,7 @@ contract ForTest_JB721TiersHookStore is JB721TiersHookStore, IJB721TiersHookStor
         while (currentSortIndex != 0 && numberOfIncludedTiers < maxTierId) {
             storedTier = _storedTierOf[nft][currentSortIndex];
 
-            // Unpack stored tier
+            // Unpack stored tier.
             (bool allowOwnerMint, bool transfersPausable,) = _unpackBools(storedTier.packedBools);
 
             // Add the tier to the array being returned.
@@ -124,7 +126,7 @@ contract ForTest_JB721TiersHookStore is JB721TiersHookStore, IJB721TiersHookStor
             currentSortIndex = _nextSortedTierIdOf(nft, currentSortIndex, maxTierId);
         }
         // Drop the empty tiers at the end of the array.
-        // The array's size is bsaed on `maxTierIdOf`, which *might* exceed the actual number of tiers.
+        // The array's size is based on `maxTierIdOf`, which *might* exceed the actual number of tiers.
         for (uint256 i = tiers.length - 1; i >= 0; i--) {
             if (tiers[i].id == 0) {
                 assembly ("memory-safe") {

@@ -27,7 +27,6 @@ import "lib/juice-address-registry/src/JBAddressRegistry.sol";
 import "lib/juice-contracts-v4/src/libraries/JBCurrencyIds.sol";
 import "lib/juice-contracts-v4/src/libraries/JBConstants.sol";
 
-// TODO: Find new name for _tiers return variables
 contract UnitTestSetup is Test {
     address beneficiary;
     address owner;
@@ -49,13 +48,14 @@ contract UnitTestSetup is Test {
     uint256 projectId = 69;
 
     uint256 constant SURPLUS = 10e18;
-    // What's going on here? Shouldn't this be 4_000?
+    // TODO: What's going on here? Shouldn't this be 4_000?
     uint256 constant REDEMPTION_RATE = JBConstants.MAX_RESERVED_RATE; // 40%
 
     JB721TierConfig defaultTierConfig;
 
+    // To generate:
     // NodeJS: function con(hash) { Buffer.from(bs58.decode(hash).slice(2)).toString('hex') }
-    // JS;  0x${bs58.decode(hash).slice(2).toString('hex')})
+    // JavaScript:  0x${bs58.decode(hash).slice(2).toString('hex')})
     bytes32[] tokenUris = [
         bytes32(0x7D5A99F603F231D53A4F39D1521F98D2E8BB279CF29BEBFD0687DC98458E7F89),
         bytes32(0xf5d60fc6f462f6176982833f5e2ca222a2ced265fa94e4ce1c477d74910250ed),
@@ -147,7 +147,7 @@ contract UnitTestSetup is Test {
         for (uint256 i; i < 10; i++) {
             tiers.push(
                 JB721TierConfig({
-                    price: uint104((i + 1) * 10),
+                    price: uint104((i + 1) * 10), // The price is `tierId` * 10.
                     initialSupply: uint32(100),
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(0),
@@ -199,19 +199,14 @@ contract UnitTestSetup is Test {
         );
 
         vm.mockCall(mockJBDirectory, abi.encodeWithSelector(IJBDirectory.PROJECTS.selector), abi.encode(mockJBProjects));
-
         vm.mockCall(
             mockJBDirectory, abi.encodeWithSelector(IJBPermissioned.PERMISSIONS.selector), abi.encode(mockJBPermissions)
         );
 
         hookOrigin = new JB721TiersHook(IJBDirectory(mockJBDirectory), IJBPermissions(mockJBPermissions));
-
         addressRegistry = new JBAddressRegistry();
-
         jbHookDeployer = new JB721TiersHookDeployer(hookOrigin, addressRegistry);
-
         store = new JB721TiersHookStore();
-
         JBDeploy721TiersHookConfig memory hookConfig = JBDeploy721TiersHookConfig(
             name,
             symbol,
@@ -273,11 +268,11 @@ contract UnitTestSetup is Test {
         return JBConstants.MAX_FEE_DISCOUNT;
     }
 
-    // ----------------
-    // Internal helpers
-    // ----------------
-    // JB721Tier comparison
+    // *------------------*
+    // * INTERNAL HELPERS *
+    // *------------------*
 
+    // Compare two `JB721Tier`s.
     function assertEq(JB721Tier memory first, JB721Tier memory second) internal {
         assertEq(first.id, second.id);
         assertEq(first.price, second.price);
@@ -289,7 +284,7 @@ contract UnitTestSetup is Test {
         assertEq(first.encodedIPFSUri, second.encodedIPFSUri);
     }
 
-    // JB721Tier Array comparison
+    // Compare two arrays of `JB721Tier`s.
     function assertEq(JB721Tier[] memory first, JB721Tier[] memory second) internal {
         assertEq(first.length, second.length);
         for (uint256 i; i < first.length; i++) {
@@ -304,12 +299,12 @@ contract UnitTestSetup is Test {
         }
     }
 
-    function mockAndExpect(address target, bytes memory _calldata, bytes memory returnData) internal {
-        vm.mockCall(target, _calldata, returnData);
-        vm.expectCall(target, _calldata);
+    function mockAndExpect(address target, bytes memory mockCalldata, bytes memory returnData) internal {
+        vm.mockCall(target, mockCalldata, returnData);
+        vm.expectCall(target, mockCalldata);
     }
 
-    // Generate `tokenId`s based on token number and tier
+    // Generate `tokenId`s based on a `tierId` and a `tokenNumber` within the tier.
     function _generateTokenId(uint256 tierId, uint256 tokenNumber) internal pure returns (uint256) {
         return (tierId * 1_000_000_000) + tokenNumber;
     }
@@ -334,7 +329,7 @@ contract UnitTestSetup is Test {
                 }
             }
         }
-        // Ensure that all the smol indexes have been iterated on (i.e. we've seen (smol.length)! elements).
+        // Ensure that all the smol indexes have been iterated on (i.e. we've seen `sum(1, 2, ..., smol.length)` elements).
         if (count == (smol.length * (smol.length + 1)) / 2) {
             return true;
         } else {
@@ -345,6 +340,8 @@ contract UnitTestSetup is Test {
         }
     }
 
+    // TODO: Remove comments?
+    //
     function _compareTiers(JB721Tier memory first, JB721Tier memory second) internal pure returns (bool) {
         // Use this for quick debug:
         // if(first.id != second.id) emit log_string("compareTiers:id");
@@ -384,6 +381,7 @@ contract UnitTestSetup is Test {
         );
     }
 
+    // Simple selection sort for an array of `uint256` values.
     function _sortArray(uint256[] memory arr) internal pure returns (uint256[] memory) {
         for (uint256 i; i < arr.length; i++) {
             uint256 minIndex = i;
@@ -399,6 +397,7 @@ contract UnitTestSetup is Test {
         return arr;
     }
 
+    // Simple selection sort for an array of `uint16` values.
     function _sortArray(uint16[] memory arr) internal pure returns (uint16[] memory) {
         for (uint256 i; i < arr.length; i++) {
             uint256 minIndex = i;
@@ -414,6 +413,7 @@ contract UnitTestSetup is Test {
         return arr;
     }
 
+    // Simple selection sort for an array of `uint8` values.
     function _sortArray(uint8[] memory arr) internal pure returns (uint8[] memory) {
         for (uint256 i; i < arr.length; i++) {
             uint256 minIndex = i;
@@ -429,6 +429,7 @@ contract UnitTestSetup is Test {
         return arr;
     }
 
+    // Create a random array of `uint16` values based on a given `seed`.
     function _createArray(uint256 length, uint256 seed) internal pure returns (uint16[] memory) {
         uint16[] memory out = new uint16[](length);
 
@@ -439,17 +440,19 @@ contract UnitTestSetup is Test {
         return out;
     }
 
+    // Create an array of `JB721TierConfig`s and `JB721Tier`s using the provided and the default `prices`, `initialId`, and `categoryIncrement`.
     function _createTiers(
         JB721TierConfig memory tierParams,
         uint256 numberOfTiers
     )
         internal
         view
-        returns (JB721TierConfig[] memory tierConfigs, JB721Tier[] memory _tiers)
+        returns (JB721TierConfig[] memory tierConfigs, JB721Tier[] memory newTiers)
     {
         return _createTiers(tierParams, numberOfTiers, 0, new uint16[](numberOfTiers), 0);
     }
 
+    // Create an array of `JB721TierConfig`s and `JB721Tier`s using the provided and the default `prices` and `initialId`.
     function _createTiers(
         JB721TierConfig memory tierParams,
         uint256 numberOfTiers,
@@ -457,41 +460,43 @@ contract UnitTestSetup is Test {
     )
         internal
         view
-        returns (JB721TierConfig[] memory tierConfigs, JB721Tier[] memory _tiers)
+        returns (JB721TierConfig[] memory tierConfigs, JB721Tier[] memory newTiers)
     {
         return _createTiers(tierParams, numberOfTiers, 0, new uint16[](numberOfTiers), categoryIncrement);
     }
 
+    // Create an array of `JB721TierConfig`s and `JB721Tier`s using the provided and the default `categoryIncrement`.
     function _createTiers(
         JB721TierConfig memory tierParams,
         uint256 numberOfTiers,
         uint256 initialId,
-        uint16[] memory floors
+        uint16[] memory prices
     )
         internal
         view
-        returns (JB721TierConfig[] memory tierConfigs, JB721Tier[] memory _tiers)
+        returns (JB721TierConfig[] memory tierConfigs, JB721Tier[] memory newTiers)
     {
-        return _createTiers(tierParams, numberOfTiers, initialId, floors, 0);
+        return _createTiers(tierParams, numberOfTiers, initialId, prices, 0);
     }
 
+    // Create an array of `JB721TierConfig`s and `JB721Tier`s using the provided parameters.
     function _createTiers(
         JB721TierConfig memory tierConfig,
         uint256 numberOfTiers,
         uint256 initialId,
-        uint16[] memory floors,
+        uint16[] memory prices,
         uint256 categoryIncrement
     )
         internal
         view
-        returns (JB721TierConfig[] memory tierConfigs, JB721Tier[] memory _tiers)
+        returns (JB721TierConfig[] memory tierConfigs, JB721Tier[] memory newTiers)
     {
         tierConfigs = new JB721TierConfig[](numberOfTiers);
-        _tiers = new JB721Tier[](numberOfTiers);
+        newTiers = new JB721Tier[](numberOfTiers);
 
         for (uint256 i; i < numberOfTiers; i++) {
             tierConfigs[i] = JB721TierConfig({
-                price: floors[i] == 0 ? uint16((i + 1) * 10) : floors[i],
+                price: prices[i] == 0 ? uint16((i + 1) * 10) : prices[i], // The price is `tierId` * 10.
                 initialSupply: tierConfig.initialSupply == 0 ? uint32(100) : tierConfig.initialSupply,
                 votingUnits: tierConfig.votingUnits,
                 reserveFrequency: tierConfig.reserveFrequency,
@@ -506,7 +511,7 @@ contract UnitTestSetup is Test {
                 useVotingUnits: tierConfig.useVotingUnits
             });
 
-            _tiers[i] = JB721Tier({
+            newTiers[i] = JB721Tier({
                 id: initialId + i + 1,
                 price: tierConfigs[i].price,
                 remainingSupply: tierConfigs[i].initialSupply,
@@ -525,6 +530,7 @@ contract UnitTestSetup is Test {
         }
     }
 
+    // Add the specified tiers to the hook, and remove the specified number of tiers from the hook. Uses `adjustTiers`.
     function _addDeleteTiers(
         JB721TiersHook tiersHook,
         uint256 currentNumberOfTiers,
@@ -556,12 +562,17 @@ contract UnitTestSetup is Test {
         return newNumberOfTiers;
     }
 
+    // Initialize a hook with tiers that use the default tier config.
+    // Use default pricing context (native token, 18 decimals, and 0 address as oracle).
+    // Don't prevent overspending.
     function _initHookDefaultTiers(uint256 initialNumberOfTiers) internal returns (JB721TiersHook) {
         return _initHookDefaultTiers(
             initialNumberOfTiers, false, uint32(uint160(JBConstants.NATIVE_TOKEN)), 18, address(0)
         );
     }
 
+    // Initialize a hook with tiers that use the default tier config.
+    // Use default pricing context (native token, 18 decimals, and 0 address as oracle).
     function _initHookDefaultTiers(
         uint256 initialNumberOfTiers,
         bool preventOverspending
@@ -574,6 +585,7 @@ contract UnitTestSetup is Test {
         );
     }
 
+    // Initialize a hook with tiers that use the default tier config.
     function _initHookDefaultTiers(
         uint256 initialNumberOfTiers,
         bool preventOverspending,
@@ -584,17 +596,17 @@ contract UnitTestSetup is Test {
         internal
         returns (JB721TiersHook tiersHook)
     {
-        // Initialize first tiers to add
+        // Initialize first tiers to add.
         (JB721TierConfig[] memory tierConfigs,) = _createTiers(defaultTierConfig, initialNumberOfTiers);
 
-        // "Deploy" the hook
+        // Deploy the hook.
         vm.etch(hook_i, address(hook).code);
         tiersHook = JB721TiersHook(hook_i);
 
-        // Deploy the hook store
+        // Deploy the hook store.
         JB721TiersHookStore hookStore = new JB721TiersHookStore();
 
-        // Initialize the hook, put the struc in memory for stack's sake
+        // Initialize the hook's flags and init config in memory (for stack's sake).
         JB721TiersHookFlags memory flags = JB721TiersHookFlags({
             preventOverspending: preventOverspending,
             noNewTiersWithReserves: false,
@@ -602,7 +614,7 @@ contract UnitTestSetup is Test {
             noNewTiersWithOwnerMinting: false
         });
 
-        JB721InitTiersConfig memory pricingParams = JB721InitTiersConfig({
+        JB721InitTiersConfig memory initConfig = JB721InitTiersConfig({
             tiers: tierConfigs,
             currency: currency,
             decimals: decimals,
@@ -617,23 +629,24 @@ contract UnitTestSetup is Test {
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
-            pricingParams,
+            initConfig,
             IJB721TiersHookStore(hookStore),
             flags
         );
 
-        // Transfer ownership to owner
+        // Transfer ownership to owner.
         tiersHook.transferOwnership(owner);
     }
 
+    // Initialize a 721 tiers hook specialized for testing purposes. 
     function _initializeForTestHook(uint256 initialNumberOfTiers) internal returns (ForTest_JB721TiersHook tiersHook) {
-        // Initialize first tiers to add
+        // Initialize first tiers to add.
         (JB721TierConfig[] memory tierConfigs,) = _createTiers(defaultTierConfig, initialNumberOfTiers);
 
-        // Deploy the For Test hook store
+        // Deploy the ForTest hook store.
         ForTest_JB721TiersHookStore hookStore = new ForTest_JB721TiersHookStore();
 
-        // Deploy the For Test hook
+        // Deploy the ForTest hook.
         tiersHook = new ForTest_JB721TiersHook(
             projectId,
             IJBDirectory(mockJBDirectory),
@@ -653,10 +666,11 @@ contract UnitTestSetup is Test {
             })
         );
 
-        // Transfer ownership to owner
+        // Transfer the hook's ownership to owner.
         tiersHook.transferOwnership(owner);
     }
 
+    // Create a default `JBDeploy712TiersHookConfig` and `JBLaunchProjectConfig` to quickly bootstrap a 721 tiers hook and project.
     function createData()
         internal
         view

@@ -326,7 +326,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertEq(hook.tokenURI(tokenId), string(abi.encodePacked(baseUri, theoreticHashes[1])));
     }
 
-    function test721TiersHook_redemptionWeightOf_returnsCorrectWeightAsFloorsCumSum(
+    function test721TiersHook_redemptionWeightOf_returnsCorrectWeightAsPricesCumSum(
         uint256 numberOfTiers,
         uint256 firstTier,
         uint256 lastTier
@@ -365,7 +365,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertEq(hook.test_store().redemptionWeightOf(address(hook), tierToGetWeightOf), theoreticalWeight);
     }
 
-    function test721TiersHook_totalRedemptionWeight_returnsCorrectTotalWeightAsFloorsCumSum(uint256 numberOfTiers)
+    function test721TiersHook_totalRedemptionWeight_returnsCorrectTotalWeightAsPricesCumSum(uint256 numberOfTiers)
         public
     {
         numberOfTiers = bound(numberOfTiers, 0, 30);

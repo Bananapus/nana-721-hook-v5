@@ -76,7 +76,7 @@ contract TestBaseWorkflow is Test {
 
     // Deploys and initializes contracts for testing.
     function setUp() public virtual {
-        // ---- Set up project ----
+        // ---- Set up project ---- //
         jbPermissions = new JBPermissions();
         vm.label(address(jbPermissions), "JBPermissions");
 
@@ -131,7 +131,7 @@ contract TestBaseWorkflow is Test {
 
         projectMetadata = "myIPFSHash";
 
-        // ---- general setup ----
+        // ---- general setup ---- //
         vm.deal(beneficiary, 100 ether);
         vm.deal(projectOwner, 100 ether);
         vm.deal(caller, 100 ether);

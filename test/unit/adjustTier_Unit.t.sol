@@ -19,7 +19,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         numberOfTiersToAdd = bound(numberOfTiersToAdd, 4, 14);
         uint16[] memory tiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
-        // Sort tiers in ascending order by price.
+        // Sort tiers in ascending order.
         tiersToAdd = _sortArray(tiersToAdd);
 
         // Initialize the hook with default tiers.
@@ -60,7 +60,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         numberOfTiersToAdd = bound(numberOfTiersToAdd, 1, 15);
         uint16[] memory floorTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
-        // Sort tiers in ascending order by price.
+        // Sort tiers in ascending order.
         floorTiersToAdd = _sortArray(floorTiersToAdd);
 
         JB721TiersHook hook = _initHookDefaultTiers(initialNumberOfTiers);
@@ -101,7 +101,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         numberOfTiersToAdd = bound(numberOfTiersToAdd, 4, 14);
         uint16[] memory floorTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
-        // Sort tiers in ascending order by price.
+        // Sort tiers in ascending order.
         floorTiersToAdd = _sortArray(floorTiersToAdd);
 
         // Initialize the hook with default tiers.
@@ -140,7 +140,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         numberOfTiersToAdd = bound(numberOfTiersToAdd, 4, 14);
         uint16[] memory floorTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
-        // Sort tiers in ascending order by price.
+        // Sort tiers in ascending order.
         floorTiersToAdd = _sortArray(floorTiersToAdd);
 
         // Initialize the hook with default tiers.
@@ -185,7 +185,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         numberOfTiersToAdd = bound(numberOfTiersToAdd, 4, 14);
         uint16[] memory floorTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
-        // Sort tiers in ascending order by price.
+        // Sort tiers in ascending order.
         floorTiersToAdd = _sortArray(floorTiersToAdd);
 
         // Initialize the hook with default tiers.
@@ -229,7 +229,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
 
         uint16[] memory floorTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
-        // Sort tiers in ascending order by price.
+        // Sort tiers in ascending order.
         floorTiersToAdd = _sortArray(floorTiersToAdd);
 
         // Initialize the hook with default tiers of a given category.
@@ -285,7 +285,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         numberOfTiersToAdd = bound(numberOfTiersToAdd, 1, 10);
         uint16[] memory floorTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
-        // Sort tiers in ascending order by price.
+        // Sort tiers in ascending order.
         floorTiersToAdd = _sortArray(floorTiersToAdd);
 
         // Initialize the hook with default tiers.
@@ -354,7 +354,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         numberOfTiersToAdd = bound(numberOfTiersToAdd, 4, 14);
         uint16[] memory floorTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
-        // Sort tiers in ascending order by price.
+        // Sort tiers in ascending order.
         floorTiersToAdd = _sortArray(floorTiersToAdd);
 
         // Use category 0 for the default tiers.
@@ -397,7 +397,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         numberOfTiersToAdd = bound(numberOfTiersToAdd, 1, 14);
         uint16[] memory floorTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
-        // Sort tiers in ascending order by price.
+        // Sort tiers in ascending order.
         floorTiersToAdd = _sortArray(floorTiersToAdd);
 
         // Initialize the hook with default tiers of category 100.
@@ -459,7 +459,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         numberOfTiersToAdd = bound(numberOfTiersToAdd, 1, 14);
         uint16[] memory floorTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
-        // Sort tiers in ascending order by price.
+        // Sort tiers in ascending order.
         floorTiersToAdd = _sortArray(floorTiersToAdd);
 
         // Initialize hook with default tiers from category 100.
