@@ -661,7 +661,7 @@ contract UnitTestSetup is Test {
         internal
         view
         returns (
-            JBDeploy721TiersHookConfig memory tiered721DeployerData,
+            JBDeploy721TiersHookConfig memory tiersHookConfig,
             JBLaunchProjectConfig memory launchProjectConfig
         )
     {
@@ -686,7 +686,7 @@ contract UnitTestSetup is Test {
                 useVotingUnits: true
             });
         }
-        tiered721DeployerData = JBDeploy721TiersHookConfig({
+        tiersHookConfig = JBDeploy721TiersHookConfig({
             name: name,
             symbol: symbol,
             rulesets: IJBRulesets(mockJBRulesets),

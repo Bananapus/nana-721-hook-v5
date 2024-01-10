@@ -45,7 +45,7 @@ pragma solidity 0.8.23;
 
 //   function run() external {
 //     (
-//       JBDeploy721TiersHookConfig memory tiered721DeployerData,
+//       JBDeploy721TiersHookConfig memory tiersHookConfig,
 //       JBLaunchProjectConfig memory launchProjectConfig
 //     ) = createData();
 
@@ -53,7 +53,7 @@ pragma solidity 0.8.23;
 
 //     uint256 projectId = deployer.launchProjectFor(
 //       projectOwner,
-//       tiered721DeployerData,
+//       tiersHookConfig,
 //       launchProjectConfig
 //     );
 
@@ -63,7 +63,7 @@ pragma solidity 0.8.23;
 //   function createData()
 //     internal
 //     returns (
-//       JBDeploy721TiersHookConfig memory tiered721DeployerData,
+//       JBDeploy721TiersHookConfig memory tiersHookConfig,
 //       JBLaunchProjectConfig memory launchProjectConfig
 //     )
 //   {
@@ -150,7 +150,7 @@ pragma solidity 0.8.23;
 //       });
 //     }
 
-//     tiered721DeployerData = JBDeploy721TiersHookConfig({
+//     tiersHookConfig = JBDeploy721TiersHookConfig({
 //       directory: jbDirectory,
 //       name: name,
 //       symbol: symbol,
