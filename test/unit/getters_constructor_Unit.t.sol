@@ -177,7 +177,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
                 })
             );
         }
-        
+
         // Check: does the total supply match the expected value?
         assertEq(hook.test_store().totalSupplyOf(address(hook)), ((numberOfTiers * (numberOfTiers + 1)) / 2));
     }
@@ -191,7 +191,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         for (uint256 i; i < numberOfTiers; i++) {
             hook.test_store().ForTest_setBalanceOf(address(hook), holder, i + 1, (i + 1) * 10);
         }
-        
+
         // Check: does the holder have the correct NFT balance?
         assertEq(hook.balanceOf(holder), 10 * ((numberOfTiers * (numberOfTiers + 1)) / 2));
     }
@@ -201,7 +201,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         uint256 totalMinted = 120; // the number to mint from the supply
         uint256 reservedMinted = 10; // the number of reserve mints (out of `totalMinted`)
         uint256 reserveFrequency = 9; // the reserve frequency
-        
+
         // For each tier, 120 NFTs are minted, and 10 of these are reserve mints.
         // This means 110 non-reserved NFTs are minted.
         // Since the `reserveFrequency` is 9, for every 9 non-reserved tokens minted, 1 reserved token is minted.
@@ -341,7 +341,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
 
         // Each tier has `tierId` mintable NFTs, so the maximum number of mints
         // is the sum of natural numbers from 1 to `numberOfTiers`.
-        uint256 maxNumberOfTiers = (numberOfTiers * (numberOfTiers + 1)) / 2; 
+        uint256 maxNumberOfTiers = (numberOfTiers * (numberOfTiers + 1)) / 2;
 
         // Initialize an array `tierToGetWeightOf` to store the token IDs for each tier,
         // which will later be used to calculate the redemption weight.
@@ -356,7 +356,8 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
                     tierToGetWeightOf[iterator] = _generateTokenId(i + 1, j + 1);
                     iterator++;
                 }
-                theoreticalWeight += (i + 1) * (i + 1) * 10; // Add the price of the NFTs to the weight. 10 is the price multiplier.
+                theoreticalWeight += (i + 1) * (i + 1) * 10; // Add the price of the NFTs to the weight. 10 is the price
+                    // multiplier.
             }
         }
 
@@ -404,7 +405,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
         hook.ForTest_setOwnerOf(tokenId, owner);
-        
+
         // Ensure that the first owner of the NFT is the current owner.
         assertEq(hook.firstOwnerOf(tokenId), owner);
     }
@@ -464,7 +465,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertEq(hook.contractURI(), contractUri);
         assertEq(hook.owner(), owner);
         // Order is not guaranteed, so we use `_isIn` and check both ways.
-        assertTrue(_isIn(hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, numberOfTiers), tiers)); 
+        assertTrue(_isIn(hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, numberOfTiers), tiers));
         assertTrue(_isIn(tiers, hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, numberOfTiers)));
     }
 
@@ -477,7 +478,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         numberOfTiers = bound(numberOfTiers, 1, 20);
         errorIndex = bound(errorIndex, 0, numberOfTiers - 1);
         JB721TierConfig[] memory tiers = new JB721TierConfig[](numberOfTiers);
-        
+
         // Populate the tiers array with the default tier config.
         for (uint256 i; i < numberOfTiers; i++) {
             tiers[i] = JB721TierConfig({
@@ -494,7 +495,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
                 useVotingUnits: true
             });
         }
-        
+
         // Set the initial supply of the tier at `errorIndex` to 0. This should cause an error.
         tiers[errorIndex].initialSupply = 0;
         JB721TiersHookStore store = new JB721TiersHookStore();

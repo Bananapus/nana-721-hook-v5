@@ -660,10 +660,7 @@ contract UnitTestSetup is Test {
     function createData()
         internal
         view
-        returns (
-            JBDeploy721TiersHookConfig memory tiersHookConfig,
-            JBLaunchProjectConfig memory launchProjectConfig
-        )
+        returns (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig)
     {
         string memory projectMetadata;
         JBPayDataHookRulesetConfig[] memory rulesetConfigurations;

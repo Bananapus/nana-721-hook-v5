@@ -66,8 +66,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
     function testLaunchProjectAndAddToRegistry() external {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
-        uint256 projectId =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+        uint256 projectId = deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
         // Check: is the first project's ID 1?
         assertEq(projectId, 1);
         // Check: was the hook added to the address registry?
@@ -81,8 +80,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         uint256 highestTier = valueSent <= 100 ? (valueSent / 10) : 10;
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
-        uint256 projectId =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+        uint256 projectId = deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
 
         // Crafting the payment metadata: add the highest tier ID.
         uint16[] memory rawMetadata = new uint16[](1);
@@ -110,6 +108,8 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             valueSent,
             address(jbMultiTerminal) // msg.sender
         );
+
+        // Pay the terminal to mint the NFTs.
         vm.prank(caller);
         jbMultiTerminal.pay{value: valueSent}({
             projectId: projectId,
@@ -148,8 +148,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
     function testMintOnPayIfMultipleTiersArePassed() external {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
-        uint256 projectId =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+        uint256 projectId = deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
 
         // Prices of the first 5 tiers (10 * `tierId`)
         uint256 amountNeeded = 50 + 40 + 30 + 20 + 10;
@@ -211,8 +210,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         valueSent = bound(valueSent, 10, 2000);
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
-        uint256 projectId =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+        uint256 projectId = deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
 
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
 
@@ -221,9 +219,9 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         uint16[] memory rawMetadata = new uint16[](0);
         bytes memory metadata =
             abi.encode(bytes32(0), bytes32(0), type(IJB721TiersHook).interfaceId, allowOverspending, rawMetadata);
-        vm.prank(caller);
 
         // Pay the terminal and pass the metadata.
+        vm.prank(caller);
         jbMultiTerminal.pay{value: valueSent}({
             projectId: projectId,
             amount: 100,
@@ -245,13 +243,11 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         valueSent = bound(valueSent, 10, 2000);
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
-        uint256 projectId =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+        uint256 projectId = deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
 
-        vm.prank(caller);
-
         // Pay the terminal with empty metadata (`bytes(0)`).
+        vm.prank(caller);
         jbMultiTerminal.pay{value: valueSent}({
             projectId: projectId,
             amount: 100,
@@ -276,20 +272,17 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         uint256 highestTier = valueSent <= 100 ? (valueSent / 10) : 10;
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
-        uint256 projectId =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+        uint256 projectId = deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
 
         // Check: Ensure no pending reserves at start (since no minting has happened).
-        assertEq(
-            IJB721TiersHook(dataHook).STORE().numberOfPendingReservesFor(dataHook, highestTier), 0
-        );
+        assertEq(IJB721TiersHook(dataHook).STORE().numberOfPendingReservesFor(dataHook, highestTier), 0);
 
         // Check: cannot mint pending reserves (since none should be pending)?
         vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.INSUFFICIENT_PENDING_RESERVES.selector));
         vm.prank(projectOwner);
         IJB721TiersHook(dataHook).mintPendingReservesFor(highestTier, 1);
-        
+
         // Crafting the payment metadata: add the highest tier ID.
         uint16[] memory rawMetadata = new uint16[](1);
         rawMetadata[0] = uint16(highestTier);
@@ -314,9 +307,9 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
             valueSent,
             address(jbMultiTerminal) // msg.sender
         );
-        vm.prank(caller);
-        
+
         // Pay the terminal to mint the NFTs.
+        vm.prank(caller);
         jbMultiTerminal.pay{value: valueSent}({
             projectId: projectId,
             amount: 100,
@@ -328,11 +321,10 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         });
 
         // Check: is there now 1 pending reserve? 1 mint should yield 1 pending reserve, due to rounding up.
-        assertEq(
-            IJB721TiersHook(dataHook).STORE().numberOfPendingReservesFor(dataHook, highestTier), 1
-        );
+        assertEq(IJB721TiersHook(dataHook).STORE().numberOfPendingReservesFor(dataHook, highestTier), 1);
 
-        JB721Tier memory tierBeforeMintingReserves = JB721TiersHook(dataHook).STORE().tierOf(dataHook, highestTier, false);
+        JB721Tier memory tierBeforeMintingReserves =
+            JB721TiersHook(dataHook).STORE().tierOf(dataHook, highestTier, false);
 
         // Mint the pending reserve NFT.
         vm.prank(projectOwner);
@@ -340,7 +332,8 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         // Check: did the reserve beneficiary receive the NFT?
         assertEq(IERC721(dataHook).balanceOf(reserveBeneficiary), 1);
 
-        JB721Tier memory tierAfterMintingReserves = JB721TiersHook(dataHook).STORE().tierOf(dataHook, highestTier, false);
+        JB721Tier memory tierAfterMintingReserves =
+            JB721TiersHook(dataHook).STORE().tierOf(dataHook, highestTier, false);
         // The tier's remaining supply should have decreased by 1.
         assertLt(tierAfterMintingReserves.remainingSupply, tierBeforeMintingReserves.remainingSupply);
 
@@ -353,7 +346,8 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
     }
 
     // - Mint an NFT.
-    // - Check the number of pending reserve mints available within that NFT's tier, which should be non-zero due to rounding up.
+    // - Check the number of pending reserve mints available within that NFT's tier, which should be non-zero due to
+    // rounding up.
     // - Burn an NFT from that tier.
     // - Check the number of pending reserve mints available within the NFT's tier again.
     // This number should be back to 0, since the NFT was burned.
@@ -364,8 +358,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         uint256 highestTier = valueSent <= 100 ? (valueSent / 10) : 10;
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
-        uint256 projectId =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+        uint256 projectId = deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
 
         // Craft the metadata: buy 1 NFT from the highest tier.
         bytes memory hookMetadata;
@@ -442,8 +435,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         // Determine whether we are rounding up or not (used to verify `numberOfPendingReservesFor` below).
         uint256 rounding;
         {
-            JB721Tier memory tier =
-                IJB721TiersHook(dataHook).STORE().tierOf(dataHook, highestTier, false);
+            JB721Tier memory tier = IJB721TiersHook(dataHook).STORE().tierOf(dataHook, highestTier, false);
             // `reserveTokensMinted` is 0 here
             uint256 numberOfNonReservesMinted = tier.initialSupply - tier.remainingSupply;
             rounding = numberOfNonReservesMinted % tier.reserveFrequency > 0 ? 1 : 0;
@@ -460,7 +452,8 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
     // - Check the remaining supply within that NFT's tier. (highest tier == 10, reserved rate is maximum -> 5)
     // - Burn all of the corresponding token from that tier
     function testRedeemAll() external {
-        (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) = createData();
+        (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
+            createData();
         uint256 tier = 10;
         uint256 tierPrice = tiersHookConfig.tiersConfig.tiers[tier - 1].price;
         uint256 projectId = deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
@@ -562,25 +555,20 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
 
         // Get the new NFT balance.
         nftBalance = IERC721(dataHook).balanceOf(beneficiary);
-        // The number of pending reserves should be equal to the previously calculated figure which accounts for rounding.
-        pendingReserves =
-            IJB721TiersHook(dataHook).STORE().numberOfPendingReservesFor(dataHook, tier);
+        // The number of pending reserves should be equal to the previously calculated figure which accounts for
+        // rounding.
+        pendingReserves = IJB721TiersHook(dataHook).STORE().numberOfPendingReservesFor(dataHook, tier);
         // Check: are the NFT balance and pending reserves correct?
         assertEq(rawMetadata.length, nftBalance);
         // Add 1 to the pending reserves check, as we round up for non-null values.
-        assertEq(
-            pendingReserves, (nftBalance / tiersHookConfig.tiersConfig.tiers[tier - 1].reserveFrequency) + 1
-        );
+        assertEq(pendingReserves, (nftBalance / tiersHookConfig.tiersConfig.tiers[tier - 1].reserveFrequency) + 1);
     }
 
     // ----- internal helpers ------
     // Creates a `launchProjectFor(...)` payload.
     function createData()
         internal
-        returns (
-            JBDeploy721TiersHookConfig memory tiersHookConfig,
-            JBLaunchProjectConfig memory launchProjectConfig
-        )
+        returns (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig)
     {
         JB721TierConfig[] memory tierConfigs = new JB721TierConfig[](10);
         for (uint256 i; i < 10; i++) {

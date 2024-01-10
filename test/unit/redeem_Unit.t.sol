@@ -271,7 +271,8 @@ contract Test721TiersHook_redeem_Unit is UnitTestSetup {
             // Generate the metadata.
             hookMetadata = metadataHelper.createMetadata(ids, data);
 
-            // Mint the NFTs. Otherwise, the voting balance is not incremented, which leads to an underflow upon redemption.
+            // Mint the NFTs. Otherwise, the voting balance is not incremented, which leads to an underflow upon
+            // redemption.
             vm.prank(mockTerminalAddress);
             JBAfterPayRecordedContext memory afterPayContext = JBAfterPayRecordedContext({
                 payer: beneficiary,

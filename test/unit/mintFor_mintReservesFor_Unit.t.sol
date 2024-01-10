@@ -12,7 +12,7 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         uint256 reservedMinted = 1; // The number of reserve NFTs already minted (out of `totalMinted`).
         uint256 reserveFrequency = 4000; // The frequency at which NFTs are reserved (4000/10000 = 40%).
         uint256 numberOfTiers = 3; // The number of tiers to set up.
-        
+
         // With 120 total NFTs minted and 1 being a reserve mint, 119 are non-reserved.
         // With a 40% reserve frequency, 47 should be reserved.
         // Accounting for the 1 already minted, there should be 46 pending reserve mints.
@@ -62,7 +62,7 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         uint256 reservedMinted = 1; // The number of reserve NFTs already minted (out of `totalMinted`).
         uint256 reserveFrequency = 4000; // The frequency at which NFTs are reserved (4000/10000 = 40%).
         uint256 numberOfTiers = 3; // The number of tiers to set up.
-        
+
         // With 120 total NFTs minted and 1 being a reserve mint, 119 are non-reserved.
         // With a 40% reserve frequency, 47 should be reserved.
         // Accounting for the 1 already minted, there should be 46 pending reserve mints.
@@ -84,7 +84,7 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     packedBools: hook.test_store().ForTest_packBools(false, false, true)
                 })
             );
-            
+
             // Set the number of reserve NFTs already minted for the tier.
             hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
         }
@@ -121,7 +121,8 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         uint256 numberOfTiers = 3; // The number of tiers to set up.
 
         // Set up the ruleset to pause reserved minting.
-        // This is done with the `JBRulesetMetadata.metadata` field: the second bit is the `mintPendingReservesPaused` bit.
+        // This is done with the `JBRulesetMetadata.metadata` field: the second bit is the `mintPendingReservesPaused`
+        // bit.
         // See `JB721TiersRulesetMetadataResolver`.
         mockAndExpect(
             mockJBRulesets,
@@ -194,7 +195,7 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         uint256 totalMinted = 120; // The number of NFTs already minted for each tier (out of `initialSupply`).
         uint256 reservedMinted = 1; // The number of reserve NFTs already minted (out of `totalMinted`).
         uint256 reserveFrequency = 4000; // The frequency at which NFTs are reserved (4000/10000 = 40%).
-        
+
         ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
         // Initialize `numberOfTiers` tiers.
@@ -228,7 +229,8 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         }
     }
 
-    function test721TiersHook_useDefaultReservedBeneficiary() public { // TODO: Looks unfinished
+    function test721TiersHook_useDefaultReservedBeneficiary() public {
+        // TODO: Looks unfinished
         uint256 initialSupply = 200;
         uint256 totalMinted = 120;
         uint256 reserveFrequency = 9;
@@ -256,7 +258,8 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
         uint256 initialSupply = 200; // The number of NFTs available for each tier.
         uint256 totalMinted = 120; // The number of NFTs already minted for each tier (out of `initialSupply`).
         uint256 reservedMinted = 10; // The number of reserve NFTs already minted (out of `totalMinted`).
-        uint256 reserveFrequency = 9; // The frequency at which NFTs are reserved. For every 9 NFTs minted, 1 is reserved.
+        uint256 reserveFrequency = 9; // The frequency at which NFTs are reserved. For every 9 NFTs minted, 1 is
+            // reserved.
 
         reserveBeneficiary = address(0);
         ForTest_JB721TiersHook hook = _initializeForTestHook(10);
