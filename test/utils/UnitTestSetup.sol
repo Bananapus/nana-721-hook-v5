@@ -442,19 +442,19 @@ contract UnitTestSetup is Test {
 
     // Create an array of `JB721TierConfig`s and `JB721Tier`s using the provided and the default `prices`, `initialId`, and `categoryIncrement`.
     function _createTiers(
-        JB721TierConfig memory tierParams,
+        JB721TierConfig memory tierConfig,
         uint256 numberOfTiers
     )
         internal
         view
         returns (JB721TierConfig[] memory tierConfigs, JB721Tier[] memory newTiers)
     {
-        return _createTiers(tierParams, numberOfTiers, 0, new uint16[](numberOfTiers), 0);
+        return _createTiers(tierConfig, numberOfTiers, 0, new uint16[](numberOfTiers), 0);
     }
 
     // Create an array of `JB721TierConfig`s and `JB721Tier`s using the provided and the default `prices` and `initialId`.
     function _createTiers(
-        JB721TierConfig memory tierParams,
+        JB721TierConfig memory tierConfig,
         uint256 numberOfTiers,
         uint256 categoryIncrement
     )
@@ -462,12 +462,12 @@ contract UnitTestSetup is Test {
         view
         returns (JB721TierConfig[] memory tierConfigs, JB721Tier[] memory newTiers)
     {
-        return _createTiers(tierParams, numberOfTiers, 0, new uint16[](numberOfTiers), categoryIncrement);
+        return _createTiers(tierConfig, numberOfTiers, 0, new uint16[](numberOfTiers), categoryIncrement);
     }
 
     // Create an array of `JB721TierConfig`s and `JB721Tier`s using the provided and the default `categoryIncrement`.
     function _createTiers(
-        JB721TierConfig memory tierParams,
+        JB721TierConfig memory tierConfig,
         uint256 numberOfTiers,
         uint256 initialId,
         uint16[] memory prices
@@ -476,7 +476,7 @@ contract UnitTestSetup is Test {
         view
         returns (JB721TierConfig[] memory tierConfigs, JB721Tier[] memory newTiers)
     {
-        return _createTiers(tierParams, numberOfTiers, initialId, prices, 0);
+        return _createTiers(tierConfig, numberOfTiers, initialId, prices, 0);
     }
 
     // Create an array of `JB721TierConfig`s and `JB721Tier`s using the provided parameters.
@@ -681,9 +681,9 @@ contract UnitTestSetup is Test {
         JBTerminalConfig[] memory terminalConfigurations;
         JBPayDataHookRulesetMetadata memory metadata;
         JBFundAccessLimitGroup[] memory fundAccessLimitGroups;
-        JB721TierConfig[] memory tierParams = new JB721TierConfig[](10);
+        JB721TierConfig[] memory tierConfigs = new JB721TierConfig[](10);
         for (uint256 i; i < 10; i++) {
-            tierParams[i] = JB721TierConfig({
+            tierConfigs[i] = JB721TierConfig({
                 price: uint104((i + 1) * 10),
                 initialSupply: uint32(100),
                 votingUnits: uint16(0),
@@ -705,7 +705,7 @@ contract UnitTestSetup is Test {
             tokenUriResolver: IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri: contractUri,
             tiersConfig: JB721InitTiersConfig({
-                tiers: tierParams,
+                tiers: tierConfigs,
                 currency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
                 decimals: 18,
                 prices: IJBPrices(address(0))

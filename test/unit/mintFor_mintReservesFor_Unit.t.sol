@@ -91,12 +91,12 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
 
         uint256 totalMintable; // Keep a running counter of how many reserve NFTs should be mintable.
 
-        JB721TiersMintReservesParams[] memory reservesToMint = new JB721TiersMintReservesParams[](numberOfTiers);
+        JB721TiersMintReservesConfig[] memory reservesToMint = new JB721TiersMintReservesConfig[](numberOfTiers);
 
         // Iterate through the tiers, calculating how many reserve NFTs should be mintable.
         for (uint256 tier = 1; tier <= numberOfTiers; tier++) {
             uint256 mintable = hook.test_store().numberOfPendingReservesFor(address(hook), tier);
-            reservesToMint[tier - 1] = JB721TiersMintReservesParams({tierId: tier, count: mintable});
+            reservesToMint[tier - 1] = JB721TiersMintReservesConfig({tierId: tier, count: mintable});
             totalMintable += mintable;
             for (uint256 token = 1; token <= mintable; token++) {
                 uint256 tokenNonce = totalMinted + token; // Avoid stack too deep

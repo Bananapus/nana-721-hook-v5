@@ -10,7 +10,7 @@ import {IJB721TiersHookStore} from "./IJB721TiersHookStore.sol";
 import {JB721InitTiersConfig} from "./../structs/JB721InitTiersConfig.sol";
 import {JB721TierConfig} from "./../structs/JB721TierConfig.sol";
 import {JB721TiersHookFlags} from "./../structs/JB721TiersHookFlags.sol";
-import {JB721TiersMintReservesParams} from "./../structs/JB721TiersMintReservesParams.sol";
+import {JB721TiersMintReservesConfig} from "./../structs/JB721TiersMintReservesConfig.sol";
 
 interface IJB721TiersHook is IJB721Hook {
     event Mint(
@@ -61,7 +61,7 @@ interface IJB721TiersHook is IJB721Hook {
 
     function adjustTiers(JB721TierConfig[] memory tierDataToAdd, uint256[] memory tierIdsToRemove) external;
 
-    function mintPendingReservesFor(JB721TiersMintReservesParams[] memory reserveMintParams) external;
+    function mintPendingReservesFor(JB721TiersMintReservesConfig[] memory reserveMintConfigs) external;
 
     function mintPendingReservesFor(uint256 tierId, uint256 count) external;
 

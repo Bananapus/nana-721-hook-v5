@@ -24,7 +24,7 @@ import {JB721TierConfig} from "./structs/JB721TierConfig.sol";
 import {JB721Tier} from "./structs/JB721Tier.sol";
 import {JB721TiersHookFlags} from "./structs/JB721TiersHookFlags.sol";
 import {JB721InitTiersConfig} from "./structs/JB721InitTiersConfig.sol";
-import {JB721TiersMintReservesParams} from "./structs/JB721TiersMintReservesParams.sol";
+import {JB721TiersMintReservesConfig} from "./structs/JB721TiersMintReservesConfig.sol";
 import {JBMetadataResolver} from "lib/juice-contracts-v4/src/libraries/JBMetadataResolver.sol";
 
 /// @title JB721TiersHook
@@ -325,14 +325,14 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
 
     /// @notice Mint pending reserved NFTs based on the provided information.
     /// @dev "Pending" means that the NFTs have been reserved, but have not been minted yet.
-    /// @param reserveMintParams Contains information about how many reserved tokens to mint for each tier.
-    function mintPendingReservesFor(JB721TiersMintReservesParams[] calldata reserveMintParams) external override {
+    /// @param reserveMintConfigs Contains information about how many reserved tokens to mint for each tier.
+    function mintPendingReservesFor(JB721TiersMintReservesConfig[] calldata reserveMintConfigs) external override {
         // Keep a reference to the number of tiers to mint reserves for.
-        uint256 numberOfTiers = reserveMintParams.length;
+        uint256 numberOfTiers = reserveMintConfigs.length;
 
         for (uint256 i; i < numberOfTiers; i++) {
             // Get a reference to the params being iterated upon.
-            JB721TiersMintReservesParams memory params = reserveMintParams[i];
+            JB721TiersMintReservesConfig memory params = reserveMintConfigs[i];
 
             // Mint pending reserved NFTs from the tier.
             mintPendingReservesFor(params.tierId, params.count);

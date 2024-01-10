@@ -3,10 +3,10 @@ pragma solidity 0.8.23;
 
 import "../utils/UnitTestSetup.sol";
 
-contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
+contract Test_adjustTier_Unit is UnitTestSetup {
     using stdStorage for StdStorage;
 
-    function test721TiersHook_adjust_tier_remove_tiers_multiple_times(
+    function test_adjustTiers_removeTiersMultipleTimes(
         uint256 initialNumberOfTiers,
         uint256 numberOfTiersToAdd,
         uint256 seed
@@ -17,19 +17,19 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         initialNumberOfTiers = bound(initialNumberOfTiers, 0, 10);
 
         numberOfTiersToAdd = bound(numberOfTiersToAdd, 4, 14);
-        uint16[] memory tiersToAdd = _createArray(numberOfTiersToAdd, seed);
+        uint16[] memory pricesForTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
         // Sort tiers in ascending order.
-        tiersToAdd = _sortArray(tiersToAdd);
+        pricesForTiersToAdd = _sortArray(pricesForTiersToAdd);
 
         // Initialize the hook with default tiers.
         JB721TiersHook hook = _initHookDefaultTiers(initialNumberOfTiers);
 
         // Create the configs for the new tiers to add.
         (JB721TierConfig[] memory tierConfigs,) =
-            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, tiersToAdd);
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
 
-        // Remove 2 tiers and add the new ones.
+        // Remove 2 tiers and add the new ones. `_addDeleteTiers` calls `adjustTiers`.
         uint256 tiersLeft = initialNumberOfTiers;
         tiersLeft = _addDeleteTiers(hook, tiersLeft, 2, tierConfigs);
 
@@ -49,7 +49,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         }
     }
 
-    function test721TiersHook_added_recently_fetched_first_sorted_category_wise_after_tiers_have_been_cleaned(
+    function test_tiersOf_recentlyAddedTiersFetchedFirstWhenSortedAfterTiersCleaned(
         uint256 initialNumberOfTiers,
         uint256 numberOfTiersToAdd,
         uint256 seed
@@ -58,10 +58,10 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
     {
         initialNumberOfTiers = bound(initialNumberOfTiers, 3, 14);
         numberOfTiersToAdd = bound(numberOfTiersToAdd, 1, 15);
-        uint16[] memory floorTiersToAdd = _createArray(numberOfTiersToAdd, seed);
+        uint16[] memory pricesForTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
         // Sort tiers in ascending order.
-        floorTiersToAdd = _sortArray(floorTiersToAdd);
+        pricesForTiersToAdd = _sortArray(pricesForTiersToAdd);
 
         JB721TiersHook hook = _initHookDefaultTiers(initialNumberOfTiers);
 
@@ -69,7 +69,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         uint256 currentNumberOfTiers = initialNumberOfTiers;
 
         (JB721TierConfig[] memory tierConfigsToAdd,) =
-            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, floorTiersToAdd);
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
 
         currentNumberOfTiers = _addDeleteTiers(hook, currentNumberOfTiers, 0, tierConfigsToAdd);
         currentNumberOfTiers = _addDeleteTiers(hook, currentNumberOfTiers, 2, tierConfigsToAdd);
@@ -88,7 +88,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         }
     }
 
-    function test721TiersHook_tiers_added_recently_fetched_first_sorted_category_wise(
+    function test_tiersOf_recentlyAddedTiersFetchedFirstWhenSorted(
         uint256 initialNumberOfTiers,
         uint256 numberOfTiersToAdd,
         uint256 seed
@@ -99,17 +99,17 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         initialNumberOfTiers = bound(initialNumberOfTiers, 0, 10);
 
         numberOfTiersToAdd = bound(numberOfTiersToAdd, 4, 14);
-        uint16[] memory floorTiersToAdd = _createArray(numberOfTiersToAdd, seed);
+        uint16[] memory pricesForTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
         // Sort tiers in ascending order.
-        floorTiersToAdd = _sortArray(floorTiersToAdd);
+        pricesForTiersToAdd = _sortArray(pricesForTiersToAdd);
 
         // Initialize the hook with default tiers.
         JB721TiersHook hook = _initHookDefaultTiers(initialNumberOfTiers);
 
         // Create the new tiers to add.
         (JB721TierConfig[] memory tierConfigs,) =
-            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, floorTiersToAdd);
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
 
         // Add the new tiers.
         uint256 tiersLeft = initialNumberOfTiers;
@@ -128,7 +128,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         }
     }
 
-    function test721TiersHook_adjustTiers_addNewTiers_with_non_sequential_categories(
+    function test_adjustTiers_addNewTiersWithNonSequentialCategories(
         uint256 initialNumberOfTiers,
         uint256 numberOfTiersToAdd,
         uint256 seed
@@ -138,10 +138,10 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         initialNumberOfTiers = bound(initialNumberOfTiers, 2, 10);
 
         numberOfTiersToAdd = bound(numberOfTiersToAdd, 4, 14);
-        uint16[] memory floorTiersToAdd = _createArray(numberOfTiersToAdd, seed);
+        uint16[] memory pricesForTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
         // Sort tiers in ascending order.
-        floorTiersToAdd = _sortArray(floorTiersToAdd);
+        pricesForTiersToAdd = _sortArray(pricesForTiersToAdd);
 
         // Initialize the hook with default tiers.
         JB721TiersHook hook = _initHookDefaultTiers(initialNumberOfTiers);
@@ -150,7 +150,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
 
         // Create the new tiers to add.
         (JB721TierConfig[] memory tierConfigsToAdd, JB721Tier[] memory tiersToAdd) =
-            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, floorTiersToAdd, 2);
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd, 2);
 
         // Add the new tiers.
         uint256 tiersLeft = initialNumberOfTiers;
@@ -159,20 +159,20 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
 
         JB721Tier[] memory storedTiers = hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, 100);
 
-        // Check: Expected number of tiers?
+        // Check: was the expected number of tiers returned?
         assertEq(storedTiers.length, tiersLeft, "Length mismatch.");
 
-        // Check: Are all tiers in the new tiers (unsorted)?
+        // Check: are all tiers in the new tiers (unsorted)?
         assertTrue(_isIn(defaultStoredTiers, storedTiers), "Original tiers not stored."); // Original tiers
         assertTrue(_isIn(tiersToAdd, storedTiers), "Added tiers not stored."); // New tiers
 
-        // Check: Are all the tiers sorted?
+        // Check: are all the tiers sorted?
         for (uint256 i = 1; i < storedTiers.length; i++) {
             assertLt(storedTiers[i - 1].category, storedTiers[i].category, "Sorting error.");
         }
     }
 
-    function test721TiersHook_adjustTiers_addNewTiers(
+    function test_adjustTiers_addNewTiers(
         uint256 initialNumberOfTiers,
         uint256 numberOfTiersToAdd,
         uint256 seed
@@ -183,10 +183,10 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         initialNumberOfTiers = bound(initialNumberOfTiers, 0, 10);
 
         numberOfTiersToAdd = bound(numberOfTiersToAdd, 4, 14);
-        uint16[] memory floorTiersToAdd = _createArray(numberOfTiersToAdd, seed);
+        uint16[] memory pricesForTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
         // Sort tiers in ascending order.
-        floorTiersToAdd = _sortArray(floorTiersToAdd);
+        pricesForTiersToAdd = _sortArray(pricesForTiersToAdd);
 
         // Initialize the hook with default tiers.
         JB721TiersHook hook = _initHookDefaultTiers(initialNumberOfTiers);
@@ -195,7 +195,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
 
         // Create the new tiers to add.
         (JB721TierConfig[] memory tierConfigs, JB721Tier[] memory tiersAdded) =
-            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, floorTiersToAdd);
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
 
         // Add the new tiers.
         uint256 tiersLeft = initialNumberOfTiers;
@@ -204,20 +204,20 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
 
         JB721Tier[] memory storedTiers = hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, 100);
 
-        // Check: Expected number of tiers?
+        // Check: was the expected number of tiers returned?
         assertEq(storedTiers.length, intialTiers.length + tiersAdded.length, "Length mismatch.");
 
-        // Check: Are all tiers in the new tiers (unsorted)?
+        // Check: are all tiers in the new tiers (unsorted)?
         assertTrue(_isIn(intialTiers, storedTiers), "original tiers not found"); // Original tiers
         assertTrue(_isIn(tiersAdded, storedTiers), "new tiers not found"); // New tiers
 
-        // Check: Are all the tiers sorted?
+        // Check: are all the tiers sorted?
         for (uint256 i = 1; i < storedTiers.length; i++) {
             assertLe(storedTiers[i - 1].category, storedTiers[i].category, "Sorting error");
         }
     }
 
-    function test721TiersHook_adjustTiers_with_same_category_multiple_times(
+    function test_adjustTiers_withSameCategoryMultipleTimes(
         uint256 initialNumberOfTiers,
         uint256 numberOfTiersToAdd,
         uint256 seed
@@ -227,10 +227,10 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         initialNumberOfTiers = bound(initialNumberOfTiers, 2, 10);
         numberOfTiersToAdd = bound(numberOfTiersToAdd, 4, 14);
 
-        uint16[] memory floorTiersToAdd = _createArray(numberOfTiersToAdd, seed);
+        uint16[] memory pricesForTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
         // Sort tiers in ascending order.
-        floorTiersToAdd = _sortArray(floorTiersToAdd);
+        pricesForTiersToAdd = _sortArray(pricesForTiersToAdd);
 
         // Initialize the hook with default tiers of a given category.
         defaultTierConfig.category = 100;
@@ -239,7 +239,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         // Create new tiers to add with a new category.
         defaultTierConfig.category = 101;
         (JB721TierConfig[] memory tierConfigsToAdd, JB721Tier[] memory tiersToAdd) =
-            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, floorTiersToAdd);
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
 
         // Add the new tiers.
         _addDeleteTiers(hook, 0, 0, tierConfigsToAdd);
@@ -248,31 +248,31 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
 
         _addDeleteTiers(hook, 0, 0, tierConfigsToAdd);
 
-        // Check: All tiers stored?
+        // Check: are all tiers stored?
         JB721Tier[] memory storedTiers = hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, 100);
-        assertEq(storedTiers.length, initialNumberOfTiers + floorTiersToAdd.length * 2);
+        assertEq(storedTiers.length, initialNumberOfTiers + pricesForTiersToAdd.length * 2);
 
-        // Check: Are all tiers in the new tiers (unsorted)?
+        // Check: are all tiers in the new tiers (unsorted)?
         uint256[] memory categories = new uint256[](1);
         categories[0] = 101;
 
         JB721Tier[] memory stored101Tiers =
-            hook.STORE().tiersOf(address(hook), categories, false, 0, floorTiersToAdd.length * 2);
+            hook.STORE().tiersOf(address(hook), categories, false, 0, pricesForTiersToAdd.length * 2);
 
-        assertEq(stored101Tiers.length, floorTiersToAdd.length * 2);
+        assertEq(stored101Tiers.length, pricesForTiersToAdd.length * 2);
 
-        // Check: Are all the tiers in the initial tiers?
+        // Check: are all the tiers in the initial tiers?
         categories[0] = 100;
         JB721Tier[] memory stored100Tiers = hook.STORE().tiersOf(address(hook), categories, false, 0, 100);
         assertEq(stored100Tiers.length, initialNumberOfTiers);
 
-        // Check: sorting order.
-        for (uint256 i; i < floorTiersToAdd.length; i++) {
-            assertGt(stored101Tiers[i].id, stored101Tiers[i + floorTiersToAdd.length].id);
+        // Check: are the tiers sorted correctly?
+        for (uint256 i; i < pricesForTiersToAdd.length; i++) {
+            assertGt(stored101Tiers[i].id, stored101Tiers[i + pricesForTiersToAdd.length].id);
         }
     }
 
-    function test721TiersHook_adjustTiers_with_different_categories(
+    function test_adjustTiers_withDifferentCategories(
         uint256 initialNumberOfTiers,
         uint256 numberOfTiersToAdd,
         uint256 seed
@@ -283,10 +283,10 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         initialNumberOfTiers = bound(initialNumberOfTiers, 1, 10);
 
         numberOfTiersToAdd = bound(numberOfTiersToAdd, 1, 10);
-        uint16[] memory floorTiersToAdd = _createArray(numberOfTiersToAdd, seed);
+        uint16[] memory pricesForTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
         // Sort tiers in ascending order.
-        floorTiersToAdd = _sortArray(floorTiersToAdd);
+        pricesForTiersToAdd = _sortArray(pricesForTiersToAdd);
 
         // Initialize the hook with default tiers.
         defaultTierConfig.category = 100;
@@ -295,7 +295,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         // Create new tiers to add.
         defaultTierConfig.category = 101;
         (JB721TierConfig[] memory tierConfigs, JB721Tier[] memory tiersAdded) =
-            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, floorTiersToAdd);
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
 
         // Add the new tiers.
         uint256 tiersLeft = initialNumberOfTiers;
@@ -304,9 +304,9 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
 
         defaultTierConfig.category = 102;
         (tierConfigs, tiersAdded) =
-            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, floorTiersToAdd);
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
 
-        // Add the new tiers
+        // Add the new tiers.
         tiersLeft = _addDeleteTiers(hook, tiersLeft, 0, tierConfigs);
 
         JB721Tier[] memory allStoredTiers = hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, 100);
@@ -316,7 +316,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         JB721Tier[] memory stored102Tiers = hook.STORE().tiersOf(address(hook), categories, false, 0, 100);
 
         // Check: does the number of stored 102 tiers match the number of tiers that were added?
-        assertEq(stored102Tiers.length, floorTiersToAdd.length);
+        assertEq(stored102Tiers.length, pricesForTiersToAdd.length);
 
         // Ensure that each stored 102 tier has category `102`.
         for (uint256 i = 0; i < stored102Tiers.length; i++) {
@@ -328,21 +328,21 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         JB721Tier[] memory stored101Tiers = hook.STORE().tiersOf(address(hook), categories, false, 0, 100);
 
         // Check: does the number of stored 101 tiers match the number of tiers that were added?
-        assertEq(stored101Tiers.length, floorTiersToAdd.length);
+        assertEq(stored101Tiers.length, pricesForTiersToAdd.length);
 
-        // Ensure that each stored 102 tier has category `101`.
+        // Check: does each stored 101 tier have category `101`?
         for (uint256 i = 0; i < stored101Tiers.length; i++) {
             assertEq(stored101Tiers[i].category, uint8(101));
         }
 
         // Ensure that the tiers are sorted.
-        for (uint256 i = 1; i < initialNumberOfTiers + floorTiersToAdd.length * 2; i++) {
+        for (uint256 i = 1; i < initialNumberOfTiers + pricesForTiersToAdd.length * 2; i++) {
             assertGt(allStoredTiers[i].id, allStoredTiers[i - 1].id);
             assertLe(allStoredTiers[i - 1].category, allStoredTiers[i].category);
         }
     }
 
-    function test721TiersHook_adjustTiers_with_0_category(
+    function test_adjustTiers_withZeroCategory(
         uint256 initialNumberOfTiers,
         uint256 numberOfTiersToAdd,
         uint256 seed
@@ -352,10 +352,10 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         initialNumberOfTiers = bound(initialNumberOfTiers, 2, 10);
 
         numberOfTiersToAdd = bound(numberOfTiersToAdd, 4, 14);
-        uint16[] memory floorTiersToAdd = _createArray(numberOfTiersToAdd, seed);
+        uint16[] memory pricesForTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
         // Sort tiers in ascending order.
-        floorTiersToAdd = _sortArray(floorTiersToAdd);
+        pricesForTiersToAdd = _sortArray(pricesForTiersToAdd);
 
         // Use category 0 for the default tiers.
         defaultTierConfig.category = 0;
@@ -366,7 +366,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         // Create new tiers to add.
         defaultTierConfig.category = 5;
         (JB721TierConfig[] memory tierConfigsToAdd,) =
-            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, floorTiersToAdd, 2);
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd, 2);
 
         // Add the new tiers.
         uint256 tiersLeft = initialNumberOfTiers;
@@ -377,15 +377,15 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         categories[0] = 0;
         JB721Tier[] memory allStoredTiers = hook.STORE().tiersOf(address(hook), categories, false, 0, 100);
 
-        // TODO: I don't understand this check.
+        // Check: does the number of stored tiers match the number of tiers that were added?
         assertEq(allStoredTiers.length, initialNumberOfTiers);
-        // Make sure each stored tier is in category 0.
+        // Check: does each stored tier have category `0`?
         for (uint256 i = 0; i < allStoredTiers.length; i++) {
             assertEq(allStoredTiers[i].category, uint8(0));
         }
     }
 
-    function test721TiersHook_adjustTiers_with_different_categories_and_fetched_together(
+    function test_adjustTiers_withDifferentCategoriesAndFetchedTogether(
         uint256 initialNumberOfTiers,
         uint256 numberOfTiersToAdd,
         uint256 seed
@@ -395,10 +395,10 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         initialNumberOfTiers = bound(initialNumberOfTiers, 1, 14);
 
         numberOfTiersToAdd = bound(numberOfTiersToAdd, 1, 14);
-        uint16[] memory floorTiersToAdd = _createArray(numberOfTiersToAdd, seed);
+        uint16[] memory pricesForTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
         // Sort tiers in ascending order.
-        floorTiersToAdd = _sortArray(floorTiersToAdd);
+        pricesForTiersToAdd = _sortArray(pricesForTiersToAdd);
 
         // Initialize the hook with default tiers of category 100.
         defaultTierConfig.category = 100;
@@ -407,7 +407,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         // Create new tiers to add (with category 101).
         defaultTierConfig.category = 101;
         (JB721TierConfig[] memory tierConfigsToAdd,) =
-            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, floorTiersToAdd);
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
 
         // Add the 101 tiers.
         uint256 tiersLeft = initialNumberOfTiers;
@@ -415,7 +415,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
 
         // Create new tiers to add (with category 102).
         defaultTierConfig.category = 102;
-        (tierConfigsToAdd,) = _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, floorTiersToAdd);
+        (tierConfigsToAdd,) = _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
 
         // Add the 102 tiers.
         tiersLeft = _addDeleteTiers(hook, tiersLeft, 0, tierConfigsToAdd);
@@ -427,27 +427,28 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         categories[2] = 101;
         JB721Tier[] memory allStoredTiers = hook.STORE().tiersOf(address(hook), categories, false, 0, 100);
 
-        // Ensure the correct number of tiers are stored.
+        // Check: are the correct number of tiers stored?
         assertEq(
-            allStoredTiers.length, initialNumberOfTiers + floorTiersToAdd.length * 2, "Wrong total number of tiers."
+            allStoredTiers.length, initialNumberOfTiers + pricesForTiersToAdd.length * 2, "Wrong total number of tiers."
         );
 
-        uint256 tier_100_max_index = allStoredTiers.length - floorTiersToAdd.length;
+        uint256 maxIndexForTier100 = allStoredTiers.length - pricesForTiersToAdd.length;
 
-        for (uint256 i = 0; i < floorTiersToAdd.length; i++) {
+        // Check: do the tiers have the correct categories?
+        for (uint256 i = 0; i < pricesForTiersToAdd.length; i++) {
             assertEq(allStoredTiers[i].category, uint8(102), "Wrong, first category (102).");
         }
 
-        for (uint256 i = floorTiersToAdd.length; i < tier_100_max_index; i++) {
+        for (uint256 i = pricesForTiersToAdd.length; i < maxIndexForTier100; i++) {
             assertEq(allStoredTiers[i].category, uint8(100), "Wrong, second category (100).");
         }
 
-        for (uint256 i = tier_100_max_index; i < allStoredTiers.length; i++) {
+        for (uint256 i = maxIndexForTier100; i < allStoredTiers.length; i++) {
             assertEq(allStoredTiers[i].category, uint8(101), "Wrong, third category (101).");
         }
     }
 
-    function test721TiersHook_adjustTiers_addNewTiers_fetch_specific_tier(
+    function test_adjustTiers_addNewTiers_fetchSpecificTier(
         uint256 initialNumberOfTiers,
         uint256 numberOfTiersToAdd,
         uint256 seed
@@ -457,10 +458,10 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         initialNumberOfTiers = bound(initialNumberOfTiers, 1, 14);
 
         numberOfTiersToAdd = bound(numberOfTiersToAdd, 1, 14);
-        uint16[] memory floorTiersToAdd = _createArray(numberOfTiersToAdd, seed);
+        uint16[] memory pricesForTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
         // Sort tiers in ascending order.
-        floorTiersToAdd = _sortArray(floorTiersToAdd);
+        pricesForTiersToAdd = _sortArray(pricesForTiersToAdd);
 
         // Initialize hook with default tiers from category 100.
         defaultTierConfig.category = 100;
@@ -469,7 +470,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         // Create new tiers to add (with category 101).
         defaultTierConfig.category = 101;
         (JB721TierConfig[] memory tierConfigsToAdd,) =
-            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, floorTiersToAdd);
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
 
         // Add the new tiers
         uint256 tiersLeft = initialNumberOfTiers;
@@ -479,18 +480,18 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         uint256[] memory categories = new uint256[](1);
         categories[0] = 101;
         JB721Tier[] memory storedTiers =
-            hook.STORE().tiersOf(address(hook), categories, false, 0, initialNumberOfTiers + floorTiersToAdd.length);
+            hook.STORE().tiersOf(address(hook), categories, false, 0, initialNumberOfTiers + pricesForTiersToAdd.length);
 
-        // Ensure the number of tiers match.
-        assertEq(storedTiers.length, floorTiersToAdd.length);
+        // Check: does the number of stored tiers match the number of tiers that were added?
+        assertEq(storedTiers.length, pricesForTiersToAdd.length);
 
-        // Check: Do the tiers have category 101?
+        // Check: do the tiers have category 101?
         for (uint256 i = 0; i < storedTiers.length; i++) {
             assertEq(storedTiers[i].category, uint8(101));
         }
     }
 
-    function test721TiersHook_adjustTiers_removeTiers(
+    function test_adjustTiers_removeTiers(
         uint256 initialNumberOfTiers,
         uint256 seed,
         uint256 numberOfTiersToRemove
@@ -520,7 +521,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
                     i++;
                 }
             }
-            // Overflow to loop over (seed is fuzzed, and could start at max(uint256)).
+            // Overflow to loop over (seed is fuzzed, and could start at `max(uint256)`).
             unchecked {
                 seed++;
             }
@@ -588,6 +589,9 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
             tierConfigsRemaining[i] = tierConfigs[i];
             tiersRemaining[i] = tiers[i];
         }
+
+        // Iterate through the remaining tiers and remove the ones in `tiersToRemove`.
+        // Do this by "swapping" the tier to remove with the last element in the array, and then "popping" that last element.
         for (uint256 i; i < tiersRemaining.length;) {
             bool swappedAndPopped;
             for (uint256 j; j < tiersToRemove.length; j++) {
@@ -606,7 +610,8 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
             }
             if (!swappedAndPopped) i++;
         }
-        // Check: emitted correct event params?
+
+        // Check: was `RemoveTier` emitted with the correct values?
         for (uint256 i; i < tiersToRemove.length; i++) {
             vm.expectEmit(true, false, false, true, address(hook));
             emit RemoveTier(tiersToRemove[i], owner);
@@ -617,16 +622,16 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
             uint256 finalNumberOfTiers = initialNumberOfTiers - tiersToRemove.length;
             JB721Tier[] memory storedTiers =
                 hook.test_store().tiersOf(address(hook), new uint256[](0), false, 0, finalNumberOfTiers);
-            // Check the number of tiers.
+            // Check: are the expected number of tiers stored?
             assertEq(storedTiers.length, finalNumberOfTiers);
-            // Ensure that all the remaining tiers still exist.
+            // Check: are all of the remaining tiers still stored?
             assertTrue(_isIn(tiersRemaining, storedTiers));
-            // Ensure that none of the removed tiers still exist.
+            // Check: have all the removed tiers tiers been removed from storage?
             assertTrue(_isIn(storedTiers, tiersRemaining));
         }
     }
 
-    function test721TiersHook_adjustTiers_addAndRemoveTiers() public {
+    function test_adjustTiers_addAndRemoveTiers() public {
         uint256 initialNumberOfTiers = 5;
         uint256 numberOfTiersToAdd = 5;
         uint256 numberOfTiersToRemove = 3;
@@ -699,7 +704,8 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
             })
         );
         hook.transferOwnership(owner);
-        // -- Build expected removed/remaining tiers --
+
+        // -- Build expected removed/remaining tiers -- //
         JB721TierConfig[] memory tierConfigsRemaining = new JB721TierConfig[](2);
         JB721Tier[] memory tiersRemaining = new JB721Tier[](2);
         uint256 arrayIndex;
@@ -736,12 +742,13 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
                 arrayIndex++;
             } else {
                 // Otherwise, part of the tiers removed:
-                // Check: emitted correct event params?
+                // Check: was `RemoveTier` emitted with the correct values?
                 vm.expectEmit(true, false, false, true, address(hook));
                 emit RemoveTier(i + 1, owner);
             }
         }
-        // -- Build expected added tiers --
+
+        // -- Build expected added tiers -- //
         JB721TierConfig[] memory tierConfigsToAdd = new JB721TierConfig[](numberOfTiersToAdd);
         JB721Tier[] memory tiersAdded = new JB721Tier[](numberOfTiersToAdd);
         for (uint256 i; i < numberOfTiersToAdd; i++) {
@@ -784,20 +791,20 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
             0,
             7 // 7 tiers remaining - hard-coded to avoid stack too deep.
         );
-        // Check: Expected number of remaining tiers?
+        // Check: are the expected number of tiers stored?
         assertEq(storedTiers.length, 7);
-        // Check: Are all non-deleted and added tiers in the new tiers (unsorted)?
+        // Check: are all non-deleted and added tiers in the new tiers (unsorted)?
         assertTrue(_isIn(tiersRemaining, storedTiers)); // Original tiers
         assertTrue(_isIn(tiersAdded, storedTiers)); // New tiers
-        // Check: Are all the deleted tiers removed?
+        // Check: are all the deleted tiers removed?
         assertFalse(_isIn(tiers, storedTiers)); // Will emit `_isIn: incomplete inclusion but without failing assertion`
-        // Check: Are all the tiers sorted?
+        // Check: are all the tiers sorted?
         for (uint256 j = 1; j < storedTiers.length; j++) {
             assertLe(storedTiers[j - 1].category, storedTiers[j].category);
         }
     }
 
-    function test721TiersHook_adjustTiers_revertIfAddingWithVotingPower(
+    function test_adjustTiers_revertIfAddingWithVotingPower(
         uint256 initialNumberOfTiers,
         uint256 numberTiersToAdd
     )
@@ -807,10 +814,10 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         initialNumberOfTiers = bound(initialNumberOfTiers, 0, 15);
         numberTiersToAdd = bound(numberTiersToAdd, 1, 15);
 
-        JB721TierConfig[] memory tierParams = new JB721TierConfig[](initialNumberOfTiers);
+        JB721TierConfig[] memory tierConfigs = new JB721TierConfig[](initialNumberOfTiers);
         JB721Tier[] memory tiers = new JB721Tier[](initialNumberOfTiers);
         for (uint256 i; i < initialNumberOfTiers; i++) {
-            tierParams[i] = JB721TierConfig({
+            tierConfigs[i] = JB721TierConfig({
                 price: uint104((i + 1) * 10),
                 initialSupply: uint32(100),
                 votingUnits: uint16(0),
@@ -819,22 +826,21 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
                 allowOwnerMint: false,
-                useReserveBeneficiaryAsDefault: false,
-                transfersPausable: false,
+                useReserveBeneficiaryAsDefault: false, transfersPausable: false,
                 useVotingUnits: true
             });
             tiers[i] = JB721Tier({
                 id: i + 1,
-                price: tierParams[i].price,
-                remainingSupply: tierParams[i].initialSupply,
-                initialSupply: tierParams[i].initialSupply,
-                votingUnits: tierParams[i].votingUnits,
-                reserveFrequency: tierParams[i].reserveFrequency,
-                reserveBeneficiary: tierParams[i].reserveBeneficiary,
-                encodedIPFSUri: tierParams[i].encodedIPFSUri,
-                category: tierParams[i].category,
-                allowOwnerMint: tierParams[i].allowOwnerMint,
-                transfersPausable: tierParams[i].transfersPausable,
+                price: tierConfigs[i].price,
+                remainingSupply: tierConfigs[i].initialSupply,
+                initialSupply: tierConfigs[i].initialSupply,
+                votingUnits: tierConfigs[i].votingUnits,
+                reserveFrequency: tierConfigs[i].reserveFrequency,
+                reserveBeneficiary: tierConfigs[i].reserveBeneficiary,
+                encodedIPFSUri: tierConfigs[i].encodedIPFSUri,
+                category: tierConfigs[i].category,
+                allowOwnerMint: tierConfigs[i].allowOwnerMint,
+                transfersPausable: tierConfigs[i].transfersPausable,
                 resolvedUri: ""
             });
         }
@@ -848,7 +854,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
-            tierParams,
+            tierConfigs,
             IJB721TiersHookStore(address(store)),
             JB721TiersHookFlags({
                 preventOverspending: false,
@@ -894,7 +900,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         hook.adjustTiers(tierConfigsToAdd, new uint256[](0));
     }
 
-    function test721TiersHook_adjustTiers_revertIfAddingWithReserveFrequency(
+    function test_adjustTiers_revertIfAddingWithReserveFrequency(
         uint256 initialNumberOfTiers,
         uint256 numberTiersToAdd
     )
@@ -949,7 +955,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
             IJB721TiersHookStore(address(store)),
             JB721TiersHookFlags({
                 preventOverspending: false,
-                noNewTiersWithReserves: true,
+                noNewTiersWithReserves: true, // <-- This is the flag we're testing.
                 noNewTiersWithVotes: false,
                 noNewTiersWithOwnerMinting: true
             })
@@ -986,12 +992,14 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
                 resolvedUri: ""
             });
         }
+        
+        // Expect the `adjustTiers` call to revert because of the `noNewTiersWithReserves` flag.
         vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.RESERVE_FREQUENCY_NOT_ALLOWED.selector));
         vm.prank(owner);
         hook.adjustTiers(tierConfigsToAdd, new uint256[](0));
     }
 
-    function test721TiersHook_adjustTiers_revertIfEmptyQuantity(
+    function test_adjustTiers_revertIfEmptyQuantity(
         uint256 initialNumberOfTiers,
         uint256 numberTiersToAdd
     )
@@ -1057,7 +1065,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         for (uint256 i; i < numberTiersToAdd; i++) {
             tierConfigsToAdd[i] = JB721TierConfig({
                 price: uint104((i + 1) * 100),
-                initialSupply: uint32(0),
+                initialSupply: uint32(0), // <-- This is the value we're testing.
                 votingUnits: uint16(0),
                 reserveFrequency: uint16(0),
                 reserveBeneficiary: reserveBeneficiary,
@@ -1083,12 +1091,15 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
                 resolvedUri: ""
             });
         }
+        
+        // Expect the `adjustTiers` call to revert because of the `initialSupply` of 0.
         vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.NO_SUPPLY.selector));
         vm.prank(owner);
         hook.adjustTiers(tierConfigsToAdd, new uint256[](0));
     }
 
-    function test721TiersHook_adjustTiers_revertIfRemovingALockedTier(
+    // TODO: I don't think this actually tests "locked" tiers.
+    function test_adjustTiers_revertIfRemovingALockedTier(
         uint256 initialNumberOfTiers,
         uint256 lockedTierIndex
     )
@@ -1130,8 +1141,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         }
         JB721TiersHookStore store = new JB721TiersHookStore();
         vm.etch(hook_i, address(hook).code);
-        JB721TiersHook hook = JB721TiersHook(hook_i); // TODO: Maybe use a different name for hook here? Works, but
-            // confusing given line above.
+        JB721TiersHook hook = JB721TiersHook(hook_i);
         hook.initialize(
             projectId,
             name,
@@ -1157,18 +1167,19 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         hook.transferOwnership(owner);
         uint256[] memory tierToRemove = new uint256[](1);
         tierToRemove[0] = lockedTierIndex + 1;
-        // Check: remove the tier after the lock.
+
+        // Check: can we remove the tier once the lock expires?
         vm.warp(block.timestamp + 11);
         vm.prank(owner);
         hook.adjustTiers(new JB721TierConfig[](0), tierToRemove);
-        // Check: the hook should have one less tier after the removal.
+        // Check: does the hook have one less tier after the removal?
         assertEq(
             hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, initialNumberOfTiers).length,
             initialNumberOfTiers - 1
         );
     }
 
-    function test721TiersHook_adjustTiers_revertIfInvalidCategorySortOrder(
+    function test_adjustTiers_revertIfInvalidCategorySortOrder(
         uint256 initialNumberOfTiers,
         uint256 numberTiersToAdd
     )
@@ -1195,14 +1206,16 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
                 useVotingUnits: true
             });
         }
+        // Set the second to last tier to have a category of `99`, which is less than the last tier's category of `100`.
         tierConfigsToAdd[numberTiersToAdd - 1].category = uint8(99);
 
+        // Expect the `adjustTiers` call to revert because of the invalid category sort order.
         vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.INVALID_CATEGORY_SORT_ORDER.selector));
         vm.prank(owner);
         hook.adjustTiers(tierConfigsToAdd, new uint256[](0));
     }
 
-    function test721TiersHook_adjustTiers_revertIfMoreVotingUnitsNotAllowedWithPriceChange(
+    function test_adjustTiers_revertIfMoreVotingUnitsNotAllowedWithPriceChange(
         uint256 initialNumberOfTiers,
         uint256 numberTiersToAdd
     )
@@ -1244,7 +1257,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
             JB721TiersHookFlags({
                 preventOverspending: false,
                 noNewTiersWithReserves: false,
-                noNewTiersWithVotes: true,
+                noNewTiersWithVotes: true, // <-- This is the flag we're testing.
                 noNewTiersWithOwnerMinting: true
             })
         );
@@ -1266,13 +1279,17 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
                 useVotingUnits: false
             });
         }
+        
+        // TODO: Shouldn't this be `.votingUnits` (and not `.category`)?
         tierConfigsToAdd[numberTiersToAdd - 1].category = uint8(99);
+        
+        // Expect the `adjustTiers` call to revert because of the `noNewTiersWithVotes` flag.
         vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.VOTING_UNITS_NOT_ALLOWED.selector));
         vm.prank(owner);
         hook.adjustTiers(tierConfigsToAdd, new uint256[](0));
     }
 
-    function test721TiersHook_cleanTiers_removeInactiveTiers(
+    function test_cleanTiers_removeInactiveTiers(
         uint256 initialNumberOfTiers,
         uint256 seed,
         uint256 numberOfTiersToRemove
@@ -1367,6 +1384,9 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
             tierConfigsRemaining[i] = tierConfigs[i];
             tiersRemaining[i] = tiers[i];
         }
+        
+        // Iterate through the remaining tiers and remove the ones in `tiersToRemove`.
+        // Do this by "swapping" the tier to remove with the last element in the array, and then "popping" that last element.
         for (uint256 i; i < tiersRemaining.length;) {
             bool swappedAndPopped;
             for (uint256 j; j < tiersToRemove.length; j++) {
@@ -1385,6 +1405,7 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
             }
             if (!swappedAndPopped) i++;
         }
+        
         vm.prank(owner);
         hook.adjustTiers(new JB721TierConfig[](0), tiersToRemove);
         JB721Tier[] memory tiersListDump = hook.test_store().ForTest_dumpTiersList(address(hook));
@@ -1399,22 +1420,22 @@ contract Test721TiersHook_adjustTier_Unit is UnitTestSetup {
         hook.test_store().cleanTiers(address(hook));
         vm.stopPrank();
         tiersListDump = hook.test_store().ForTest_dumpTiersList(address(hook));
-        // Check the number of tiers.
+        // Check: is the correct number of tiers remaining?
         assertEq(tiersListDump.length, initialNumberOfTiers - numberOfTiersToRemove);
-        // Check: are the active tiers in the linked list?
+        // Check: are all of the remaining tiers in the dump?
         assertTrue(_isIn(tiersRemaining, tiersListDump));
-        // Check: does the linked list only contain the active tiers?
+        // Check: does the dump include any tiers which shouldn't be remaining?
         assertTrue(_isIn(tiersListDump, tiersRemaining));
     }
 
-    function test721TiersHook_tiersOf_emptyArrayIfNoInitializedTiers(uint256 size) public {
+    function test_tiersOf_emptyArrayIfNoInitializedTiers(uint256 size) public {
         // Initialize a hook without default tiers.
         JB721TiersHook hook = _initHookDefaultTiers(0);
 
         // Try to get `size` tiers
         JB721Tier[] memory intialTiers = hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, size);
 
-        // Check: Array of size 0?
+        // Check: does the array have a length of 0?
         assertEq(intialTiers.length, 0, "Length mismatch.");
     }
 }
