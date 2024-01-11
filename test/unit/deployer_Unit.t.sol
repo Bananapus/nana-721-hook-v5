@@ -15,9 +15,10 @@ import "src/structs/JB721InitTiersConfig.sol";
 
 import "../utils/UnitTestSetup.sol";
 
-contract Test721TiersHookProjectDeployer_Unit is UnitTestSetup {
+contract Test_721TiersHookProjectDeployer_Unit is UnitTestSetup {
     using stdStorage for StdStorage;
 
+    // TODO: Can we remove these?
     // bytes4 PAY_HOOK_ID = bytes4(hex"70");
     // bytes4 REDEEM_HOOK_ID = bytes4(hex"71");
 
@@ -31,7 +32,7 @@ contract Test721TiersHookProjectDeployer_Unit is UnitTestSetup {
         );
     }
 
-    function testLaunchProjectFor_shouldLaunchProject(uint256 previousProjectId) external {
+    function test_launchProjectFor_shouldLaunchProject(uint256 previousProjectId) external {
         // Include launching the protocol project (project ID 1).
         previousProjectId = bound(previousProjectId, 0, type(uint88).max - 1);
 
@@ -48,12 +49,12 @@ contract Test721TiersHookProjectDeployer_Unit is UnitTestSetup {
             mockJBController, abi.encodeWithSelector(IJBController.launchProjectFor.selector), abi.encode(true)
         );
 
-        // Test: launch project.
+        // Launch the project.
         uint256 projectId = deployer.launchProjectFor(
             owner, deploy721TiersHookConfig, launchProjectConfig, IJBController(mockJBController)
         );
 
-        // Check: correct project ID (incremented by 1)?
+        // Check: does the project have the correct project ID (the previous ID incremented by 1)?
         assertEq(previousProjectId, projectId - 1);
     }
 }
