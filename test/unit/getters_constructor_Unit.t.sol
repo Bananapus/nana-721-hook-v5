@@ -3,21 +3,22 @@ pragma solidity 0.8.23;
 
 import "../utils/UnitTestSetup.sol";
 
-contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
+contract Test_721TiersHookGetters_Unit is UnitTestSetup {
     using stdStorage for StdStorage;
 
-    function test721TiersHook_tiersOf_returnsAllTiers(uint256 numberOfTiers) public {
+    function test_tiersOf_returnsAllTiers(uint256 numberOfTiers) public {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
         (, JB721Tier[] memory tiers) = _createTiers(defaultTierConfig, numberOfTiers);
 
         ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
 
+        // Check: is everything from `tiersOf` in `tiers`, and vice versa (do they match)?
         assertTrue(_isIn(hook.test_store().tiersOf(address(hook), new uint256[](0), false, 0, numberOfTiers), tiers));
         assertTrue(_isIn(tiers, hook.test_store().tiersOf(address(hook), new uint256[](0), false, 0, numberOfTiers)));
     }
 
-    function test721TiersHook_pricingContext_packingFunctionsAsExpected(
+    function test_pricingContext_packingFunctionsAsExpected(
         uint32 currency,
         uint8 decimals,
         address prices
@@ -45,21 +46,23 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         JB721TiersHook hook = JB721TiersHook(address(jbHookDeployer.deployHookFor(projectId, hookConfig)));
 
         (uint256 currency2, uint256 decimals2, IJBPrices prices2) = hook.pricingContext();
+        // Check: do the unpacked values from `pricingContext` match the values we used in the config?
         assertEq(currency2, uint256(currency));
         assertEq(decimals2, uint256(decimals));
         assertEq(address(prices2), prices);
     }
 
-    function test721TiersHook_bools_packingFunctionsAsExpected(bool a, bool b, bool c) public {
+    function test_bools_doesPackingAndUnpackingWork(bool a, bool b, bool c) public {
         ForTest_JB721TiersHookStore store = new ForTest_JB721TiersHookStore();
         uint8 packed = store.ForTest_packBools(a, b, c);
         (bool a2, bool b2, bool c2) = store.ForTest_unpackBools(packed);
+        // Check: do the packed values match the unpacked values?
         assertEq(a, a2);
         assertEq(b, b2);
         assertEq(c, c2);
     }
 
-    function test721TiersHook_tiersOf_returnsAllTiersWithResolver(uint256 numberOfTiers) public {
+    function test_tiersOf_returnsAllTiersWithResolver(uint256 numberOfTiers) public {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
         // Use a non-null resolved URI.
@@ -81,11 +84,12 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
             );
         }
 
+        // Check: is everything from `tiersOf` in `tiers`, and vice versa (do they match)? Do the resolved URIs match?
         assertTrue(_isIn(hook.test_store().tiersOf(address(hook), new uint256[](0), true, 0, 100), tiers));
         assertTrue(_isIn(tiers, hook.test_store().tiersOf(address(hook), new uint256[](0), true, 0, 100)));
     }
 
-    function test721TiersHook_tiersOf_returnsAllTiersExcludingRemovedOnes(
+    function test_tiersOf_returnsAllTiersExcludingRemovedOnes(
         uint256 numberOfTiers,
         uint256 firstRemovedTier,
         uint256 secondRemovedTier
@@ -111,6 +115,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
 
         ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
 
+        // Set the removed tiers.
         hook.test_store().ForTest_setIsTierRemoved(address(hook), firstRemovedTier);
         hook.test_store().ForTest_setIsTierRemoved(address(hook), secondRemovedTier);
 
@@ -120,12 +125,12 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         // Check: was the returned tier array resized correctly?
         assertEq(storedTiers.length, numberOfTiers - 2);
 
-        // Check: only non-removed tiers are returned, and all of them were returned correctly.
+        // Check: is everything from `storedTiers` a `nonRemovedTier`, and vice versa (do they match)?
         assertTrue(_isIn(storedTiers, nonRemovedTiers));
         assertTrue(_isIn(nonRemovedTiers, storedTiers));
     }
 
-    function test721TiersHook_tierOf_returnsTheGivenTier(uint256 numberOfTiers, uint16 givenTier) public {
+    function test_tierOf_returnsAGivenTier(uint256 numberOfTiers, uint16 givenTier) public {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
         (, JB721Tier[] memory tiers) = _createTiers(defaultTierConfig, numberOfTiers);
@@ -155,13 +160,14 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         }
     }
 
-    function test721TiersHook_totalSupply_returnsTotalSupply(uint256 numberOfTiers) public {
+    function test_totalSupplyOf_returnsTotalSupply(uint256 numberOfTiers) public {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
         ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
 
         // Initialize `numberOfTiers` tiers with an initial supply of 100, and (i + 1) mints.
-        // This should yield a total supply of (`numberOfTiers` * (`numberOfTiers` + 1)) / 2
+        // This should yield a total supply of (`numberOfTiers` * (`numberOfTiers` + 1)) / 2,
+        // which is the sum of natural numbers from 1 to `numberOfTiers`.
         for (uint256 i; i < numberOfTiers; i++) {
             hook.test_store().ForTest_setTier(
                 address(hook),
@@ -182,7 +188,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertEq(hook.test_store().totalSupplyOf(address(hook)), ((numberOfTiers * (numberOfTiers + 1)) / 2));
     }
 
-    function test721TiersHook_balanceOf_returnsCompleteBalance(uint256 numberOfTiers, address holder) public {
+    function test_balanceOf_returnsCompleteBalance(uint256 numberOfTiers, address holder) public {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
         ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
@@ -193,10 +199,11 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         }
 
         // Check: does the holder have the correct NFT balance?
+        // Calculated using 10 * sum of natural numbers from 1 to `numberOfTiers`.
         assertEq(hook.balanceOf(holder), 10 * ((numberOfTiers * (numberOfTiers + 1)) / 2));
     }
 
-    function test721TiersHook_numberOfPendingReservesFor_returnsPendingReserves() public {
+    function test_numberOfPendingReservesFor_returnsPendingReserves() public {
         uint256 initialSupply = 200; // the starting supply
         uint256 totalMinted = 120; // the number to mint from the supply
         uint256 reservedMinted = 10; // the number of reserve mints (out of `totalMinted`)
@@ -236,7 +243,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         }
     }
 
-    function test721TiersHook_votingUnitsOf_returnsTheTotalVotingUnits(
+    function test_votingUnitsOf_returnsVotingUnitsCorrectly(
         uint256 numberOfTiers,
         uint256 votingUnits,
         uint256 balances
@@ -271,21 +278,21 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
             hook.test_store().ForTest_setBalanceOf(address(hook), beneficiary, i + 1, balances);
         }
 
-        // Ensure that the beneficiary has the correct number voting units.
+        // Check: does the beneficiary have the correct number voting units?
         assertEq(
             hook.test_store().votingUnitsOf(address(hook), beneficiary),
             numberOfTiers * votingUnits * balances - (votingUnits * balances) // One tier has no voting units.
         );
     }
 
-    function test721TiersHook_tierOfTokenId_returnsCorrectTierNumber(uint16 tierId, uint16 tokenNumber) public {
+    function test_tierOfTokenId_returnsCorrectTierNumber(uint16 tierId, uint16 tokenNumber) public {
         vm.assume(tierId > 0 && tokenNumber > 0);
         uint256 tokenId = _generateTokenId(tierId, tokenNumber);
-        // Ensure that the generate token ID matches the provided tier.
+        // Check: does the generated token ID match the provided `tierId`.
         assertEq(hook.STORE().tierOfTokenId(address(hook), tokenId, false).id, tierId);
     }
 
-    function test721TiersHook_tokenURI_returnsCorrectUriIfResolverUsed(uint256 tokenId) public {
+    function test_tokenURI_returnsCorrectUriWithResolver(uint256 tokenId) public {
         mockTokenUriResolver = makeAddr("mockTokenUriResolver");
 
         ForTest_JB721TiersHook hook = _initializeForTestHook(10);
@@ -299,21 +306,21 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
 
         hook.ForTest_setOwnerOf(tokenId, beneficiary);
 
-        // Ensure that the token URI resolver returns the correct URI.
+        // Check: does the token URI resolver return the correct URI from the resolver?
         assertEq(hook.tokenURI(tokenId), "resolverURI");
     }
 
-    function test721TiersHook_tokenURI_returnsCorrectUriIfNoResolverUsed() public {
+    function test_tokenURI_returnsCorrectUriWithoutResolver() public {
         ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
-        // For each tier, ensure that the tier's token URI matches the theoretic hash.
+        // Check: for each tier, does the tier's token URI match the theoretic hash?
         for (uint256 i = 1; i <= 10; i++) {
             uint256 tokenId = _generateTokenId(i, 1);
             assertEq(hook.tokenURI(tokenId), string(abi.encodePacked(baseUri, theoreticHashes[i - 1])));
         }
     }
 
-    function test721TiersHook_setEncodedIPFSUriOf_returnsCorrectUriIfEncodedAdded() public {
+    function test_setEncodedIPFSUriOf_returnsCorrectEncodedURI() public {
         ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
         uint256 tokenId = _generateTokenId(1, 1);
@@ -322,11 +329,11 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         vm.prank(owner);
         hook.setMetadata("", "", IJB721TokenUriResolver(address(0)), 1, tokenUris[1]);
 
-        // Ensure that the token URI matches the theoretic hash.
+        // Check: does the token URI match the theoretic hash?
         assertEq(hook.tokenURI(tokenId), string(abi.encodePacked(baseUri, theoreticHashes[1])));
     }
 
-    function test721TiersHook_redemptionWeightOf_returnsCorrectWeightAsPricesCumSum(
+    function test_redemptionWeightOf_returnsCorrectWeightAsCumSumOfPrices(
         uint256 numberOfTiers,
         uint256 firstTier,
         uint256 lastTier
@@ -356,8 +363,8 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
                     tierToGetWeightOf[iterator] = _generateTokenId(i + 1, j + 1);
                     iterator++;
                 }
-                theoreticalWeight += (i + 1) * (i + 1) * 10; // Add the price of the NFTs to the weight. 10 is the price
-                    // multiplier.
+                theoreticalWeight += (i + 1) * (i + 1) * 10; // Add the price of the NFTs to the weight.
+                // (10 is the price multiplier).
             }
         }
 
@@ -365,7 +372,7 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertEq(hook.test_store().redemptionWeightOf(address(hook), tierToGetWeightOf), theoreticalWeight);
     }
 
-    function test721TiersHook_totalRedemptionWeight_returnsCorrectTotalWeightAsPricesCumSum(uint256 numberOfTiers)
+    function test_totalRedemptionWeight_returnsCorrectTotalWeightAsCumSumOfPrices(uint256 numberOfTiers)
         public
     {
         numberOfTiers = bound(numberOfTiers, 0, 30);
@@ -392,11 +399,11 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
             // Calculate the theoretical weight for the current tier. 10 the price multiplier.
             theoreticalWeight += (10 * i - 5 * i) * i * 10;
         }
-        // Ensure that the total redemption weight matches the theoretical weight calculated.
+        // Check: does the total redemption weight match the theoretical weight calculated?
         assertEq(hook.test_store().totalRedemptionWeight(address(hook)), theoreticalWeight);
     }
 
-    function test721TiersHook_firstOwnerOf_shouldReturnCurrentOwnerIfFirstOwner(
+    function test_firstOwnerOf_shouldReturnCurrentOwnerIfFirstOwner(
         uint256 tokenId,
         address owner
     )
@@ -406,11 +413,11 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
 
         hook.ForTest_setOwnerOf(tokenId, owner);
 
-        // Ensure that the first owner of the NFT is the current owner.
+        // Check: is the first owner of the NFT is the current owner?
         assertEq(hook.firstOwnerOf(tokenId), owner);
     }
 
-    function test721TiersHook_firstOwnerOf_shouldReturnFirstOwnerIfOwnerChanged(
+    function test_firstOwnerOf_shouldReturnFirstOwnerIfOwnerChanged(
         address newOwner,
         address previousOwner
     )
@@ -433,26 +440,26 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         vm.prank(owner);
         hook.mintFor(tiersToMint, previousOwner);
 
-        // Check that the first owner of the NFT is the previous owner.
+        // Check: is the first owner of the NFT the previous owner?
         assertEq(hook.firstOwnerOf(tokenId), previousOwner);
 
         // Prank the previous owner and transfer the NFT to the new owner.
         vm.prank(previousOwner);
         IERC721(hook).transferFrom(previousOwner, newOwner, tokenId);
 
-        // Check that the first owner of the NFT is still the previous owner.
+        // Check: is the first owner of the NFT still the previous owner?
         assertEq(hook.firstOwnerOf(tokenId), previousOwner);
     }
 
-    function test721TiersHook_firstOwnerOf_shouldReturnAddressZeroIfNotMinted(uint256 tokenId) public {
+    function test_firstOwnerOf_shouldReturnZeroAddressIfNotMinted(uint256 tokenId) public {
         ForTest_JB721TiersHook hook = _initializeForTestHook(10);
-        // Ensure that the first owner of the NFT is the zero address.
+        // Check: is the "first owner" of the NFT the zero address?
         assertEq(hook.firstOwnerOf(tokenId), address(0));
     }
 
-    function test721TiersHook_constructor_deployIfNoEmptyInitialSupply(uint256 numberOfTiers) public {
+    function test_constructor_deployIfInitialSuppliesNotEmpty(uint256 numberOfTiers) public {
         numberOfTiers = bound(numberOfTiers, 0, 10);
-        // Create new tiers array
+        // Create new tiers array.
         ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
         (, JB721Tier[] memory tiers) = _createTiers(defaultTierConfig, numberOfTiers);
 
@@ -464,12 +471,13 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         assertEq(address(hook.STORE().tokenUriResolverOf(address(hook))), mockTokenUriResolver);
         assertEq(hook.contractURI(), contractUri);
         assertEq(hook.owner(), owner);
+        // Check: are all of the `tiers` in `hook.STORE().tiersOf`, and vice versa (do they match)?
         // Order is not guaranteed, so we use `_isIn` and check both ways.
         assertTrue(_isIn(hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, numberOfTiers), tiers));
         assertTrue(_isIn(tiers, hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, numberOfTiers)));
     }
 
-    function test721TiersHook_constructor_revertDeploymentIfOneEmptyInitialSupply(
+    function test_constructor_revertDeploymentIfOneEmptyInitialSupply(
         uint256 numberOfTiers,
         uint256 errorIndex
     )
