@@ -3,10 +3,10 @@ pragma solidity 0.8.23;
 
 import "../utils/UnitTestSetup.sol";
 
-contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
+contract Test_afterPayRecorded_Unit is UnitTestSetup {
     using stdStorage for StdStorage;
 
-    function test721TiersHook_afterPayRecorded_mintCorrectAmountsAndReserved(
+    function test_afterPayRecorded_mintAndReserveCorrectAmounts(
         uint256 initialSupply,
         uint256 nftsToMint,
         uint256 reserveFrequency
@@ -62,25 +62,31 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(payContext);
 
+        // Check: has the correct number of NFTs been minted for the beneficiary?
         assertEq(hook.balanceOf(beneficiary), nftsToMint);
 
+        // Check: were the correct number of NFTs reserved?
         if (reserveFrequency > 0 && initialSupply - nftsToMint > 0) {
-            uint256 _reservedToken = nftsToMint / reserveFrequency;
-            if (nftsToMint % reserveFrequency > 0) _reservedToken += 1;
+            uint256 reservedToken = nftsToMint / reserveFrequency;
+            if (nftsToMint % reserveFrequency > 0) reservedToken += 1;
 
-            assertEq(hook.STORE().numberOfPendingReservesFor(address(hook), 1), _reservedToken);
+            assertEq(hook.STORE().numberOfPendingReservesFor(address(hook), 1), reservedToken);
 
+            // Mint the pending reserves for the beneficiary.
             vm.prank(owner);
-            hook.mintPendingReservesFor(1, _reservedToken);
-            assertEq(hook.balanceOf(reserveBeneficiary), _reservedToken);
+            hook.mintPendingReservesFor(1, reservedToken);
+
+            // Check: did the reserve beneficiary receive the correct number of NFTs?
+            assertEq(hook.balanceOf(reserveBeneficiary), reservedToken);
         } else {
+            // Check: does the reserve beneficiary have no NFTs?
             assertEq(hook.balanceOf(reserveBeneficiary), 0);
         }
     }
 
     // If the amount paid is less than the NFT's price, the payment should revert if overspending is not allowed and no
     // metadata was passed.
-    function test721TiersHook_afterPayRecorded_doesRevertOnAmountBelowPriceIfNoMetadataIfPreventOverspending() public {
+    function test_afterPayRecorded_revertsOnAmountBelowPriceIfNoMetadataAndOverspendingIsPrevented() public {
         JB721TiersHook hook = _initHookDefaultTiers(10, true);
 
         // Mock the directory call.
@@ -90,6 +96,7 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
             abi.encode(true)
         );
 
+        // Expect a revert for overspending.
         vm.expectRevert(abi.encodeWithSelector(JB721TiersHook.OVERSPENDING.selector));
 
         vm.prank(mockTerminalAddress);
@@ -115,7 +122,7 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
 
     // If the amount paid is less than the NFT's price, the payment should not revert if overspending is allowed and no
     // metadata was passed.
-    function test721TiersHook_afterPayRecorded_doesNotRevertOnAmountBelowPriceIfNoMetadata() public {
+    function test_afterPayRecorded_doesNotRevertOnAmountBelowPriceIfNoMetadata() public {
         // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
@@ -143,11 +150,12 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
             })
         );
 
+        // Check: does the payer have the correct number of pay credits?
         assertEq(hook.payCreditsOf(msg.sender), tiers[0].price - 1);
     }
 
     // If a tier is passed and the amount paid exceeds that NFT's price, mint as many NFTs as possible.
-    function test721TiersHook_afterPayRecorded_mintCorrectTier() public {
+    function test_afterPayRecorded_mintCorrectTier() public {
         // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
@@ -195,7 +203,7 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
             })
         );
 
-        // Make sure a new NFT was minted.
+        // Check: has the correct number of NFTs been minted?
         assertEq(totalSupplyBeforePay + 3, hook.STORE().totalSupplyOf(address(hook)));
 
         // Check: has the correct number of NFTs been minted in each tier?
@@ -205,7 +213,7 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
     }
 
     // If no tiers are passed, no NFTs should be minted.
-    function test721TiersHook_afterPayRecorded_mintNoneIfNonePassed(uint8 amount) public {
+    function test_afterPayRecorded_mintNoneIfNonePassed(uint8 amount) public {
         // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
@@ -237,11 +245,11 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
             })
         );
 
-        // Make sure no new NFTs were minted.
+        // Check: has the total supply stayed the same?
         assertEq(totalSupplyBeforePay, hook.STORE().totalSupplyOf(address(hook)));
     }
 
-    function test721TiersHook_afterPayRecorded_mintTierAndTrackLeftover() public {
+    function test_afterPayRecorded_mintTierAndTrackLeftover() public {
         uint256 leftover = tiers[0].price - 1;
         uint256 amount = tiers[0].price + leftover;
 
@@ -295,7 +303,7 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
     }
 
     // Mint various tiers, leaving leftovers, and use the resulting pay credits to mint more NFTs.
-    function test721TiersHook_afterPayRecorded_mintCorrectTiersWhenUsingPartialCredits() public {
+    function test_afterPayRecorded_mintCorrectTiersWhenPartiallyUsingPayCredits() public {
         uint256 leftover = tiers[0].price + 1; // + 1 to avoid rounding error
         uint256 amount = tiers[0].price * 2 + tiers[1].price + leftover / 2;
 
@@ -325,12 +333,12 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
 
         uint256 payCredits = hook.payCreditsOf(beneficiary);
 
-        leftover = leftover / 2 + payCredits; //left over amount
+        leftover = leftover / 2 + payCredits; // Amount left over.
 
         vm.expectEmit(true, true, true, true, address(hook));
         emit AddPayCredits(leftover - payCredits, leftover, beneficiary, mockTerminalAddress);
 
-        // First call will mint the 3 tiers requested + accumulate half of the first price in pay credits.
+        // First call will mint the 3 tiers requested and accumulate half of the first price in pay credits.
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
             JBAfterPayRecordedContext({
@@ -394,24 +402,24 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
         // Check: has the total supply increased?
         assertEq(totalSupplyBefore + 4, hook.STORE().totalSupplyOf(address(hook)));
 
-        // Check: have the correct tiers been minted?
-        // ... From the first payment?
+        // Check: have the correct tiers been minted...
+        // ... from the first payment?
         assertEq(hook.ownerOf(_generateTokenId(1, 1)), beneficiary);
         assertEq(hook.ownerOf(_generateTokenId(1, 2)), beneficiary);
         assertEq(hook.ownerOf(_generateTokenId(2, 1)), beneficiary);
 
-        // ... From the second payment?
+        // ... from the second payment?
         assertEq(hook.ownerOf(_generateTokenId(1, 3)), beneficiary);
         assertEq(hook.ownerOf(_generateTokenId(1, 4)), beneficiary);
         assertEq(hook.ownerOf(_generateTokenId(1, 5)), beneficiary);
         assertEq(hook.ownerOf(_generateTokenId(2, 2)), beneficiary);
 
-        // Ensure that no credits are left.
+        // Check: have all pay credits been used?
         assertEq(hook.payCreditsOf(beneficiary), 0);
     }
 
-    function test721TiersHook_afterPayRecorded_doNotMintWithSomeoneElseCredit() public {
-        uint256 leftover = tiers[0].price + 1; // + 1 to avoid rounding error
+    function test_afterPayRecorded_doNotMintWithSomeoneElsesCredits() public {
+        uint256 leftover = tiers[0].price + 1; // + 1 to avoid rounding error.
         uint256 amount = tiers[0].price * 2 + tiers[1].price + leftover / 2;
 
         // Mock the directory call.
@@ -480,13 +488,13 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
         // Check: has the total supply has increased by 3 NFTs?
         assertEq(totalSupplyBefore + 3, hook.STORE().totalSupplyOf(address(hook)));
 
-        // Check: were the correct tiers minted?
-        // ... From the first payment?
+        // Check: were the correct tiers minted...
+        // ... from the first payment?
         assertEq(hook.ownerOf(_generateTokenId(1, 1)), beneficiary);
         assertEq(hook.ownerOf(_generateTokenId(1, 2)), beneficiary);
         assertEq(hook.ownerOf(_generateTokenId(2, 1)), beneficiary);
 
-        // ... From the second payment (without extras from the pay credits)?
+        // ... from the second payment (without extras from the pay credits)?
         assertEq(hook.ownerOf(_generateTokenId(1, 3)), beneficiary);
         assertEq(hook.ownerOf(_generateTokenId(1, 4)), beneficiary);
         assertEq(hook.ownerOf(_generateTokenId(2, 2)), beneficiary);
@@ -497,7 +505,7 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
 
     // The terminal uses currency 1 with 18 decimals, and the hook uses currency 2 with 9 decimals.
     // The conversion rate is set at 1:2.
-    function test721TiersHook_afterPayRecorded_mintCorrectTierWithAnotherCurrency() public {
+    function test_afterPayRecorded_mintCorrectTierWithAnotherCurrency() public {
         address jbPrice = address(bytes20(keccak256("MockJBPrice")));
         vm.etch(jbPrice, new bytes(1));
 
@@ -565,7 +573,7 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
     }
 
     // If the tier has been removed, revert.
-    function test721TiersHook_afterPayRecorded_revertIfTierRemoved() public {
+    function test_afterPayRecorded_revertIfTierRemoved() public {
         // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
@@ -622,11 +630,11 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
             })
         );
 
-        // Make sure no new NFTs were minted.
+        // Check: has the total supply stayed the same?
         assertEq(totalSupplyBeforePay, hook.STORE().totalSupplyOf(address(hook)));
     }
 
-    function test721TiersHook_afterPayRecorded_revertIfNonExistingTier(uint256 invalidTier) public {
+    function test_afterPayRecorded_revertIfTierDoesNotExist(uint256 invalidTier) public {
         invalidTier = bound(invalidTier, tiers.length + 1, type(uint16).max);
 
         // Mock the directory call.
@@ -683,12 +691,12 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
             })
         );
 
-        // Make sure no new NFTs were minted.
+        // Check: has the total supply stayed the same?
         assertEq(totalSupplyBeforePay, hook.STORE().totalSupplyOf(address(hook)));
     }
 
     // If the amount is not enought to pay for all of the requested tiers, revert.
-    function test721TiersHook_afterPayRecorded_revertIfAmountTooLow() public {
+    function test_afterPayRecorded_revertIfAmountTooLow() public {
         // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
@@ -715,6 +723,7 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
 
+        // Expect a revert for the amount being too low.
         vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.PRICE_EXCEEDS_AMOUNT.selector));
 
         vm.prank(mockTerminalAddress);
@@ -739,11 +748,11 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
             })
         );
 
-        // Make sure no new NFTs were minted.
+        // Check: has the total supply stayed the same?
         assertEq(totalSupplyBeforePay, hook.STORE().totalSupplyOf(address(hook)));
     }
 
-    function test721TiersHook_afterPayRecorded_revertIfAllowanceRunsOutInParticularTier() public {
+    function test_afterPayRecorded_revertIfAllowanceRunsOutInSpecifiedTier() public {
         // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
@@ -797,18 +806,20 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
                     payerMetadata: hookMetadata
                 })
             );
-            // Make sure that if there was no remaining supply, no NFTs were minted.
+            // If there's no supply left...
             if (supplyLeft == 0) {
+                // Check: has the total supply stayed the same?
                 assertEq(hook.STORE().totalSupplyOf(address(hook)), totalSupplyBeforePay);
                 break;
             } else {
+                // Otherwise, check that the total supply has increased by 1.
                 assertEq(hook.STORE().totalSupplyOf(address(hook)), totalSupplyBeforePay + 1);
             }
             --supplyLeft;
         }
     }
 
-    function test721TiersHook_afterPayRecorded_revertIfCallerIsNotATerminalOfProjectId(address terminal) public {
+    function test_afterPayRecorded_revertIfCallerIsNotATerminalOfProjectId(address terminal) public {
         vm.assume(terminal != mockTerminalAddress);
 
         // Mock the directory call.
@@ -821,6 +832,7 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
         // The caller is the `_expectedCaller`. However, the terminal in the calldata is not correct.
         vm.prank(terminal);
 
+        // Expect a revert for the caller not being a terminal of the project.
         vm.expectRevert(abi.encodeWithSelector(JB721Hook.INVALID_PAY.selector));
 
         hook.afterPayRecordedWith(
@@ -840,7 +852,7 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
         );
     }
 
-    function test721TiersHook_afterPayRecorded_doNotMintIfNotUsingCorrectToken(address token) public {
+    function test_afterPayRecorded_doNotMintIfNotUsingCorrectToken(address token) public {
         vm.assume(token != JBConstants.NATIVE_TOKEN);
 
         // Mock the directory call.
@@ -868,14 +880,11 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
             })
         );
 
-        // Check: ensure that nothing has been minted.
+        // Check: has the total supply stayed at 0?
         assertEq(hook.STORE().totalSupplyOf(address(hook)), 0);
     }
 
-    function test721TiersHook_afterPayRecorded_mintTiersWhenUsingExistingCredits_when_existing_credits_more_than_new_credits(
-    )
-        public
-    {
+    function test_afterPayRecorded_mintWithExistingCreditsWhenMoreExistingCreditsThanNewCredits() public {
         uint256 leftover = tiers[0].price + 1; // + 1 to avoid rounding error.
         uint256 amount = tiers[0].price * 2 + tiers[1].price + leftover / 2;
 
@@ -968,11 +977,11 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
             })
         );
 
-        // Total supply increases.
+        // Check: has the total supply increased by 1?
         assertEq(totalSupplyBefore + 1, hook.STORE().totalSupplyOf(address(hook)));
     }
 
-    function test721TiersHook_afterPayRecorded_revertIfUnexpectedLeftover() public {
+    function test_afterPayRecorded_revertIfUnexpectedLeftover() public {
         uint256 leftover = tiers[1].price - 1;
         uint256 amount = tiers[0].price + leftover;
 
@@ -1014,7 +1023,7 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
         );
     }
 
-    function test721TiersHook_afterPayRecorded_revertIfUnexpectedLeftoverAndPrevented(bool prevent) public {
+    function test_afterPayRecorded_revertIfUnexpectedLeftoverAndOverspendingPrevented(bool prevent) public {
         uint256 leftover = tiers[1].price - 1;
         uint256 amount = tiers[0].price + leftover;
 
@@ -1073,10 +1082,10 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
         );
     }
 
-    // If transfers are paused, transfers which do not involve the zero address are reverted, as long as the
-    // `transfersPausable` flag must be true.
+    // If transfers are paused, transfers which do not involve the zero address are reverted,
+    // as long as the `transfersPausable` flag must be true.
     // Transfers involving the zero address (minting and burning) are not affected.
-    function test721TiersHook_beforeTransferHook_revertTransferIfTransferPausedInRuleset() public {
+    function test_transferFrom_revertTransferIfPausedInRuleset() public {
         defaultTierConfig.transfersPausable = true;
         JB721TiersHook hook = _initHookDefaultTiers(10);
 
@@ -1165,6 +1174,7 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
 
         uint256 tokenId = _generateTokenId(1, 1);
 
+        // Expect a revert on account of transfers being paused.
         vm.expectRevert(JB721TiersHook.TIER_TRANSFERS_PAUSED.selector);
 
         vm.prank(msg.sender);
@@ -1174,7 +1184,7 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
     // If the ruleset metadata has `pauseTransfers` enabled,
     // BUT the tier being transferred has `transfersPausable` disabled,
     // transfer are not paused (this bypasses the call to `JBRulesets`).
-    function test721TiersHook_beforeTransferHook_pauseFlagOverrideRulesetTransferPaused() public {
+    function test_transferFrom_pauseFlagOverridesRuleset() public {
         // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
@@ -1226,12 +1236,12 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
         uint256 tokenId = _generateTokenId(1, 1);
         vm.prank(msg.sender);
         IERC721(hook).transferFrom(msg.sender, beneficiary, tokenId);
-        // Check: was the NFT transferred?
+        // Check: was the NFT transferred to the beneficiary?
         assertEq(IERC721(hook).ownerOf(tokenId), beneficiary);
     }
 
     // Redeem an NFT, even if transfers are paused in the ruleset metadata. This should bypass the call to `JBRulesets`.
-    function test721TiersHook_beforeTransferHook_redeemEvenIfTransferPausedInRuleset() public {
+    function test_afterRedeemRecordedWith_redeemEvenIfTransfersPausedInRuleset() public {
         address holder = address(bytes20(keccak256("holder")));
 
         JB721TiersHook hook = _initHookDefaultTiers(10);
@@ -1321,7 +1331,7 @@ contract Test721TiersHook_afterPayRecorded_Unit is UnitTestSetup {
             })
         );
 
-        // Balance should be 0 again.
+        // Check: has the holder's balance returned to 0?
         assertEq(hook.balanceOf(holder), 0);
     }
 }

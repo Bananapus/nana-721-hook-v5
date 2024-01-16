@@ -329,7 +329,8 @@ contract UnitTestSetup is Test {
                 }
             }
         }
-        // Ensure that all the smol indexes have been iterated on (i.e. we've seen `sum(1, 2, ..., smol.length)` elements).
+        // Ensure that all the smol indexes have been iterated on (i.e. we've seen `sum(1, 2, ..., smol.length)`
+        // elements).
         if (count == (smol.length * (smol.length + 1)) / 2) {
             return true;
         } else {
@@ -440,7 +441,8 @@ contract UnitTestSetup is Test {
         return out;
     }
 
-    // Create an array of `JB721TierConfig`s and `JB721Tier`s using the provided and the default `prices`, `initialId`, and `categoryIncrement`.
+    // Create an array of `JB721TierConfig`s and `JB721Tier`s using the provided and the default `prices`, `initialId`,
+    // and `categoryIncrement`.
     function _createTiers(
         JB721TierConfig memory tierConfig,
         uint256 numberOfTiers
@@ -452,7 +454,8 @@ contract UnitTestSetup is Test {
         return _createTiers(tierConfig, numberOfTiers, 0, new uint16[](numberOfTiers), 0);
     }
 
-    // Create an array of `JB721TierConfig`s and `JB721Tier`s using the provided and the default `prices` and `initialId`.
+    // Create an array of `JB721TierConfig`s and `JB721Tier`s using the provided and the default `prices` and
+    // `initialId`.
     function _createTiers(
         JB721TierConfig memory tierConfig,
         uint256 numberOfTiers,
@@ -638,7 +641,7 @@ contract UnitTestSetup is Test {
         tiersHook.transferOwnership(owner);
     }
 
-    // Initialize a 721 tiers hook specialized for testing purposes. 
+    // Initialize a 721 tiers hook specialized for testing purposes.
     function _initializeForTestHook(uint256 initialNumberOfTiers) internal returns (ForTest_JB721TiersHook tiersHook) {
         // Initialize first tiers to add.
         (JB721TierConfig[] memory tierConfigs,) = _createTiers(defaultTierConfig, initialNumberOfTiers);
@@ -670,7 +673,8 @@ contract UnitTestSetup is Test {
         tiersHook.transferOwnership(owner);
     }
 
-    // Create a default `JBDeploy712TiersHookConfig` and `JBLaunchProjectConfig` to quickly bootstrap a 721 tiers hook and project.
+    // Create a default `JBDeploy712TiersHookConfig` and `JBLaunchProjectConfig` to quickly bootstrap a 721 tiers hook
+    // and project.
     function createData()
         internal
         view

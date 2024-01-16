@@ -15,7 +15,7 @@ import "src/structs/JB721InitTiersConfig.sol";
 
 import "../utils/UnitTestSetup.sol";
 
-contract Test_721TiersHookProjectDeployer_Unit is UnitTestSetup {
+contract Test_ProjectDeployer_Unit is UnitTestSetup {
     using stdStorage for StdStorage;
 
     // TODO: Can we remove these?

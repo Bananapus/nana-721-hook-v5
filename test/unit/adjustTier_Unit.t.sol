@@ -415,7 +415,8 @@ contract Test_adjustTier_Unit is UnitTestSetup {
 
         // Create new tiers to add (with category 102).
         defaultTierConfig.category = 102;
-        (tierConfigsToAdd,) = _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
+        (tierConfigsToAdd,) =
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
 
         // Add the 102 tiers.
         tiersLeft = _addDeleteTiers(hook, tiersLeft, 0, tierConfigsToAdd);
@@ -591,7 +592,8 @@ contract Test_adjustTier_Unit is UnitTestSetup {
         }
 
         // Iterate through the remaining tiers and remove the ones in `tiersToRemove`.
-        // Do this by "swapping" the tier to remove with the last element in the array, and then "popping" that last element.
+        // Do this by "swapping" the tier to remove with the last element in the array, and then "popping" that last
+        // element.
         for (uint256 i; i < tiersRemaining.length;) {
             bool swappedAndPopped;
             for (uint256 j; j < tiersToRemove.length; j++) {
@@ -826,7 +828,8 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
                 allowOwnerMint: false,
-                useReserveBeneficiaryAsDefault: false, transfersPausable: false,
+                useReserveBeneficiaryAsDefault: false,
+                transfersPausable: false,
                 useVotingUnits: true
             });
             tiers[i] = JB721Tier({
@@ -992,19 +995,14 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 resolvedUri: ""
             });
         }
-        
+
         // Expect the `adjustTiers` call to revert because of the `noNewTiersWithReserves` flag.
         vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.RESERVE_FREQUENCY_NOT_ALLOWED.selector));
         vm.prank(owner);
         hook.adjustTiers(tierConfigsToAdd, new uint256[](0));
     }
 
-    function test_adjustTiers_revertIfEmptyQuantity(
-        uint256 initialNumberOfTiers,
-        uint256 numberTiersToAdd
-    )
-        public
-    {
+    function test_adjustTiers_revertIfEmptyQuantity(uint256 initialNumberOfTiers, uint256 numberTiersToAdd) public {
         // Include adding X new tiers with 0 current tiers.
         initialNumberOfTiers = bound(initialNumberOfTiers, 0, 15);
         numberTiersToAdd = bound(numberTiersToAdd, 1, 15);
@@ -1091,7 +1089,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 resolvedUri: ""
             });
         }
-        
+
         // Expect the `adjustTiers` call to revert because of the `initialSupply` of 0.
         vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.NO_SUPPLY.selector));
         vm.prank(owner);
@@ -1279,10 +1277,10 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 useVotingUnits: false
             });
         }
-        
+
         // TODO: Shouldn't this be `.votingUnits` (and not `.category`)?
         tierConfigsToAdd[numberTiersToAdd - 1].category = uint8(99);
-        
+
         // Expect the `adjustTiers` call to revert because of the `noNewTiersWithVotes` flag.
         vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.VOTING_UNITS_NOT_ALLOWED.selector));
         vm.prank(owner);
@@ -1384,9 +1382,10 @@ contract Test_adjustTier_Unit is UnitTestSetup {
             tierConfigsRemaining[i] = tierConfigs[i];
             tiersRemaining[i] = tiers[i];
         }
-        
+
         // Iterate through the remaining tiers and remove the ones in `tiersToRemove`.
-        // Do this by "swapping" the tier to remove with the last element in the array, and then "popping" that last element.
+        // Do this by "swapping" the tier to remove with the last element in the array, and then "popping" that last
+        // element.
         for (uint256 i; i < tiersRemaining.length;) {
             bool swappedAndPopped;
             for (uint256 j; j < tiersToRemove.length; j++) {
@@ -1405,7 +1404,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
             }
             if (!swappedAndPopped) i++;
         }
-        
+
         vm.prank(owner);
         hook.adjustTiers(new JB721TierConfig[](0), tiersToRemove);
         JB721Tier[] memory tiersListDump = hook.test_store().ForTest_dumpTiersList(address(hook));

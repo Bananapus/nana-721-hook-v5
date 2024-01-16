@@ -3,10 +3,10 @@ pragma solidity 0.8.23;
 
 import "../utils/UnitTestSetup.sol";
 
-contract Test721TiersHook_redeem_Unit is UnitTestSetup {
+contract Test_redeem_Unit is UnitTestSetup {
     using stdStorage for StdStorage;
 
-    function test721TiersHook_beforeRedeemContext_returnsCorrectAmount() public {
+    function test_beforeRedeemContext_returnsCorrectAmount() public {
         uint256 weight;
         uint256 totalWeight;
         ForTest_JB721TiersHook hook = _initializeForTestHook(10);
@@ -76,11 +76,13 @@ contract Test721TiersHook_redeem_Unit is UnitTestSetup {
             REDEMPTION_RATE + mulDiv(weight, MAX_RESERVED_RATE() - REDEMPTION_RATE, totalWeight),
             MAX_RESERVED_RATE()
         );
+        // Check: does the reclaim amount match the expected value?
         assertEq(reclaimAmount, claimableSurplus);
+        // Check: does the returned hook address match the expected value?
         assertEq(address(returnedHook[0].hook), address(hook));
     }
 
-    function test721TiersHook_beforeRedeemContext_returnsZeroAmountIfReserveFrequencyIsZero() public {
+    function test_beforeRedeemContext_returnsZeroAmountIfReserveFrequencyIsZero() public {
         uint256 surplus = 10e18;
         uint256 redemptionRate = 0;
         uint256 weight;
@@ -135,11 +137,13 @@ contract Test721TiersHook_redeem_Unit is UnitTestSetup {
             })
         );
 
+        // Check: is the reclaim amount zero?
         assertEq(reclaimAmount, 0);
+        // Check: does the returned hook address match the expected value?
         assertEq(address(returnedHook[0].hook), address(hook));
     }
 
-    function test721TiersHook_beforeRedeemContext_returnsPartOfOverflowOwnedIfRedemptionRateIsMaximum() public {
+    function test_beforeRedeemContext_returnsPartOfOverflowOwnedIfRedemptionRateIsMaximum() public {
         uint256 weight;
         uint256 totalWeight;
 
@@ -206,13 +210,16 @@ contract Test721TiersHook_redeem_Unit is UnitTestSetup {
 
         // Calculate what portion of the surplus should accessible (pro rata relative to weight of NFTs held).
         uint256 base = mulDiv(SURPLUS, weight, totalWeight);
+        // Check: does the reclaim amount match the expected value?
         assertEq(reclaimAmount, base);
+        // Check: does the returned hook address match the expected value?
         assertEq(address(returnedHook[0].hook), address(hook));
     }
 
-    function test721TiersHook_beforeRedeemContext_revertIfNonZeroTokenCount(uint256 tokenCount) public {
+    function test_beforeRedeemContext_revertIfNonZeroTokenCount(uint256 tokenCount) public {
         vm.assume(tokenCount > 0);
 
+        // Expect a revert on account of the token count being non-zero while the total supply is zero.
         vm.expectRevert(abi.encodeWithSelector(JB721Hook.UNEXPECTED_TOKEN_REDEEMED.selector));
 
         hook.beforeRedeemRecordedWith(
@@ -237,7 +244,7 @@ contract Test721TiersHook_redeem_Unit is UnitTestSetup {
         );
     }
 
-    function test721TiersHook_afterRedeemRecordedWith_burnRedeemedNft(uint256 numberOfNfts) public {
+    function test_afterRedeemRecordedWith_burnRedeemedNft(uint256 numberOfNfts) public {
         ForTest_JB721TiersHook hook = _initializeForTestHook(5);
 
         // Has to all fit in tier 1 (excluding reserve mints).
@@ -271,8 +278,8 @@ contract Test721TiersHook_redeem_Unit is UnitTestSetup {
             // Generate the metadata.
             hookMetadata = metadataHelper.createMetadata(ids, data);
 
-            // Mint the NFTs. Otherwise, the voting balance is not incremented, which leads to an underflow upon
-            // redemption.
+            // Mint the NFTs. Otherwise, the voting balance is not incremented,
+            // which leads to an underflow upon redemption.
             vm.prank(mockTerminalAddress);
             JBAfterPayRecordedContext memory afterPayContext = JBAfterPayRecordedContext({
                 payer: beneficiary,
@@ -292,7 +299,7 @@ contract Test721TiersHook_redeem_Unit is UnitTestSetup {
 
             tokenList[i] = _generateTokenId(1, i + 1);
 
-            // Assert that a new NFT was minted.
+            // Check: was a new NFT minted?
             assertEq(hook.balanceOf(beneficiary), i + 1);
         }
 
@@ -333,14 +340,14 @@ contract Test721TiersHook_redeem_Unit is UnitTestSetup {
             })
         );
 
-        // Balance should be 0 again
+        // Check: is the beneficiary's balance zero again?
         assertEq(hook.balanceOf(beneficiary), 0);
 
-        // Burn should be counted (`numberOfNfts` in first tier)
+        // Check: was the number of burned NFTs recorded correctly (to match `numberOfNfts` in the first tier)?
         assertEq(hook.test_store().numberOfBurnedFor(address(hook), 1), numberOfNfts);
     }
 
-    function test721TiersHook_afterRedeemRecordedWith_revertIfNotCorrectProjectId(uint8 wrongProjectId) public {
+    function test_afterRedeemRecordedWith_revertIfNotCorrectProjectId(uint8 wrongProjectId) public {
         vm.assume(wrongProjectId != projectId);
 
         uint256[] memory tokenList = new uint256[](1);
@@ -353,6 +360,7 @@ contract Test721TiersHook_redeem_Unit is UnitTestSetup {
             abi.encode(true)
         );
 
+        // Expect to revert on account of the project ID being incorrect.
         vm.expectRevert(abi.encodeWithSelector(JB721Hook.INVALID_REDEEM.selector));
 
         vm.prank(mockTerminalAddress);
@@ -382,7 +390,7 @@ contract Test721TiersHook_redeem_Unit is UnitTestSetup {
         );
     }
 
-    function test721TiersHook_afterRedeemRecordedWith_revertIfCallerIsNotATerminalOfTheProject() public {
+    function test_afterRedeemRecordedWith_revertIfCallerIsNotATerminalOfTheProject() public {
         uint256[] memory tokenList = new uint256[](1);
         tokenList[0] = 1;
 
@@ -393,6 +401,7 @@ contract Test721TiersHook_redeem_Unit is UnitTestSetup {
             abi.encode(false)
         );
 
+        // Expect to revert on account of the caller not being a terminal of the project.
         vm.expectRevert(abi.encodeWithSelector(JB721Hook.INVALID_REDEEM.selector));
 
         vm.prank(mockTerminalAddress);
@@ -422,7 +431,7 @@ contract Test721TiersHook_redeem_Unit is UnitTestSetup {
         );
     }
 
-    function test721TiersHook_afterRedeemRecordedWith_revertIfWrongHolder(address wrongHolder, uint8 tokenId) public {
+    function test_afterRedeemRecordedWith_revertIfWrongHolder(address wrongHolder, uint8 tokenId) public {
         vm.assume(beneficiary != wrongHolder);
         vm.assume(tokenId != 0);
 
@@ -471,9 +480,8 @@ contract Test721TiersHook_redeem_Unit is UnitTestSetup {
                     value: 0,
                     decimals: 18,
                     currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
-                }), // 0
+                }), // 0, forwarded to the hook.
                 redemptionRate: 5000,
-                // fwd to hook
                 beneficiary: payable(wrongHolder),
                 hookMetadata: bytes(""),
                 redeemerMetadata: hookMetadata

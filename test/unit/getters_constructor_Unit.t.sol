@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import "../utils/UnitTestSetup.sol";
 
-contract Test_721TiersHookGetters_Unit is UnitTestSetup {
+contract Test_Getters_Constructor_Unit is UnitTestSetup {
     using stdStorage for StdStorage;
 
     function test_tiersOf_returnsAllTiers(uint256 numberOfTiers) public {
@@ -18,13 +18,7 @@ contract Test_721TiersHookGetters_Unit is UnitTestSetup {
         assertTrue(_isIn(tiers, hook.test_store().tiersOf(address(hook), new uint256[](0), false, 0, numberOfTiers)));
     }
 
-    function test_pricingContext_packingFunctionsAsExpected(
-        uint32 currency,
-        uint8 decimals,
-        address prices
-    )
-        public
-    {
+    function test_pricingContext_packingFunctionsAsExpected(uint32 currency, uint8 decimals, address prices) public {
         JBDeploy721TiersHookConfig memory hookConfig = JBDeploy721TiersHookConfig(
             name,
             symbol,
@@ -364,7 +358,7 @@ contract Test_721TiersHookGetters_Unit is UnitTestSetup {
                     iterator++;
                 }
                 theoreticalWeight += (i + 1) * (i + 1) * 10; // Add the price of the NFTs to the weight.
-                // (10 is the price multiplier).
+                    // (10 is the price multiplier).
             }
         }
 
@@ -372,9 +366,7 @@ contract Test_721TiersHookGetters_Unit is UnitTestSetup {
         assertEq(hook.test_store().redemptionWeightOf(address(hook), tierToGetWeightOf), theoreticalWeight);
     }
 
-    function test_totalRedemptionWeight_returnsCorrectTotalWeightAsCumSumOfPrices(uint256 numberOfTiers)
-        public
-    {
+    function test_totalRedemptionWeight_returnsCorrectTotalWeightAsCumSumOfPrices(uint256 numberOfTiers) public {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
         ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
@@ -403,12 +395,7 @@ contract Test_721TiersHookGetters_Unit is UnitTestSetup {
         assertEq(hook.test_store().totalRedemptionWeight(address(hook)), theoreticalWeight);
     }
 
-    function test_firstOwnerOf_shouldReturnCurrentOwnerIfFirstOwner(
-        uint256 tokenId,
-        address owner
-    )
-        public
-    {
+    function test_firstOwnerOf_shouldReturnCurrentOwnerIfFirstOwner(uint256 tokenId, address owner) public {
         ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
         hook.ForTest_setOwnerOf(tokenId, owner);
@@ -417,12 +404,7 @@ contract Test_721TiersHookGetters_Unit is UnitTestSetup {
         assertEq(hook.firstOwnerOf(tokenId), owner);
     }
 
-    function test_firstOwnerOf_shouldReturnFirstOwnerIfOwnerChanged(
-        address newOwner,
-        address previousOwner
-    )
-        public
-    {
+    function test_firstOwnerOf_shouldReturnFirstOwnerIfOwnerChanged(address newOwner, address previousOwner) public {
         // Assume that the new owner and previous owner are different and not the zero address.
         vm.assume(newOwner != previousOwner);
         vm.assume(newOwner != address(0));
