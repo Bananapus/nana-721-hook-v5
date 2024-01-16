@@ -13,7 +13,7 @@ import "../utils/TestBaseWorkflow.sol";
 import "src/interfaces/IJB721TiersHook.sol";
 import {MetadataResolverHelper} from "lib/juice-contracts-v4/test/helpers/MetadataResolverHelper.sol";
 
-contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
+contract Test_TiersHook_E2E is TestBaseWorkflow {
     using JBRulesetMetadataResolver for JBRuleset;
 
     address reserveBeneficiary = address(bytes20(keccak256("reserveBeneficiary")));
@@ -63,7 +63,7 @@ contract TestJBTieredNFTRewardDelegateE2E is TestBaseWorkflow {
         metadataHelper = new MetadataResolverHelper();
     }
 
-    function testLaunchProjectAndAddToRegistry() external {
+    function testLaunchProjectAndAddHookToRegistry() external {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         uint256 projectId = deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
