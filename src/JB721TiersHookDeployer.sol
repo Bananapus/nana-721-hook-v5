@@ -60,18 +60,18 @@ contract JB721TiersHookDeployer is IJB721TiersHookDeployer {
         // Deploy the governance variant specified by the config.
         newHook = IJB721TiersHook(Clones.clone(address(HOOK)));
 
-        newHook.initialize(
-            projectId,
-            deployTiersHookConfig.name,
-            deployTiersHookConfig.symbol,
-            deployTiersHookConfig.rulesets,
-            deployTiersHookConfig.baseUri,
-            deployTiersHookConfig.tokenUriResolver,
-            deployTiersHookConfig.contractUri,
-            deployTiersHookConfig.tiersConfig,
-            deployTiersHookConfig.store,
-            deployTiersHookConfig.flags
-        );
+        newHook.initialize({
+            projectId: projectId,
+            name: deployTiersHookConfig.name,
+            symbol: deployTiersHookConfig.symbol,
+            rulesets: deployTiersHookConfig.rulesets,
+            baseUri: deployTiersHookConfig.baseUri,
+            tokenUriResolver: deployTiersHookConfig.tokenUriResolver,
+            contractUri: deployTiersHookConfig.contractUri,
+            tiersConfig: deployTiersHookConfig.tiersConfig,
+            store: deployTiersHookConfig.store,
+            flags: deployTiersHookConfig.flags
+        });
 
         // Transfer the hook's ownership to the address that called this function.
         JBOwnable(address(newHook)).transferOwnership(msg.sender);
