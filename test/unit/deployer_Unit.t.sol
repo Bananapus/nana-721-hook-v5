@@ -18,10 +18,6 @@ import "../utils/UnitTestSetup.sol";
 contract Test_ProjectDeployer_Unit is UnitTestSetup {
     using stdStorage for StdStorage;
 
-    // TODO: Can we remove these?
-    // bytes4 PAY_HOOK_ID = bytes4(hex"70");
-    // bytes4 REDEEM_HOOK_ID = bytes4(hex"71");
-
     IJB721TiersHookProjectDeployer deployer;
 
     function setUp() public override {
