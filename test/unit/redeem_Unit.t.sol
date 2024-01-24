@@ -201,7 +201,7 @@ contract Test_redeem_Unit is UnitTestSetup {
                 currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
             }),
             useTotalSurplus: true,
-            redemptionRate: REDEMPTION_RATE,
+            redemptionRate: JBConstants.MAX_REDEMPTION_RATE,
             metadata: hookMetadata
         });
 

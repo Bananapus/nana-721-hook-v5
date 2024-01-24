@@ -49,7 +49,7 @@ contract UnitTestSetup is Test {
 
     uint256 constant SURPLUS = 10e18;
     // TODO: What's going on here? Shouldn't this be 4_000?
-    uint256 constant REDEMPTION_RATE = JBConstants.MAX_RESERVED_RATE; // 40%
+    uint256 constant REDEMPTION_RATE = 4000; //JBConstants.MAX_RESERVED_RATE; // 40%
 
     JB721TierConfig defaultTierConfig;
 
@@ -341,38 +341,7 @@ contract UnitTestSetup is Test {
         }
     }
 
-    // TODO: Remove comments?
-    //
     function _compareTiers(JB721Tier memory first, JB721Tier memory second) internal pure returns (bool) {
-        // Use this for quick debug:
-        // if(first.id != second.id) emit log_string("compareTiers:id");
-
-        // if(first.price != second.price) emit log_string("compareTiers:price");
-
-        // if(first.remainingSupply != second.remainingSupply) emit log_string("compareTiers:remainingSupply");
-
-        // if(first.initialSupply != second.initialSupply) emit log_string("compareTiers:initialSupply");
-
-        // if(first.votingUnits != second.votingUnits) {
-        //     emit log("compareTiers:votingUnits");
-        //     emit log_uint(first.votingUnits);
-        //     emit log_uint(second.votingUnits);
-        // }
-
-        // if(first.reserveFrequency != second.reserveFrequency) emit log_string("compareTiers:reserveFrequency");
-
-        // if(first.reserveBeneficiary != second.reserveBeneficiary) emit
-        // log_string("compareTiers:reserveBeneficiary");
-
-        // if(first.encodedIPFSUri != second.encodedIPFSUri) {
-        //     emit log_string("compareTiers:encodedIPFSUri");
-        //     emit log_bytes32(first.encodedIPFSUri);
-        //     emit log_bytes32(second.encodedIPFSUri);
-        // }
-
-        // if(keccak256(abi.encodePacked(first.resolvedUri)) != keccak256(abi.encodePacked(second.resolvedUri))) emit
-        // log_string("compareTiers:uri");
-
         return (
             first.id == second.id && first.price == second.price && first.remainingSupply == second.remainingSupply
                 && first.initialSupply == second.initialSupply && first.votingUnits == second.votingUnits
