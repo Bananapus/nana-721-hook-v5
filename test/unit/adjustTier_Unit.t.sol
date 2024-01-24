@@ -1155,7 +1155,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
-                useVotingUnits: false
+                useVotingUnits: false 
             });
         }
 
@@ -1193,12 +1193,83 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
-                useVotingUnits: false
+                useVotingUnits: false  // <-- If false, voting power is based on tier price
             });
         }
 
-        // TODO: Shouldn't this be `.votingUnits` (and not `.category`)?
-        tierConfigsToAdd[numberTiersToAdd - 1].category = uint8(99);
+        // Expect the `adjustTiers` call to revert because of the `noNewTiersWithVotes` flag.
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.VOTING_UNITS_NOT_ALLOWED.selector));
+        vm.prank(owner);
+        hook.adjustTiers(tierConfigsToAdd, new uint256[](0));
+    }
+
+    function test_adjustTiers_revertIfMoreVotingUnitsNotAllowedUsingVotingUnits(
+        uint256 initialNumberOfTiers,
+        uint256 numberTiersToAdd
+    )
+        public
+    {
+        // Include adding X new tiers with 0 current tiers.
+        initialNumberOfTiers = bound(initialNumberOfTiers, 0, 15);
+        numberTiersToAdd = bound(numberTiersToAdd, 1, 15);
+
+        JB721TierConfig[] memory tierConfigs = new JB721TierConfig[](initialNumberOfTiers);
+        for (uint256 i; i < initialNumberOfTiers; i++) {
+            tierConfigs[i] = JB721TierConfig({
+                price: uint104((i + 1) * 10),
+                initialSupply: uint32(100),
+                votingUnits: uint16(0),
+                reserveFrequency: uint16(i),
+                reserveBeneficiary: reserveBeneficiary,
+                encodedIPFSUri: tokenUris[0],
+                category: uint24(100),
+                allowOwnerMint: false,
+                useReserveBeneficiaryAsDefault: false,
+                transfersPausable: false,
+                useVotingUnits: true 
+            });
+        }
+
+        ForTest_JB721TiersHookStore store = new ForTest_JB721TiersHookStore();
+        ForTest_JB721TiersHook hook = new ForTest_JB721TiersHook(
+            projectId,
+            IJBDirectory(mockJBDirectory),
+            name,
+            symbol,
+            IJBRulesets(mockJBRulesets),
+            baseUri,
+            IJB721TokenUriResolver(mockTokenUriResolver),
+            contractUri,
+            tierConfigs,
+            IJB721TiersHookStore(address(store)),
+            JB721TiersHookFlags({
+                preventOverspending: false,
+                noNewTiersWithReserves: false,
+                noNewTiersWithVotes: true, // <-- This is the flag we're testing.
+                noNewTiersWithOwnerMinting: true
+            })
+        );
+        hook.transferOwnership(owner);
+
+        JB721TierConfig[] memory tierConfigsToAdd = new JB721TierConfig[](numberTiersToAdd);
+        for (uint256 i; i < numberTiersToAdd; i++) {
+            tierConfigsToAdd[i] = JB721TierConfig({
+                price: uint104((i + 1) * 100),
+                initialSupply: uint32(100),
+                votingUnits: uint16(0),
+                reserveFrequency: uint16(i),
+                reserveBeneficiary: reserveBeneficiary,
+                encodedIPFSUri: tokenUris[0],
+                category: uint24(100),
+                allowOwnerMint: false,
+                useReserveBeneficiaryAsDefault: false,
+                transfersPausable: false,
+                useVotingUnits: true // <-- If false, voting power is based on tier price
+            });
+        }
+
+        // One new tier has a non-0 voting power
+        tierConfigsToAdd[numberTiersToAdd - 1].votingUnits = uint16(1);
 
         // Expect the `adjustTiers` call to revert because of the `noNewTiersWithVotes` flag.
         vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.VOTING_UNITS_NOT_ALLOWED.selector));
