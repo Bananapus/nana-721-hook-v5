@@ -265,11 +265,13 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         assertEq(IJB721TiersHook(dataHook).payCreditsOf(beneficiary), valueSent);
     }
 
-    // TODO: This needs care (fuzz fails with insuf reserve for val=10)
-    function testMintReservedNft() external {
-        uint16 valueSent = 1500;
+    function testMintReservedNft(uint256 valueSent) external {
+        // cheapest tier is worth 10
+        valueSent = bound(valueSent, 10, 20 ether);
+
         // Cap the highest tier ID possible to 10.
-        uint256 highestTier = valueSent <= 100 ? (valueSent / 10) : 10;
+        uint256 highestTier = valueSent <= 100 ? valueSent / 10 : 10;
+
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         uint256 projectId = deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
