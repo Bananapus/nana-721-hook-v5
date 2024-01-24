@@ -48,8 +48,8 @@ contract UnitTestSetup is Test {
     uint256 projectId = 69;
 
     uint256 constant SURPLUS = 10e18;
-    // TODO: What's going on here? Shouldn't this be 4_000?
-    uint256 constant REDEMPTION_RATE = 4000; //JBConstants.MAX_RESERVED_RATE; // 40%
+
+    uint256 constant REDEMPTION_RATE = 4000; // 40%
 
     JB721TierConfig defaultTierConfig;
 

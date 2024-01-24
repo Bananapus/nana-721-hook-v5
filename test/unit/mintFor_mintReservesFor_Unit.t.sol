@@ -229,31 +229,6 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
         }
     }
 
-    function test_useDefaultReservedBeneficiary() public {
-        // TODO: Looks unfinished
-        uint256 initialSupply = 200;
-        uint256 totalMinted = 120;
-        uint256 reserveFrequency = 9;
-
-        ForTest_JB721TiersHook hook = _initializeForTestHook(10);
-
-        for (uint256 i; i < 10; i++) {
-            hook.test_store().ForTest_setTier(
-                address(hook),
-                i + 1,
-                JBStored721Tier({
-                    price: uint104((i + 1) * 10),
-                    remainingSupply: uint32(initialSupply - totalMinted),
-                    initialSupply: uint32(initialSupply),
-                    votingUnits: uint16(0),
-                    reserveFrequency: uint16(reserveFrequency),
-                    category: uint24(100),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, true)
-                })
-            );
-        }
-    }
-
     function test_numberOfPendingReservesFor_noReservesIfNoBeneficiarySet() public {
         uint256 initialSupply = 200; // The number of NFTs available for each tier.
         uint256 totalMinted = 120; // The number of NFTs already minted for each tier (out of `initialSupply`).
