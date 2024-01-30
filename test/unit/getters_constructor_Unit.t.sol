@@ -1,168 +1,152 @@
-pragma solidity ^0.8.16;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.23;
 
 import "../utils/UnitTestSetup.sol";
 
-contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
+contract Test_Getters_Constructor_Unit is UnitTestSetup {
     using stdStorage for StdStorage;
 
-    function testJBTieredNFTRewardDelegate_tiers_returnsAllTiers(uint256 numberOfTiers) public {
+    function test_tiersOf_returnsAllTiers(uint256 numberOfTiers) public {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
-        (, JB721Tier[] memory _tiers) = _createTiers(defaultTierParams, numberOfTiers);
+        (, JB721Tier[] memory tiers) = _createTiers(defaultTierConfig, numberOfTiers);
 
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(numberOfTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
 
-        assertTrue(
-            _isIn(_delegate.test_store().tiersOf(address(_delegate), new uint256[](0), false, 0, numberOfTiers), _tiers)
-        );
-        assertTrue(
-            _isIn(_tiers, _delegate.test_store().tiersOf(address(_delegate), new uint256[](0), false, 0, numberOfTiers))
-        );
+        // Check: is everything from `tiersOf` in `tiers`, and vice versa (do they match)?
+        assertTrue(_isIn(hook.test_store().tiersOf(address(hook), new uint256[](0), false, 0, numberOfTiers), tiers));
+        assertTrue(_isIn(tiers, hook.test_store().tiersOf(address(hook), new uint256[](0), false, 0, numberOfTiers)));
     }
 
-    function testJBTieredNFTRewardDelegate_pricing_packingFunctionsAsExpected(
-        uint48 _currency,
-        uint48 _decimals,
-        address _prices
-    ) public {
-        JBDeployTiered721DelegateData memory delegateData = JBDeployTiered721DelegateData(
+    function test_pricingContext_packingFunctionsAsExpected(uint32 currency, uint8 decimals, address prices) public {
+        JBDeploy721TiersHookConfig memory hookConfig = JBDeploy721TiersHookConfig(
             name,
             symbol,
-            IJBFundingCycleStore(mockJBFundingCycleStore),
+            IJBRulesets(mockJBRulesets),
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
-            JB721PricingParams({tiers: tiers, currency: _currency, decimals: _decimals, prices: IJBPrices(_prices)}),
+            JB721InitTiersConfig({tiers: tiers, currency: currency, decimals: decimals, prices: IJBPrices(prices)}),
             address(0),
-            new JBTiered721DelegateStore(),
-            JBTiered721Flags({
+            new JB721TiersHookStore(),
+            JB721TiersHookFlags({
                 preventOverspending: false,
-                lockReservedTokenChanges: true,
-                lockVotingUnitChanges: true,
-                lockManualMintingChanges: true
-            }),
-            JB721GovernanceType.NONE
+                noNewTiersWithReserves: true,
+                noNewTiersWithVotes: true,
+                noNewTiersWithOwnerMinting: true
+            })
         );
 
-        JBTiered721Delegate _delegate =
-            JBTiered721Delegate(address(jbDelegateDeployer.deployDelegateFor(projectId, delegateData)));
+        JB721TiersHook hook = JB721TiersHook(address(jbHookDeployer.deployHookFor(projectId, hookConfig)));
 
-        (uint256 __currency, uint256 __decimals, IJBPrices __prices) = _delegate.pricingContext();
-        assertEq(__currency, uint256(_currency));
-        assertEq(__decimals, uint256(_decimals));
-        assertEq(address(__prices), _prices);
+        (uint256 currency2, uint256 decimals2, IJBPrices prices2) = hook.pricingContext();
+        // Check: do the unpacked values from `pricingContext` match the values we used in the config?
+        assertEq(currency2, uint256(currency));
+        assertEq(decimals2, uint256(decimals));
+        assertEq(address(prices2), prices);
     }
 
-    function testJBTieredNFTRewardDelegate_bools_packingFunctionsAsExpected(bool _a, bool _b, bool _c) public {
-        ForTest_JBTiered721DelegateStore _ForTest_store = new ForTest_JBTiered721DelegateStore();
-        uint8 _packed = _ForTest_store.ForTest_packBools(_a, _b, _c);
-        (bool __a, bool __b, bool __c) = _ForTest_store.ForTest_unpackBools(_packed);
-        assertEq(_a, __a);
-        assertEq(_b, __b);
-        assertEq(_c, __c);
+    function test_bools_doesPackingAndUnpackingWork(bool a, bool b, bool c) public {
+        ForTest_JB721TiersHookStore store = new ForTest_JB721TiersHookStore();
+        uint8 packed = store.ForTest_packBools(a, b, c);
+        (bool a2, bool b2, bool c2) = store.ForTest_unpackBools(packed);
+        // Check: do the packed values match the unpacked values?
+        assertEq(a, a2);
+        assertEq(b, b2);
+        assertEq(c, c2);
     }
 
-    function testJBTieredNFTRewardDelegate_tiers_returnsAllTiersWithResolver(uint256 numberOfTiers) public {
+    function test_tiersOf_returnsAllTiersWithResolver(uint256 numberOfTiers) public {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
-        // use non-null resolved uri
-        defaultTierParams.encodedIPFSUri = bytes32(hex'69');
+        // Use a non-null resolved URI.
+        defaultTierConfig.encodedIPFSUri = bytes32(hex"69");
 
-        (, JB721Tier[] memory _tiers) = _createTiers(defaultTierParams, numberOfTiers);
+        (, JB721Tier[] memory tiers) = _createTiers(defaultTierConfig, numberOfTiers);
 
         mockTokenUriResolver = makeAddr("mockTokenUriResolver");
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(numberOfTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
 
         for (uint256 i; i < numberOfTiers; i++) {
             // Mock the URI resolver call
             mockAndExpect(
                 mockTokenUriResolver,
-                abi.encodeWithSelector(IJB721TokenUriResolver.tokenUriOf.selector, address(_delegate), _generateTokenId(i + 1, 0)),
+                abi.encodeWithSelector(
+                    IJB721TokenUriResolver.tokenUriOf.selector, address(hook), _generateTokenId(i + 1, 0)
+                ),
                 abi.encode(string(abi.encodePacked("resolverURI", _generateTokenId(i + 1, 0))))
             );
         }
 
-        assertTrue(
-            _isIn(_delegate.test_store().tiersOf(address(_delegate), new uint256[](0), true, 0, 100), _tiers)
-        );
-        assertTrue(
-            _isIn(_tiers, _delegate.test_store().tiersOf(address(_delegate), new uint256[](0), true, 0, 100))
-        );
+        // Check: is everything from `tiersOf` in `tiers`, and vice versa (do they match)? Do the resolved URIs match?
+        assertTrue(_isIn(hook.test_store().tiersOf(address(hook), new uint256[](0), true, 0, 100), tiers));
+        assertTrue(_isIn(tiers, hook.test_store().tiersOf(address(hook), new uint256[](0), true, 0, 100)));
     }
 
-    function testJBTieredNFTRewardDelegate_tiers_returnsAllTiersExcludingRemovedOnes(
+    function test_tiersOf_returnsAllTiersExcludingRemovedOnes(
         uint256 numberOfTiers,
         uint256 firstRemovedTier,
         uint256 secondRemovedTier
-    ) public {
+    )
+        public
+    {
         numberOfTiers = bound(numberOfTiers, 1, 30);
         firstRemovedTier = bound(firstRemovedTier, 1, numberOfTiers);
         secondRemovedTier = bound(secondRemovedTier, 1, numberOfTiers);
         vm.assume(firstRemovedTier != secondRemovedTier);
 
-        (, JB721Tier[] memory _tiers) = _createTiers(defaultTierParams, numberOfTiers);
+        (, JB721Tier[] memory tiers) = _createTiers(defaultTierConfig, numberOfTiers);
 
-        // Copy only the tiers we keep
-        JB721Tier[] memory _nonRemovedTiers = new JB721Tier[](numberOfTiers - 2);
+        // Only copy the tiers we keep.
+        JB721Tier[] memory nonRemovedTiers = new JB721Tier[](numberOfTiers - 2);
         uint256 j;
         for (uint256 i; i < numberOfTiers; i++) {
             if (i != firstRemovedTier - 1 && i != secondRemovedTier - 1) {
-                _nonRemovedTiers[j] = _tiers[i];
+                nonRemovedTiers[j] = tiers[i];
                 j++;
             }
         }
-            
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(numberOfTiers);
 
-        _delegate.test_store().ForTest_setIsTierRemoved(address(_delegate), firstRemovedTier);
-        _delegate.test_store().ForTest_setIsTierRemoved(address(_delegate), secondRemovedTier);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
 
-        JB721Tier[] memory _storedTiers = _delegate.test_store().tiersOf(address(_delegate), new uint256[](0), false, 0, numberOfTiers);
+        // Set the removed tiers.
+        hook.test_store().ForTest_setIsTierRemoved(address(hook), firstRemovedTier);
+        hook.test_store().ForTest_setIsTierRemoved(address(hook), secondRemovedTier);
 
-        // Check: tier array returned is resized
-        assertEq(
-            _storedTiers.length,
-            numberOfTiers - 2
-        );
+        JB721Tier[] memory storedTiers =
+            hook.test_store().tiersOf(address(hook), new uint256[](0), false, 0, numberOfTiers);
 
-        // Check: all and only the non-removed tiers are in the tier array returned
-        assertTrue(
-            _isIn(
-                _storedTiers,
-                _nonRemovedTiers
-            )
-        );
-        assertTrue(
-            _isIn(
-                _nonRemovedTiers,
-                _storedTiers
-            )
-        );
+        // Check: was the returned tier array resized correctly?
+        assertEq(storedTiers.length, numberOfTiers - 2);
+
+        // Check: is everything from `storedTiers` a `nonRemovedTier`, and vice versa (do they match)?
+        assertTrue(_isIn(storedTiers, nonRemovedTiers));
+        assertTrue(_isIn(nonRemovedTiers, storedTiers));
     }
 
-    function testJBTieredNFTRewardDelegate_tier_returnsTheGivenTier(uint256 numberOfTiers, uint16 givenTier) public {
+    function test_tierOf_returnsAGivenTier(uint256 numberOfTiers, uint16 givenTier) public {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
-        (, JB721Tier[] memory _tiers) = _createTiers(defaultTierParams, numberOfTiers);
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(numberOfTiers);
-        
-        // Check: correct tier, if exist?
+        (, JB721Tier[] memory tiers) = _createTiers(defaultTierConfig, numberOfTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
+
+        // Check: if the tier exists, it is returned correctly?
         if (givenTier <= numberOfTiers && givenTier != 0) {
-            assertEq(_delegate.test_store().tierOf(address(_delegate), givenTier, false), _tiers[givenTier - 1]);
+            assertEq(hook.test_store().tierOf(address(hook), givenTier, false), tiers[givenTier - 1]);
         } else {
-            assertEq( // empty tier if not?
-                _delegate.test_store().tierOf(address(_delegate), givenTier, false),
+            assertEq( // Check: if the tier doesn't exist, is an empty tier returned?
+                hook.test_store().tierOf(address(hook), givenTier, false),
                 JB721Tier({
                     id: givenTier,
                     price: 0,
-                    remainingQuantity: 0,
-                    initialQuantity: 0,
+                    remainingSupply: 0,
+                    initialSupply: 0,
                     votingUnits: 0,
-                    reservedRate: 0,
-                    reservedTokenBeneficiary: address(0),
+                    reserveFrequency: 0,
+                    reserveBeneficiary: address(0),
                     encodedIPFSUri: bytes32(0),
                     category: uint24(100),
-                    allowManualMint: false,
+                    allowOwnerMint: false,
                     transfersPausable: false,
                     resolvedUri: ""
                 })
@@ -170,323 +154,366 @@ contract TestJuice721dDelegate_getters_Unit is UnitTestSetup {
         }
     }
 
-    function testJBTieredNFTRewardDelegate_totalSupply_returnsTotalSupply(uint256 numberOfTiers) public {
+    function test_totalSupplyOf_returnsTotalSupply(uint256 numberOfTiers) public {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(numberOfTiers);
-               
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
+
+        // Initialize `numberOfTiers` tiers with an initial supply of 100, and (i + 1) mints.
+        // This should yield a total supply of (`numberOfTiers` * (`numberOfTiers` + 1)) / 2,
+        // which is the sum of natural numbers from 1 to `numberOfTiers`.
         for (uint256 i; i < numberOfTiers; i++) {
-            _delegate.test_store().ForTest_setTier(
-                address(_delegate),
+            hook.test_store().ForTest_setTier(
+                address(hook),
                 i + 1,
                 JBStored721Tier({
                     price: uint104((i + 1) * 10),
-                    remainingQuantity: uint32(100 - (i + 1)),
-                    initialQuantity: uint32(100),
+                    remainingSupply: uint32(100 - (i + 1)),
+                    initialSupply: uint32(100),
                     votingUnits: uint16(0),
-                    reservedRate: uint16(0),
+                    reserveFrequency: uint16(0),
                     category: uint24(100),
-                    packedBools: _delegate.test_store().ForTest_packBools(false, false, false)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, false)
                 })
             );
         }
-        assertEq(_delegate.test_store().totalSupplyOf(address(_delegate)), ((numberOfTiers * (numberOfTiers + 1)) / 2));
+
+        // Check: does the total supply match the expected value?
+        assertEq(hook.test_store().totalSupplyOf(address(hook)), ((numberOfTiers * (numberOfTiers + 1)) / 2));
     }
 
-    function testJBTieredNFTRewardDelegate_balanceOf_returnsCompleteBalance(uint256 numberOfTiers, address holder) public {
+    function test_balanceOf_returnsCompleteBalance(uint256 numberOfTiers, address holder) public {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(numberOfTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
 
+        // Give the holder (i + 1) * 10 NFTs from each tier up to `numberOfTiers`.
         for (uint256 i; i < numberOfTiers; i++) {
-            _delegate.test_store().ForTest_setBalanceOf(address(_delegate), holder, i + 1, (i + 1) * 10);
+            hook.test_store().ForTest_setBalanceOf(address(hook), holder, i + 1, (i + 1) * 10);
         }
-        assertEq(_delegate.balanceOf(holder), 10 * ((numberOfTiers * (numberOfTiers + 1)) / 2));
+
+        // Check: does the holder have the correct NFT balance?
+        // Calculated using 10 * sum of natural numbers from 1 to `numberOfTiers`.
+        assertEq(hook.balanceOf(holder), 10 * ((numberOfTiers * (numberOfTiers + 1)) / 2));
     }
 
-    function testJBTieredNFTRewardDelegate_numberOfReservedTokensOutstandingFor_returnsOutstandingReserved() public {
-        // 120 are minted, 10 out of these are reserved, meaning 110 non-reserved are minted. The reservedRate is
-        // 9 (1 reserved token for every 9 non-reserved minted) -> total reserved is 13 (  ceil(110 / 9)), still 3 to mint
-        uint256 initialQuantity = 200;
-        uint256 totalMinted = 120;
-        uint256 reservedMinted = 10;
-        uint256 reservedRate = 9;
+    function test_numberOfPendingReservesFor_returnsPendingReserves() public {
+        uint256 initialSupply = 200; // the starting supply
+        uint256 totalMinted = 120; // the number to mint from the supply
+        uint256 reservedMinted = 10; // the number of reserve mints (out of `totalMinted`)
+        uint256 reserveFrequency = 9; // the reserve frequency
 
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(10);
+        // For each tier, 120 NFTs are minted, and 10 of these are reserve mints.
+        // This means 110 non-reserved NFTs are minted.
+        // Since the `reserveFrequency` is 9, for every 9 non-reserved tokens minted, 1 reserved token is minted.
+        // The total number of reserve mints should be `ceil(non-reserve mints / reserveFrequency)`.
+        // In our case, `ceil(110/9)` comes out to 13, and 10 reserve mints have already been minted.
+        // Therefore, there should be 3 reserve mints remaining for each tier.
 
+        ForTest_JB721TiersHook hook = _initializeForTestHook(10);
+
+        // Set up 10 tiers, each with the parameters above.
         for (uint256 i; i < 10; i++) {
-            _delegate.test_store().ForTest_setTier(
-                address(_delegate),
+            hook.test_store().ForTest_setTier(
+                address(hook),
                 i + 1,
                 JBStored721Tier({
                     price: uint104((i + 1) * 10),
-                    remainingQuantity: uint32(initialQuantity - totalMinted),
-                    initialQuantity: uint32(initialQuantity),
+                    remainingSupply: uint32(initialSupply - totalMinted),
+                    initialSupply: uint32(initialSupply),
                     votingUnits: uint16(0),
-                    reservedRate: uint16(reservedRate),
+                    reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: _delegate.test_store().ForTest_packBools(false, false, false)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, false)
                 })
             );
-            _delegate.test_store().ForTest_setReservesMintedFor(address(_delegate), i + 1, reservedMinted);
+            // Manually set the number of reserve mints for each tier.
+            hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
         }
 
+        // Check: does each tier have the correct number of pending reserves?
         for (uint256 i; i < 10; i++) {
-            assertEq(_delegate.test_store().numberOfReservedTokensOutstandingFor(address(_delegate), i + 1), 3);
+            assertEq(hook.test_store().numberOfPendingReservesFor(address(hook), i + 1), 3);
         }
     }
 
-    function testJBTieredNFTRewardDelegate_getvotingUnits_returnsTheTotalVotingUnits(
+    function test_votingUnitsOf_returnsVotingUnitsCorrectly(
         uint256 numberOfTiers,
         uint256 votingUnits,
         uint256 balances
-    ) public {
+    )
+        public
+    {
         numberOfTiers = bound(numberOfTiers, 1, 30);
         votingUnits = bound(votingUnits, 1, type(uint32).max);
         balances = bound(balances, 1, type(uint32).max);
 
-        defaultTierParams.useVotingUnits = true;
-        defaultTierParams.votingUnits = uint32(votingUnits);
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(numberOfTiers);
+        defaultTierConfig.useVotingUnits = true;
+        defaultTierConfig.votingUnits = uint32(votingUnits);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
 
-        // Set one tier voting unit to 0
-        _delegate.test_store().ForTest_setTier(
-            address(_delegate),
+        // Set up tier 1 with 0 voting units.
+        hook.test_store().ForTest_setTier(
+            address(hook),
             1,
             JBStored721Tier({
                 price: uint104(10),
-                remainingQuantity: uint32(10),
-                initialQuantity: uint32(20),
+                remainingSupply: uint32(10),
+                initialSupply: uint32(20),
                 votingUnits: uint16(0),
-                reservedRate: uint16(100),
+                reserveFrequency: uint16(100),
                 category: uint24(100),
-                packedBools: _delegate.test_store().ForTest_packBools(false, false, true)
+                packedBools: hook.test_store().ForTest_packBools(false, false, true)
             })
         );
 
+        // Give the beneficiary `balances` NFTs from each tier up to `numberOfTiers`.
         for (uint256 i; i < numberOfTiers; i++) {
-            _delegate.test_store().ForTest_setBalanceOf(address(_delegate), beneficiary, i + 1, balances);
+            hook.test_store().ForTest_setBalanceOf(address(hook), beneficiary, i + 1, balances);
         }
 
+        // Check: does the beneficiary have the correct number voting units?
         assertEq(
-            _delegate.test_store().votingUnitsOf(address(_delegate), beneficiary),
-            numberOfTiers * votingUnits * balances - (votingUnits * balances) // One tier has a 0 voting power
+            hook.test_store().votingUnitsOf(address(hook), beneficiary),
+            numberOfTiers * votingUnits * balances - (votingUnits * balances) // One tier has no voting units.
         );
-    } 
-
-    function testJBTieredNFTRewardDelegate_tierIdOfToken_returnsCorrectTierNumber(uint16 _tierId, uint16 _tokenNumber)
-        public
-    {
-        vm.assume(_tierId > 0 && _tokenNumber > 0);
-        uint256 tokenId = _generateTokenId(_tierId, _tokenNumber);
-        assertEq(delegate.store().tierOfTokenId(address(delegate), tokenId, false).id, _tierId);
     }
 
-    function testJBTieredNFTRewardDelegate_tokenURI_returnsCorrectUriIfResolverUsed(uint256 tokenId)
-        public
-    {
+    function test_tierOfTokenId_returnsCorrectTierNumber(uint16 tierId, uint16 tokenNumber) public {
+        vm.assume(tierId > 0 && tokenNumber > 0);
+        uint256 tokenId = _generateTokenId(tierId, tokenNumber);
+        // Check: does the generated token ID match the provided `tierId`.
+        assertEq(hook.STORE().tierOfTokenId(address(hook), tokenId, false).id, tierId);
+    }
+
+    function test_tokenURI_returnsCorrectUriWithResolver(uint256 tokenId) public {
         mockTokenUriResolver = makeAddr("mockTokenUriResolver");
 
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(10);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
-        // Mock the URI resolver call
+        // Mock the URI resolver call.
         mockAndExpect(
             mockTokenUriResolver,
-            abi.encodeWithSelector(IJB721TokenUriResolver.tokenUriOf.selector, address(_delegate), tokenId),
+            abi.encodeWithSelector(IJB721TokenUriResolver.tokenUriOf.selector, address(hook), tokenId),
             abi.encode("resolverURI")
         );
 
-        _delegate.ForTest_setOwnerOf(tokenId, beneficiary);
+        hook.ForTest_setOwnerOf(tokenId, beneficiary);
 
-        assertEq(_delegate.tokenURI(tokenId), "resolverURI");
+        // Check: does the token URI resolver return the correct URI from the resolver?
+        assertEq(hook.tokenURI(tokenId), "resolverURI");
     }
 
-    function testJBTieredNFTRewardDelegate_tokenURI_returnsCorrectUriIfNoResolverUsed()
-        public
-    {
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(10);
+    function test_tokenURI_returnsCorrectUriWithoutResolver() public {
+        ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
+        // Check: for each tier, does the tier's token URI match the theoretic hash?
         for (uint256 i = 1; i <= 10; i++) {
             uint256 tokenId = _generateTokenId(i, 1);
-            assertEq(_delegate.tokenURI(tokenId), string(abi.encodePacked(baseUri, theoricHashes[i - 1])));
+            assertEq(hook.tokenURI(tokenId), string(abi.encodePacked(baseUri, theoreticHashes[i - 1])));
         }
     }
 
-    function testJBTieredNFTRewardDelegate_setEncodedIPFSUriOf_returnsCorrectUriIfEncodedAdded() public {
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(10);
+    function test_setEncodedIPFSUriOf_returnsCorrectEncodedURI() public {
+        ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
         uint256 tokenId = _generateTokenId(1, 1);
-        _delegate.ForTest_setOwnerOf(tokenId, address(123));
+        hook.ForTest_setOwnerOf(tokenId, address(123));
 
         vm.prank(owner);
-        _delegate.setMetadata("", "", IJB721TokenUriResolver(address(0)), 1, tokenUris[1]);
+        hook.setMetadata("", "", IJB721TokenUriResolver(address(0)), 1, tokenUris[1]);
 
-        assertEq(_delegate.tokenURI(tokenId), string(abi.encodePacked(baseUri, theoricHashes[1])));
+        // Check: does the token URI match the theoretic hash?
+        assertEq(hook.tokenURI(tokenId), string(abi.encodePacked(baseUri, theoreticHashes[1])));
     }
 
-    function testJBTieredNFTRewardDelegate_redemptionWeightOf_returnsCorrectWeightAsFloorsCumSum(
+    function test_redemptionWeightOf_returnsCorrectWeightAsCumSumOfPrices(
         uint256 numberOfTiers,
         uint256 firstTier,
         uint256 lastTier
-    ) public {
+    )
+        public
+    {
         numberOfTiers = bound(numberOfTiers, 0, 30);
         lastTier = bound(lastTier, 0, numberOfTiers);
         firstTier = bound(firstTier, 0, lastTier);
 
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(numberOfTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
 
-        uint256 _maxNumberOfTiers = (numberOfTiers * (numberOfTiers + 1)) / 2; // "tier amount" of token mintable per tier -> max == numberOfTiers!
-        uint256[] memory _tierToGetWeightOf = new uint256[](_maxNumberOfTiers);
-        uint256 _iterator;
-        uint256 _theoreticalWeight;
+        // Each tier has `tierId` mintable NFTs, so the maximum number of mints
+        // is the sum of natural numbers from 1 to `numberOfTiers`.
+        uint256 maxNumberOfTiers = (numberOfTiers * (numberOfTiers + 1)) / 2;
 
+        // Initialize an array `tierToGetWeightOf` to store the token IDs for each tier,
+        // which will later be used to calculate the redemption weight.
+        uint256[] memory tierToGetWeightOf = new uint256[](maxNumberOfTiers);
+        uint256 iterator;
+        uint256 theoreticalWeight;
+
+        // Mint `tierId` NFTs for each tier. In the inner loop, `i + 1` is the tier ID, and `j + 1` is the token ID.
         for (uint256 i; i < numberOfTiers; i++) {
             if (i >= firstTier && i < lastTier) {
                 for (uint256 j; j <= i; j++) {
-                    _tierToGetWeightOf[_iterator] = _generateTokenId(i + 1, j + 1); // "tier" tokens per tier
-                    _iterator++;
+                    tierToGetWeightOf[iterator] = _generateTokenId(i + 1, j + 1);
+                    iterator++;
                 }
-                _theoreticalWeight += (i + 1) * (i + 1) * 10; //floor is 10
+                theoreticalWeight += (i + 1) * (i + 1) * 10; // Add the price of the NFTs to the weight.
+                    // (10 is the price multiplier).
             }
         }
 
-        assertEq(_delegate.test_store().redemptionWeightOf(address(_delegate), _tierToGetWeightOf), _theoreticalWeight);
+        // Check: does the redemption weight match the expected value?
+        assertEq(hook.test_store().redemptionWeightOf(address(hook), tierToGetWeightOf), theoreticalWeight);
     }
 
-    function testJBTieredNFTRewardDelegate_totalRedemptionWeight_returnsCorrectTotalWeightAsFloorsCumSum(
-        uint256 numberOfTiers
-    ) public {
+    function test_totalRedemptionWeight_returnsCorrectTotalWeightAsCumSumOfPrices(uint256 numberOfTiers) public {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(numberOfTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
 
-        uint256 _theoreticalWeight;
+        uint256 theoreticalWeight;
 
+        // Set up `numberOfTiers` tiers and calculate the theoretical weight for each.
         for (uint256 i = 1; i <= numberOfTiers; i++) {
-            _delegate.test_store().ForTest_setTier(
-                address(_delegate),
+            hook.test_store().ForTest_setTier(
+                address(hook),
                 i,
                 JBStored721Tier({
                     price: uint104(i * 10),
-                    remainingQuantity: uint32(10 * i - 5 * i),
-                    initialQuantity: uint32(10 * i),
+                    remainingSupply: uint32(10 * i - 5 * i),
+                    initialSupply: uint32(10 * i),
                     votingUnits: uint16(0),
-                    reservedRate: uint16(0),
+                    reserveFrequency: uint16(0),
                     category: uint24(100),
-                    packedBools: _delegate.test_store().ForTest_packBools(false, false, false)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, false)
                 })
             );
-            _theoreticalWeight += (10 * i - 5 * i) * i * 10;
+            // Calculate the theoretical weight for the current tier. 10 the price multiplier.
+            theoreticalWeight += (10 * i - 5 * i) * i * 10;
         }
-        assertEq(_delegate.test_store().totalRedemptionWeight(address(_delegate)), _theoreticalWeight);
+        // Check: does the total redemption weight match the theoretical weight calculated?
+        assertEq(hook.test_store().totalRedemptionWeight(address(hook)), theoreticalWeight);
     }
 
-    function testJBTieredNFTRewardDelegate_firstOwnerOf_shouldReturnCurrentOwnerIfFirstOwner(
-        uint256 tokenId,
-        address _owner
-    ) public {
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(10);
+    function test_firstOwnerOf_shouldReturnCurrentOwnerIfFirstOwner(uint256 tokenId, address owner) public {
+        ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
-        _delegate.ForTest_setOwnerOf(tokenId, _owner);
-        assertEq(_delegate.firstOwnerOf(tokenId), _owner);
+        hook.ForTest_setOwnerOf(tokenId, owner);
+
+        // Check: is the first owner of the NFT is the current owner?
+        assertEq(hook.firstOwnerOf(tokenId), owner);
     }
 
-    function testJBTieredNFTRewardDelegate_firstOwnerOf_shouldReturnFirstOwnerIfOwnerChanged(
-        address _owner,
-        address _previousOwner
-    ) public {
-        vm.assume(_owner != _previousOwner);
-        vm.assume(_owner != address(0));
-        vm.assume(_previousOwner != address(0));
+    function test_firstOwnerOf_shouldReturnFirstOwnerIfOwnerChanged(address newOwner, address previousOwner) public {
+        // Assume that the new owner and previous owner are different and not the zero address.
+        vm.assume(newOwner != previousOwner);
+        vm.assume(newOwner != address(0));
+        vm.assume(previousOwner != address(0));
 
-        defaultTierParams.allowManualMint = true;
-        defaultTierParams.reservedRate = 0;
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(10);
+        defaultTierConfig.allowOwnerMint = true;
+        defaultTierConfig.reserveFrequency = 0;
+        ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
-        uint16[] memory _tiersToMint = new uint16[](1);
-        _tiersToMint[0] = 1;
+        uint16[] memory tiersToMint = new uint16[](1);
+        tiersToMint[0] = 1;
 
-        uint256 _tokenId = _generateTokenId(_tiersToMint[0], 1);
+        uint256 tokenId = _generateTokenId(tiersToMint[0], 1);
 
         vm.prank(owner);
-        _delegate.mintFor(_tiersToMint, _previousOwner);
+        hook.mintFor(tiersToMint, previousOwner);
 
-        assertEq(_delegate.firstOwnerOf(_tokenId), _previousOwner);
+        // Check: is the first owner of the NFT the previous owner?
+        assertEq(hook.firstOwnerOf(tokenId), previousOwner);
 
-        vm.prank(_previousOwner);
-        IERC721(_delegate).transferFrom(_previousOwner, _owner, _tokenId);
-        
-        assertEq(_delegate.firstOwnerOf(_tokenId), _previousOwner);
+        // Prank the previous owner and transfer the NFT to the new owner.
+        vm.prank(previousOwner);
+        IERC721(hook).transferFrom(previousOwner, newOwner, tokenId);
+
+        // Check: is the first owner of the NFT still the previous owner?
+        assertEq(hook.firstOwnerOf(tokenId), previousOwner);
     }
 
-    function testJBTieredNFTRewardDelegate_firstOwnerOf_shouldReturnAddressZeroIfNotMinted(uint256 tokenId) public {
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(10);
-        assertEq(_delegate.firstOwnerOf(tokenId), address(0));
+    function test_firstOwnerOf_shouldReturnZeroAddressIfNotMinted(uint256 tokenId) public {
+        ForTest_JB721TiersHook hook = _initializeForTestHook(10);
+        // Check: is the "first owner" of the NFT the zero address?
+        assertEq(hook.firstOwnerOf(tokenId), address(0));
     }
 
-    function testJBTieredNFTRewardDelegate_constructor_deployIfNoEmptyInitialQuantity(uint256 nbTiers) public {
-        nbTiers = bound(nbTiers, 0, 10);
-        // Create new tiers array
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(nbTiers);
-        (,JB721Tier[] memory _tiers) = _createTiers(defaultTierParams, nbTiers);
+    function test_constructor_deployIfInitialSuppliesNotEmpty(uint256 numberOfTiers) public {
+        numberOfTiers = bound(numberOfTiers, 0, 10);
+        // Create new tiers array.
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
+        (, JB721Tier[] memory tiers) = _createTiers(defaultTierConfig, numberOfTiers);
 
-        // Check: delegate has correct parameters?
-        assertEq(_delegate.projectId(), projectId);
-        assertEq(address(_delegate.directory()), mockJBDirectory);
-        assertEq(_delegate.name(), name);
-        assertEq(_delegate.symbol(), symbol);
-        assertEq(address(_delegate.store().tokenUriResolverOf(address(_delegate))), mockTokenUriResolver);
-        assertEq(_delegate.contractURI(), contractUri);
-        assertEq(_delegate.owner(), owner);
-        assertTrue(_isIn(_delegate.store().tiersOf(address(_delegate), new uint256[](0), false, 0, nbTiers), _tiers)); // Order is not insured
-        assertTrue(_isIn(_tiers, _delegate.store().tiersOf(address(_delegate), new uint256[](0), false, 0, nbTiers)));
+        // Check: do the hook's parameters match the expected values?
+        assertEq(hook.projectId(), projectId);
+        assertEq(address(hook.DIRECTORY()), mockJBDirectory);
+        assertEq(hook.name(), name);
+        assertEq(hook.symbol(), symbol);
+        assertEq(address(hook.STORE().tokenUriResolverOf(address(hook))), mockTokenUriResolver);
+        assertEq(hook.contractURI(), contractUri);
+        assertEq(hook.owner(), owner);
+        // Check: are all of the `tiers` in `hook.STORE().tiersOf`, and vice versa (do they match)?
+        // Order is not guaranteed, so we use `_isIn` and check both ways.
+        assertTrue(_isIn(hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, numberOfTiers), tiers));
+        assertTrue(_isIn(tiers, hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, numberOfTiers)));
     }
 
-    function testJBTieredNFTRewardDelegate_constructor_revertDeploymentIfOneEmptyInitialQuantity(
-        uint256 nbTiers,
+    function test_constructor_revertDeploymentIfOneEmptyInitialSupply(
+        uint256 numberOfTiers,
         uint256 errorIndex
-    ) public {
-        nbTiers = bound(nbTiers, 1, 20);
-        errorIndex = bound(errorIndex, 0, nbTiers - 1);
-        // Create new tiers array
-        JB721TierParams[] memory _tiers = new JB721TierParams[](nbTiers);
-        for (uint256 i; i < nbTiers; i++) {
-            _tiers[i] = JB721TierParams({
+    )
+        public
+    {
+        numberOfTiers = bound(numberOfTiers, 1, 20);
+        errorIndex = bound(errorIndex, 0, numberOfTiers - 1);
+        JB721TierConfig[] memory tiers = new JB721TierConfig[](numberOfTiers);
+
+        // Populate the tiers array with the default tier config.
+        for (uint256 i; i < numberOfTiers; i++) {
+            tiers[i] = JB721TierConfig({
                 price: uint104(i * 10),
-                initialQuantity: uint32(100),
+                initialSupply: uint32(100),
                 votingUnits: uint16(0),
-                reservedRate: uint16(0),
-                reservedTokenBeneficiary: reserveBeneficiary,
+                reserveFrequency: uint16(0),
+                reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
-                allowManualMint: false,
-                shouldUseReservedTokenBeneficiaryAsDefault: false,
+                allowOwnerMint: false,
+                useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: true
             });
         }
-        _tiers[errorIndex].initialQuantity = 0;
-        JBTiered721DelegateStore _dataSourceStore = new JBTiered721DelegateStore();
-        
-        // Expect the error at i+1 (as the floor is now smaller than i)
-        vm.expectRevert(abi.encodeWithSelector(JBTiered721DelegateStore.NO_QUANTITY.selector));
-        vm.etch(delegate_i, address(delegate).code);
-        JBTiered721Delegate _delegate = JBTiered721Delegate(delegate_i);
-        _delegate.initialize(
+
+        // Set the initial supply of the tier at `errorIndex` to 0. This should cause an error.
+        tiers[errorIndex].initialSupply = 0;
+        JB721TiersHookStore store = new JB721TiersHookStore();
+
+        // Expect the error.
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.NO_SUPPLY.selector));
+        vm.etch(hook_i, address(hook).code);
+        JB721TiersHook hook = JB721TiersHook(hook_i);
+        hook.initialize(
             projectId,
             name,
             symbol,
-            IJBFundingCycleStore(mockJBFundingCycleStore),
+            IJBRulesets(mockJBRulesets),
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
-            JB721PricingParams({tiers: _tiers, currency: 1, decimals: 18, prices: IJBPrices(address(0))}),
-            _dataSourceStore,
-            JBTiered721Flags({
+            JB721InitTiersConfig({
+                tiers: tiers,
+                currency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
+                decimals: 18,
+                prices: IJBPrices(address(0))
+            }),
+            store,
+            JB721TiersHookFlags({
                 preventOverspending: false,
-                lockReservedTokenChanges: true,
-                lockVotingUnitChanges: true,
-                lockManualMintingChanges: true
+                noNewTiersWithReserves: true,
+                noNewTiersWithVotes: true,
+                noNewTiersWithOwnerMinting: true
             })
         );
     }

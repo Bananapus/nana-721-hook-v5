@@ -1,1423 +1,1430 @@
-pragma solidity ^0.8.16;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.23;
 
 import "../utils/UnitTestSetup.sol";
 
-contract TestJuice721dDelegate_adjustTier_Unit is UnitTestSetup {
+contract Test_adjustTier_Unit is UnitTestSetup {
     using stdStorage for StdStorage;
 
-    function testJBTieredNFTRewardDelegate_tiers_adjustTier_remove_tiers_multiple_times(
+    function test_adjustTiers_removeTiersMultipleTimes(
         uint256 initialNumberOfTiers,
-        uint256 numberOfFloorTiersToAdd,
+        uint256 numberOfTiersToAdd,
         uint256 seed
-    ) public {
-        // Include adding X new tiers when 0 preexisting ones
+    )
+        public
+    {
+        // Include adding X new tiers with 0 current tiers.
         initialNumberOfTiers = bound(initialNumberOfTiers, 0, 10);
-        
-        numberOfFloorTiersToAdd = bound(numberOfFloorTiersToAdd, 4, 14);
-        uint16[] memory floorTiersToAdd = _createArray(numberOfFloorTiersToAdd, seed);
 
-        // Floor are sorted in ascending orderen
-        floorTiersToAdd = _sortArray(floorTiersToAdd);
+        numberOfTiersToAdd = bound(numberOfTiersToAdd, 4, 14);
+        uint16[] memory pricesForTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
-        // Initialize first tiers to add
-        JBTiered721Delegate _delegate = _initializeDelegateDefaultTiers(initialNumberOfTiers);
-        
-        // Create new tiers to add
-        (JB721TierParams[] memory _tiersParams,) = _createTiers(
-            defaultTierParams,
-            numberOfFloorTiersToAdd,
-            initialNumberOfTiers,
-            floorTiersToAdd);
+        // Sort tiers in ascending order.
+        pricesForTiersToAdd = _sortArray(pricesForTiersToAdd);
 
-        // remove 2 tiers and add the new ones
-        uint256 _tiersLeft = initialNumberOfTiers;
+        // Initialize the hook with default tiers.
+        JB721TiersHook hook = _initHookDefaultTiers(initialNumberOfTiers);
 
-        _tiersLeft = _addDeleteTiers(_delegate, _tiersLeft, 2, _tiersParams);
+        // Create the configs for the new tiers to add.
+        (JB721TierConfig[] memory tierConfigs,) =
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
 
-        // remove another 2 tiers but don't add any new ones
-        _addDeleteTiers(_delegate, _tiersLeft, 2, new JB721TierParams[](0));
+        // Remove 2 tiers and add the new ones. `_addDeleteTiers` calls `adjustTiers`.
+        uint256 tiersLeft = initialNumberOfTiers;
+        tiersLeft = _addDeleteTiers(hook, tiersLeft, 2, tierConfigs);
 
-        // Fecth max 100 tiers (will downsize)
-        JB721Tier[] memory _storedTiers = _delegate.store().tiersOf(
-            address(_delegate), new uint256[](0), false, 0, 100
-        );
-        // if the tiers have same category then the the tiers added last will have a lower index in the array
-        // else the tiers would be sorted by categories
-        for (uint256 i = 1; i < _storedTiers.length; i++) {
-            if (_storedTiers[i - 1].category == _storedTiers[i].category) {
-                assertGt(_storedTiers[i - 1].id, _storedTiers[i].id, "Sorting error if same cat");
+        // Remove another 2 tiers but don't add any new ones.
+        _addDeleteTiers(hook, tiersLeft, 2, new JB721TierConfig[](0));
+
+        // Fecth a maximum of 100 tiers (will downsize).
+        JB721Tier[] memory storedTiers = hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, 100);
+        // If the tiers have same category, then the the tiers added last will have a lower index in the array.
+        // Otherwise, the tiers would be sorted by categories.
+        for (uint256 i = 1; i < storedTiers.length; i++) {
+            if (storedTiers[i - 1].category == storedTiers[i].category) {
+                assertGt(storedTiers[i - 1].id, storedTiers[i].id, "Sorting error (if same category).");
             } else {
-                assertLt(_storedTiers[i - 1].category, _storedTiers[i].category, "Sorting error if diff cat");
+                assertLt(storedTiers[i - 1].category, storedTiers[i].category, "Sorting error (if different category).");
             }
-        }   
+        }
     }
 
-    function testJBTieredNFTRewardDelegate_tiers_added_recently_fetched_first_sorted_category_wise_after_tiers_have_been_cleaned(
+    function test_tiersOf_recentlyAddedTiersFetchedFirstWhenSortedAfterTiersCleaned(
         uint256 initialNumberOfTiers,
-        uint256 numberOfFloorTiersToAdd,
+        uint256 numberOfTiersToAdd,
         uint256 seed
-    ) public {
+    )
+        public
+    {
         initialNumberOfTiers = bound(initialNumberOfTiers, 3, 14);
-        numberOfFloorTiersToAdd = bound(numberOfFloorTiersToAdd, 1, 15);
-        uint16[] memory floorTiersToAdd = _createArray(numberOfFloorTiersToAdd, seed);
+        numberOfTiersToAdd = bound(numberOfTiersToAdd, 1, 15);
+        uint16[] memory pricesForTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
-        // Floor are sorted in ascending orderen
-        floorTiersToAdd = _sortArray(floorTiersToAdd);
+        // Sort tiers in ascending order.
+        pricesForTiersToAdd = _sortArray(pricesForTiersToAdd);
 
-        JBTiered721Delegate _delegate = _initializeDelegateDefaultTiers(initialNumberOfTiers);
+        JB721TiersHook hook = _initHookDefaultTiers(initialNumberOfTiers);
 
-        // Create new tiers to add
-        uint256 _currentNumberOfTiers = initialNumberOfTiers;
+        // Create the new tiers to add.
+        uint256 currentNumberOfTiers = initialNumberOfTiers;
 
-        (JB721TierParams[] memory _tiersParamsToAdd,) = _createTiers(
-            defaultTierParams,
-            numberOfFloorTiersToAdd,
-            initialNumberOfTiers,
-            floorTiersToAdd);
+        (JB721TierConfig[] memory tierConfigsToAdd,) =
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
 
-        _currentNumberOfTiers = _addDeleteTiers(_delegate, _currentNumberOfTiers, 0, _tiersParamsToAdd);
-        _currentNumberOfTiers = _addDeleteTiers(_delegate, _currentNumberOfTiers, 2, _tiersParamsToAdd);
+        currentNumberOfTiers = _addDeleteTiers(hook, currentNumberOfTiers, 0, tierConfigsToAdd);
+        currentNumberOfTiers = _addDeleteTiers(hook, currentNumberOfTiers, 2, tierConfigsToAdd);
 
-        JB721Tier[] memory _storedTiers = _delegate.store().tiersOf(
-            address(_delegate), new uint256[](0), false, 0, 100
-        );
+        JB721Tier[] memory storedTiers = hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, 100);
 
-        assertEq(_storedTiers.length, _currentNumberOfTiers, "Length mismatch");
-        // if the tiers have same category then the the tiers added last will have a lower index in the array
-        // else the tiers would be sorted by categories
-        for (uint256 i = 1; i < _storedTiers.length; i++) {
-            if (_storedTiers[i - 1].category == _storedTiers[i].category) {
-                assertGt(_storedTiers[i - 1].id, _storedTiers[i].id, "Sorting error if same cat");
+        assertEq(storedTiers.length, currentNumberOfTiers, "Length mismatch.");
+        // If the tiers have same category, then the tiers added last will have a lower index in the array.
+        // Otherwise, the tiers would be sorted by categories.
+        for (uint256 i = 1; i < storedTiers.length; i++) {
+            if (storedTiers[i - 1].category == storedTiers[i].category) {
+                assertGt(storedTiers[i - 1].id, storedTiers[i].id, "Sorting error (if same category).");
             } else {
-                assertLt(_storedTiers[i - 1].category, _storedTiers[i].category, "Sorting error if diff cat");
+                assertLt(storedTiers[i - 1].category, storedTiers[i].category, "Sorting error (if different category).");
             }
         }
     }
 
-    function testJBTieredNFTRewardDelegate_tiers_added_recently_fetched_first_sorted_category_wise(
+    function test_tiersOf_recentlyAddedTiersFetchedFirstWhenSorted(
         uint256 initialNumberOfTiers,
-        uint256 numberOfFloorTiersToAdd,
+        uint256 numberOfTiersToAdd,
         uint256 seed
-    ) public {
-        // Include adding X new tiers when 0 preexisting ones
+    )
+        public
+    {
+        // Include adding X new tiers with 0 current tiers.
         initialNumberOfTiers = bound(initialNumberOfTiers, 0, 10);
-        
-        numberOfFloorTiersToAdd = bound(numberOfFloorTiersToAdd, 4, 14);
-        uint16[] memory floorTiersToAdd = _createArray(numberOfFloorTiersToAdd, seed);
 
-        // Floor are sorted in ascending orderen
-        floorTiersToAdd = _sortArray(floorTiersToAdd);
+        numberOfTiersToAdd = bound(numberOfTiersToAdd, 4, 14);
+        uint16[] memory pricesForTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
-        // Initialize first tiers to add
-        JBTiered721Delegate _delegate = _initializeDelegateDefaultTiers(initialNumberOfTiers);
-        
-        // Create new tiers to add
-        (JB721TierParams[] memory _tiersParams,) = _createTiers(
-            defaultTierParams,
-            numberOfFloorTiersToAdd,
-            initialNumberOfTiers,
-            floorTiersToAdd);
+        // Sort tiers in ascending order.
+        pricesForTiersToAdd = _sortArray(pricesForTiersToAdd);
 
-        // remove 2 tiers and add the new ones
-        uint256 _tiersLeft = initialNumberOfTiers;
+        // Initialize the hook with default tiers.
+        JB721TiersHook hook = _initHookDefaultTiers(initialNumberOfTiers);
 
-        _tiersLeft = _addDeleteTiers(_delegate, _tiersLeft, 0, _tiersParams);
+        // Create the new tiers to add.
+        (JB721TierConfig[] memory tierConfigs,) =
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
 
-        JB721Tier[] memory _storedTiers = _delegate.store().tiersOf(
-            address(_delegate), new uint256[](0), false, 0, 100
-        );
-        // if the tiers have same category then the the tiers added last will have a lower index in the array
-        // else the tiers would be sorted by categories
-        for (uint256 i = 1; i < _storedTiers.length; i++) {
-            if (_storedTiers[i - 1].category == _storedTiers[i].category) {
-                assertGt(_storedTiers[i - 1].id, _storedTiers[i].id, "Sorting error if same cat");
+        // Add the new tiers.
+        uint256 tiersLeft = initialNumberOfTiers;
+
+        tiersLeft = _addDeleteTiers(hook, tiersLeft, 0, tierConfigs);
+
+        JB721Tier[] memory storedTiers = hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, 100);
+        // If the tiers have same category, then the tiers added last will have a lower index in the array.
+        // Otherwise, the tiers would be sorted by categories.
+        for (uint256 i = 1; i < storedTiers.length; i++) {
+            if (storedTiers[i - 1].category == storedTiers[i].category) {
+                assertGt(storedTiers[i - 1].id, storedTiers[i].id, "Sorting error (if same category).");
             } else {
-                assertLt(_storedTiers[i - 1].category, _storedTiers[i].category, "Sorting error if diff cat");
+                assertLt(storedTiers[i - 1].category, storedTiers[i].category, "Sorting error (if different category).");
             }
         }
     }
 
-    function testJBTieredNFTRewardDelegate_adjustTiers_addNewTiers_With_Non_Sequential_Categories(
+    function test_adjustTiers_addNewTiersWithNonSequentialCategories(
         uint256 initialNumberOfTiers,
-        uint256 numberOfFloorTiersToAdd,
+        uint256 numberOfTiersToAdd,
         uint256 seed
-    ) public {
+    )
+        public
+    {
         initialNumberOfTiers = bound(initialNumberOfTiers, 2, 10);
-        
-        numberOfFloorTiersToAdd = bound(numberOfFloorTiersToAdd, 4, 14);
-        uint16[] memory floorTiersToAdd = _createArray(numberOfFloorTiersToAdd, seed);
 
-        // Floor are sorted in ascending orderen
-        floorTiersToAdd = _sortArray(floorTiersToAdd);
+        numberOfTiersToAdd = bound(numberOfTiersToAdd, 4, 14);
+        uint16[] memory pricesForTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
-        // Initialize first tiers to add
-        JBTiered721Delegate _delegate = _initializeDelegateDefaultTiers(initialNumberOfTiers);
+        // Sort tiers in ascending order.
+        pricesForTiersToAdd = _sortArray(pricesForTiersToAdd);
 
-        JB721Tier[] memory _defaultStoredTiers = _delegate.store().tiersOf(
-            address(_delegate), new uint256[](0), false, 0, 100
-        );
-        
-        // Create new tiers to add
-        (JB721TierParams[] memory _tiersParamsToAdd, JB721Tier[] memory _tiersToAdd) = _createTiers(
-            defaultTierParams,
-            numberOfFloorTiersToAdd,
-            initialNumberOfTiers,
-            floorTiersToAdd,
-            2);
+        // Initialize the hook with default tiers.
+        JB721TiersHook hook = _initHookDefaultTiers(initialNumberOfTiers);
 
-        // remove 2 tiers and add the new ones
-        uint256 _tiersLeft = initialNumberOfTiers;
+        JB721Tier[] memory defaultStoredTiers = hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, 100);
 
-        _tiersLeft = _addDeleteTiers(_delegate, _tiersLeft, 0, _tiersParamsToAdd);
+        // Create the new tiers to add.
+        (JB721TierConfig[] memory tierConfigsToAdd, JB721Tier[] memory tiersToAdd) =
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd, 2);
 
-        JB721Tier[] memory _storedTiers = _delegate.store().tiersOf(
-            address(_delegate), new uint256[](0), false, 0, 100
-        );
+        // Add the new tiers.
+        uint256 tiersLeft = initialNumberOfTiers;
 
-        // Check: Expected number of tiers?
-        assertEq(_storedTiers.length, _tiersLeft, "Length mismatch");
-        
-        // Check: Are all tiers in the new tiers (unsorted)?
-        assertTrue(_isIn(_defaultStoredTiers, _storedTiers), "Original not included"); // Original tiers
-        assertTrue(_isIn(_tiersToAdd, _storedTiers), "New not included"); // New tiers
+        tiersLeft = _addDeleteTiers(hook, tiersLeft, 0, tierConfigsToAdd);
 
-        // Check: Are all the tiers sorted?
-        for (uint256 i = 1; i < _storedTiers.length; i++) {
-            assertLt(_storedTiers[i - 1].category, _storedTiers[i].category, "Sorting error");
+        JB721Tier[] memory storedTiers = hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, 100);
+
+        // Check: was the expected number of tiers returned?
+        assertEq(storedTiers.length, tiersLeft, "Length mismatch.");
+
+        // Check: are all tiers in the new tiers (unsorted)?
+        assertTrue(_isIn(defaultStoredTiers, storedTiers), "Original tiers not stored."); // Original tiers
+        assertTrue(_isIn(tiersToAdd, storedTiers), "Added tiers not stored."); // New tiers
+
+        // Check: are all the tiers sorted?
+        for (uint256 i = 1; i < storedTiers.length; i++) {
+            assertLt(storedTiers[i - 1].category, storedTiers[i].category, "Sorting error.");
         }
     }
 
-    function testJBTieredNFTRewardDelegate_adjustTiers_addNewTiers(
+    function test_adjustTiers_addNewTiers(
         uint256 initialNumberOfTiers,
-        uint256 numberOfFloorTiersToAdd,
+        uint256 numberOfTiersToAdd,
         uint256 seed
-    ) public {
-        // Include adding X new tiers when 0 preexisting ones
+    )
+        public
+    {
+        // Include adding X new tiers with 0 current tiers.
         initialNumberOfTiers = bound(initialNumberOfTiers, 0, 10);
-        
-        numberOfFloorTiersToAdd = bound(numberOfFloorTiersToAdd, 4, 14);
-        uint16[] memory floorTiersToAdd = _createArray(numberOfFloorTiersToAdd, seed);
 
-        // Floor are sorted in ascending orderen
-        floorTiersToAdd = _sortArray(floorTiersToAdd);
+        numberOfTiersToAdd = bound(numberOfTiersToAdd, 4, 14);
+        uint16[] memory pricesForTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
-        // Initialize first tiers to add
-        JBTiered721Delegate _delegate = _initializeDelegateDefaultTiers(initialNumberOfTiers);
+        // Sort tiers in ascending order.
+        pricesForTiersToAdd = _sortArray(pricesForTiersToAdd);
 
-        JB721Tier[] memory _intialTiers = _delegate.store().tiersOf(
-            address(_delegate), new uint256[](0), false, 0, 100
-        );
-        
-        // Create new tiers to add
-        (JB721TierParams[] memory _tiersParams, JB721Tier[] memory _tiersAdded) = _createTiers(
-            defaultTierParams,
-            numberOfFloorTiersToAdd,
-            initialNumberOfTiers,
-            floorTiersToAdd);
+        // Initialize the hook with default tiers.
+        JB721TiersHook hook = _initHookDefaultTiers(initialNumberOfTiers);
 
-        // remove 2 tiers and add the new ones
-        uint256 _tiersLeft = initialNumberOfTiers;
+        JB721Tier[] memory intialTiers = hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, 100);
 
-        _addDeleteTiers(_delegate, _tiersLeft, 0, _tiersParams);
+        // Create the new tiers to add.
+        (JB721TierConfig[] memory tierConfigs, JB721Tier[] memory tiersAdded) =
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
 
-        JB721Tier[] memory _storedTiers = _delegate.store().tiersOf(
-            address(_delegate), new uint256[](0), false, 0, 100
-        );
+        // Add the new tiers.
+        uint256 tiersLeft = initialNumberOfTiers;
 
-        // Check: Expected number of tiers?
-        assertEq(_storedTiers.length, _intialTiers.length + _tiersAdded.length, "Length mismatch");
+        _addDeleteTiers(hook, tiersLeft, 0, tierConfigs);
 
-        // Check: Are all tiers in the new tiers (unsorted)?
-        assertTrue(_isIn(_intialTiers, _storedTiers), "original tiers not found"); // Original tiers
-        assertTrue(_isIn(_tiersAdded, _storedTiers), "new tiers not found"); // New tiers
+        JB721Tier[] memory storedTiers = hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, 100);
 
-        // Check: Are all the tiers sorted?
-        for (uint256 i = 1; i < _storedTiers.length; i++) {
-            assertLe(_storedTiers[i - 1].category, _storedTiers[i].category, "Sorting error");
+        // Check: was the expected number of tiers returned?
+        assertEq(storedTiers.length, intialTiers.length + tiersAdded.length, "Length mismatch.");
+
+        // Check: are all tiers in the new tiers (unsorted)?
+        assertTrue(_isIn(intialTiers, storedTiers), "original tiers not found"); // Original tiers
+        assertTrue(_isIn(tiersAdded, storedTiers), "new tiers not found"); // New tiers
+
+        // Check: are all the tiers sorted?
+        for (uint256 i = 1; i < storedTiers.length; i++) {
+            assertLe(storedTiers[i - 1].category, storedTiers[i].category, "Sorting error");
         }
     }
 
-    function testJBTieredNFTRewardDelegate_adjustTiers_with_same_category_multiple_times(
+    function test_adjustTiers_withSameCategoryMultipleTimes(
         uint256 initialNumberOfTiers,
-        uint256 numberOfFloorTiersToAdd,
+        uint256 numberOfTiersToAdd,
         uint256 seed
-    ) public {
+    )
+        public
+    {
         initialNumberOfTiers = bound(initialNumberOfTiers, 2, 10);
-        numberOfFloorTiersToAdd = bound(numberOfFloorTiersToAdd, 4, 14);
+        numberOfTiersToAdd = bound(numberOfTiersToAdd, 4, 14);
 
-        uint16[] memory floorTiersToAdd = _createArray(numberOfFloorTiersToAdd, seed);
+        uint16[] memory pricesForTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
-        // Floor are sorted in ascending orderen
-        floorTiersToAdd = _sortArray(floorTiersToAdd);
+        // Sort tiers in ascending order.
+        pricesForTiersToAdd = _sortArray(pricesForTiersToAdd);
 
-        // Initialize first tiers to add, uing a given category
-        defaultTierParams.category = 100;
-        JBTiered721Delegate _delegate = _initializeDelegateDefaultTiers(initialNumberOfTiers);
-        
-        // Create new tiers to add, with another category
-        defaultTierParams.category = 101;
-        (JB721TierParams[] memory _tiersParamsToAdd, JB721Tier[] memory _tiersToAdd) = _createTiers(
-            defaultTierParams,
-            numberOfFloorTiersToAdd,
-            initialNumberOfTiers,
-            floorTiersToAdd);
+        // Initialize the hook with default tiers of a given category.
+        defaultTierConfig.category = 100;
+        JB721TiersHook hook = _initHookDefaultTiers(initialNumberOfTiers);
 
-        // add the new tiers
-        _addDeleteTiers(_delegate, 0, 0, _tiersParamsToAdd);
+        // Create new tiers to add with a new category.
+        defaultTierConfig.category = 101;
+        (JB721TierConfig[] memory tierConfigsToAdd, JB721Tier[] memory tiersToAdd) =
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
 
-        // Create new tiers to add, with same category and different prices
-        (_tiersParamsToAdd, _tiersToAdd) = _createTiers(
-            defaultTierParams,
-            numberOfFloorTiersToAdd);
+        // Add the new tiers.
+        _addDeleteTiers(hook, 0, 0, tierConfigsToAdd);
 
-        _addDeleteTiers(_delegate, 0, 0, _tiersParamsToAdd);
+        (tierConfigsToAdd, tiersToAdd) = _createTiers(defaultTierConfig, numberOfTiersToAdd);
 
-        // Check: All tiers stored?
-        JB721Tier[] memory _storedTiers = _delegate.store().tiersOf(
-            address(_delegate), new uint256[](0), false, 0, 100
-        );
-        assertEq(_storedTiers.length, initialNumberOfTiers + floorTiersToAdd.length * 2);
+        _addDeleteTiers(hook, 0, 0, tierConfigsToAdd);
 
-        // Check: Are all tiers in the new tiers (unsorted)?
-        uint256[] memory _categories = new uint256[](1);
-        _categories[0] = 101;
+        // Check: are all tiers stored?
+        JB721Tier[] memory storedTiers = hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, 100);
+        assertEq(storedTiers.length, initialNumberOfTiers + pricesForTiersToAdd.length * 2);
 
-        JB721Tier[] memory _stored101Tiers =
-            _delegate.store().tiersOf(address(_delegate), _categories, false, 0, floorTiersToAdd.length * 2);
+        // Check: are all tiers in the new tiers (unsorted)?
+        uint256[] memory categories = new uint256[](1);
+        categories[0] = 101;
 
-        assertEq(_stored101Tiers.length, floorTiersToAdd.length * 2);
+        JB721Tier[] memory stored101Tiers =
+            hook.STORE().tiersOf(address(hook), categories, false, 0, pricesForTiersToAdd.length * 2);
 
-        // Check: Are all the tiers in the initial tiers?
-        _categories[0] = 100;
-        JB721Tier[] memory _stored100Tiers =
-            _delegate.store().tiersOf(address(_delegate), _categories, false, 0, 100);
-        assertEq(_stored100Tiers.length, initialNumberOfTiers);
+        assertEq(stored101Tiers.length, pricesForTiersToAdd.length * 2);
 
-        // Check: Order
-        for (uint256 i; i < floorTiersToAdd.length; i++) {
-            assertGt(_stored101Tiers[i].id, _stored101Tiers[i + floorTiersToAdd.length].id);
+        // Check: are all the tiers in the initial tiers?
+        categories[0] = 100;
+        JB721Tier[] memory stored100Tiers = hook.STORE().tiersOf(address(hook), categories, false, 0, 100);
+        assertEq(stored100Tiers.length, initialNumberOfTiers);
+
+        // Check: are the tiers sorted correctly?
+        for (uint256 i; i < pricesForTiersToAdd.length; i++) {
+            assertGt(stored101Tiers[i].id, stored101Tiers[i + pricesForTiersToAdd.length].id);
         }
     }
 
-    function testJBTieredNFTRewardDelegate_adjustTiers_with_different_categories(
+    function test_adjustTiers_withDifferentCategories(
         uint256 initialNumberOfTiers,
-        uint256 numberOfFloorTiersToAdd,
+        uint256 numberOfTiersToAdd,
         uint256 seed
-    ) public {
-        // Include adding X new tiers when 0 preexisting ones
+    )
+        public
+    {
+        // Include adding X new tiers with 0 current tiers.
         initialNumberOfTiers = bound(initialNumberOfTiers, 1, 10);
-        
-        numberOfFloorTiersToAdd = bound(numberOfFloorTiersToAdd, 1, 10);
-        uint16[] memory floorTiersToAdd = _createArray(numberOfFloorTiersToAdd, seed);
 
-        // Floor are sorted in ascending orderen
-        floorTiersToAdd = _sortArray(floorTiersToAdd);
+        numberOfTiersToAdd = bound(numberOfTiersToAdd, 1, 10);
+        uint16[] memory pricesForTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
-        // Initialize first tiers to add
-        defaultTierParams.category = 100;
-        JBTiered721Delegate _delegate = _initializeDelegateDefaultTiers(initialNumberOfTiers);
+        // Sort tiers in ascending order.
+        pricesForTiersToAdd = _sortArray(pricesForTiersToAdd);
 
-        // Create new tiers to add
-        defaultTierParams.category = 101;
-        (JB721TierParams[] memory _tiersParams, JB721Tier[] memory _tiersAdded) = _createTiers(
-            defaultTierParams,
-            numberOfFloorTiersToAdd,
-            initialNumberOfTiers,
-            floorTiersToAdd);
+        // Initialize the hook with default tiers.
+        defaultTierConfig.category = 100;
+        JB721TiersHook hook = _initHookDefaultTiers(initialNumberOfTiers);
 
-        // Add the new tiers
-        uint256 _tiersLeft = initialNumberOfTiers;
+        // Create new tiers to add.
+        defaultTierConfig.category = 101;
+        (JB721TierConfig[] memory tierConfigs, JB721Tier[] memory tiersAdded) =
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
 
-        _tiersLeft = _addDeleteTiers(_delegate, _tiersLeft, 0, _tiersParams);
+        // Add the new tiers.
+        uint256 tiersLeft = initialNumberOfTiers;
 
-        defaultTierParams.category = 102;
-        (_tiersParams, _tiersAdded) = _createTiers(
-            defaultTierParams,
-            numberOfFloorTiersToAdd,
-            initialNumberOfTiers,
-            floorTiersToAdd);
+        tiersLeft = _addDeleteTiers(hook, tiersLeft, 0, tierConfigs);
 
-        // Add the new tiers
-        _tiersLeft = _addDeleteTiers(_delegate, _tiersLeft, 0, _tiersParams);
+        defaultTierConfig.category = 102;
+        (tierConfigs, tiersAdded) =
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
 
-        JB721Tier[] memory _allStoredTiers = _delegate.store().tiersOf(
-            address(_delegate), new uint256[](0), false, 0, 100
-        );
+        // Add the new tiers.
+        tiersLeft = _addDeleteTiers(hook, tiersLeft, 0, tierConfigs);
 
+        JB721Tier[] memory allStoredTiers = hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, 100);
 
-        uint256[] memory _categories = new uint256[](1);
-        _categories[0] = 102;
-        JB721Tier[] memory _stored102Tiers =
-            _delegate.store().tiersOf(address(_delegate), _categories, false, 0, 100);
+        uint256[] memory categories = new uint256[](1);
+        categories[0] = 102;
+        JB721Tier[] memory stored102Tiers = hook.STORE().tiersOf(address(hook), categories, false, 0, 100);
 
-        assertEq(_stored102Tiers.length, floorTiersToAdd.length);
+        // Check: does the number of stored 102 tiers match the number of tiers that were added?
+        assertEq(stored102Tiers.length, pricesForTiersToAdd.length);
 
-        for (uint256 i = 0; i < _stored102Tiers.length; i++) {
-            assertEq(_stored102Tiers[i].category, uint8(102));
+        // Ensure that each stored 102 tier has category `102`.
+        for (uint256 i = 0; i < stored102Tiers.length; i++) {
+            assertEq(stored102Tiers[i].category, uint8(102));
         }
 
-        _categories[0] = 101;
+        categories[0] = 101;
 
-        JB721Tier[] memory _stored101Tiers =
-            _delegate.store().tiersOf(address(_delegate), _categories, false, 0, 100);
+        JB721Tier[] memory stored101Tiers = hook.STORE().tiersOf(address(hook), categories, false, 0, 100);
 
-        assertEq(_stored101Tiers.length, floorTiersToAdd.length);
+        // Check: does the number of stored 101 tiers match the number of tiers that were added?
+        assertEq(stored101Tiers.length, pricesForTiersToAdd.length);
 
-        for (uint256 i = 0; i < _stored101Tiers.length; i++) {
-            assertEq(_stored101Tiers[i].category, uint8(101));
+        // Check: does each stored 101 tier have category `101`?
+        for (uint256 i = 0; i < stored101Tiers.length; i++) {
+            assertEq(stored101Tiers[i].category, uint8(101));
         }
 
-        for (uint256 i = 1; i < initialNumberOfTiers + floorTiersToAdd.length * 2; i++) {
-            assertGt(_allStoredTiers[i].id, _allStoredTiers[i - 1].id);
-            assertLe(_allStoredTiers[i - 1].category, _allStoredTiers[i].category);
+        // Ensure that the tiers are sorted.
+        for (uint256 i = 1; i < initialNumberOfTiers + pricesForTiersToAdd.length * 2; i++) {
+            assertGt(allStoredTiers[i].id, allStoredTiers[i - 1].id);
+            assertLe(allStoredTiers[i - 1].category, allStoredTiers[i].category);
         }
     }
 
-    function testJBTieredNFTRewardDelegate_adjustTiers_with_0_category(
+    function test_adjustTiers_withZeroCategory(
         uint256 initialNumberOfTiers,
-        uint256 numberOfFloorTiersToAdd,
+        uint256 numberOfTiersToAdd,
         uint256 seed
-    ) public {
+    )
+        public
+    {
         initialNumberOfTiers = bound(initialNumberOfTiers, 2, 10);
-        
-        numberOfFloorTiersToAdd = bound(numberOfFloorTiersToAdd, 4, 14);
-        uint16[] memory floorTiersToAdd = _createArray(numberOfFloorTiersToAdd, seed);
 
-        // Floor are sorted in ascending orderen
-        floorTiersToAdd = _sortArray(floorTiersToAdd);
+        numberOfTiersToAdd = bound(numberOfTiersToAdd, 4, 14);
+        uint16[] memory pricesForTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
-        // Initialize first tiers to add, category 0
-        defaultTierParams.category = 0;
-        JBTiered721Delegate _delegate = _initializeDelegateDefaultTiers(initialNumberOfTiers);
-        
-        // Create new tiers to add
-        defaultTierParams.category = 5;
-        (JB721TierParams[] memory _tiersParamsToAdd,) = _createTiers(
-            defaultTierParams,
-            numberOfFloorTiersToAdd,
-            initialNumberOfTiers,
-            floorTiersToAdd,
-            2);
+        // Sort tiers in ascending order.
+        pricesForTiersToAdd = _sortArray(pricesForTiersToAdd);
 
-        uint256 _tiersLeft = initialNumberOfTiers;
-        _tiersLeft = _addDeleteTiers(_delegate, _tiersLeft, 0, _tiersParamsToAdd);
+        // Use category 0 for the default tiers.
+        defaultTierConfig.category = 0;
 
-        uint256[] memory _categories = new uint256[](1);
-        _categories[0] = 0;
-        JB721Tier[] memory _allStoredTiers =
-            _delegate.store().tiersOf(address(_delegate), _categories, false, 0, 100);
+        // Initialize the hook with default tiers.
+        JB721TiersHook hook = _initHookDefaultTiers(initialNumberOfTiers);
 
-        assertEq(_allStoredTiers.length, initialNumberOfTiers);
-        for (uint256 i = 0; i < _allStoredTiers.length; i++) {
-            assertEq(_allStoredTiers[i].category, uint8(0));
+        // Create new tiers to add.
+        defaultTierConfig.category = 5;
+        (JB721TierConfig[] memory tierConfigsToAdd,) =
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd, 2);
+
+        // Add the new tiers.
+        uint256 tiersLeft = initialNumberOfTiers;
+        tiersLeft = _addDeleteTiers(hook, tiersLeft, 0, tierConfigsToAdd);
+
+        // Get all stored tiers (category 0 gets all).
+        uint256[] memory categories = new uint256[](1);
+        categories[0] = 0;
+        JB721Tier[] memory allStoredTiers = hook.STORE().tiersOf(address(hook), categories, false, 0, 100);
+
+        // Check: does the number of stored tiers match the number of tiers that were added?
+        assertEq(allStoredTiers.length, initialNumberOfTiers);
+        // Check: does each stored tier have category `0`?
+        for (uint256 i = 0; i < allStoredTiers.length; i++) {
+            assertEq(allStoredTiers[i].category, uint8(0));
         }
     }
 
-    function testJBTieredNFTRewardDelegate_adjustTiers_with_different_categories_and_fetched_together(
+    function test_adjustTiers_withDifferentCategoriesAndFetchedTogether(
         uint256 initialNumberOfTiers,
-        uint256 numberOfFloorTiersToAdd,
+        uint256 numberOfTiersToAdd,
         uint256 seed
-    ) public {
+    )
+        public
+    {
         initialNumberOfTiers = bound(initialNumberOfTiers, 1, 14);
-        
-        numberOfFloorTiersToAdd = bound(numberOfFloorTiersToAdd, 1, 14);
-        uint16[] memory floorTiersToAdd = _createArray(numberOfFloorTiersToAdd, seed);
 
-        // Floor are sorted in ascending orderen
-        floorTiersToAdd = _sortArray(floorTiersToAdd);
+        numberOfTiersToAdd = bound(numberOfTiersToAdd, 1, 14);
+        uint16[] memory pricesForTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
-        // Initialize first tiers to add, category 0
-        defaultTierParams.category = 100;
-        JBTiered721Delegate _delegate = _initializeDelegateDefaultTiers(initialNumberOfTiers);
-        
-        // Create new tiers to add
-        defaultTierParams.category = 101;
-        (JB721TierParams[] memory _tiersParamsToAdd, ) = _createTiers(
-            defaultTierParams,
-            numberOfFloorTiersToAdd,
-            initialNumberOfTiers,
-            floorTiersToAdd);
+        // Sort tiers in ascending order.
+        pricesForTiersToAdd = _sortArray(pricesForTiersToAdd);
 
-        uint256 _tiersLeft = initialNumberOfTiers;
-        _tiersLeft = _addDeleteTiers(_delegate, _tiersLeft, 0, _tiersParamsToAdd);
+        // Initialize the hook with default tiers of category 100.
+        defaultTierConfig.category = 100;
+        JB721TiersHook hook = _initHookDefaultTiers(initialNumberOfTiers);
 
-        defaultTierParams.category = 102;
-        (_tiersParamsToAdd, ) = _createTiers(
-            defaultTierParams,
-            numberOfFloorTiersToAdd,
-            initialNumberOfTiers,
-            floorTiersToAdd);
+        // Create new tiers to add (with category 101).
+        defaultTierConfig.category = 101;
+        (JB721TierConfig[] memory tierConfigsToAdd,) =
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
 
-        _tiersLeft = _addDeleteTiers(_delegate, _tiersLeft, 0, _tiersParamsToAdd);
+        // Add the 101 tiers.
+        uint256 tiersLeft = initialNumberOfTiers;
+        tiersLeft = _addDeleteTiers(hook, tiersLeft, 0, tierConfigsToAdd);
 
+        // Create new tiers to add (with category 102).
+        defaultTierConfig.category = 102;
+        (tierConfigsToAdd,) =
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
 
-        uint256[] memory _categories = new uint256[](3);
-        _categories[0] = 102;
-        _categories[1] = 100;
-        _categories[2] = 101;
-        JB721Tier[] memory _allStoredTiers = _delegate.store().tiersOf(
-            address(_delegate), _categories, false, 0, 100
+        // Add the 102 tiers.
+        tiersLeft = _addDeleteTiers(hook, tiersLeft, 0, tierConfigsToAdd);
+
+        // Get the stored tiers with categories 100-102.
+        uint256[] memory categories = new uint256[](3);
+        categories[0] = 102;
+        categories[1] = 100;
+        categories[2] = 101;
+        JB721Tier[] memory allStoredTiers = hook.STORE().tiersOf(address(hook), categories, false, 0, 100);
+
+        // Check: are the correct number of tiers stored?
+        assertEq(
+            allStoredTiers.length, initialNumberOfTiers + pricesForTiersToAdd.length * 2, "Wrong total number of tiers."
         );
 
-        assertEq(_allStoredTiers.length, initialNumberOfTiers + floorTiersToAdd.length * 2, "Wrong total number of tiers");
-        
-        uint256 tier_100_max_index = _allStoredTiers.length - floorTiersToAdd.length;
-        
-        for (uint256 i = 0; i < floorTiersToAdd.length; i++) {
-            assertEq(_allStoredTiers[i].category, uint8(102), "wrong first cat");
+        uint256 maxIndexForTier100 = allStoredTiers.length - pricesForTiersToAdd.length;
+
+        // Check: do the tiers have the correct categories?
+        for (uint256 i = 0; i < pricesForTiersToAdd.length; i++) {
+            assertEq(allStoredTiers[i].category, uint8(102), "Wrong, first category (102).");
         }
 
-        for (uint256 i = floorTiersToAdd.length; i < tier_100_max_index; i++) {
-            assertEq(_allStoredTiers[i].category, uint8(100), "wrong second cat");
+        for (uint256 i = pricesForTiersToAdd.length; i < maxIndexForTier100; i++) {
+            assertEq(allStoredTiers[i].category, uint8(100), "Wrong, second category (100).");
         }
 
-        for (uint256 i = tier_100_max_index; i < _allStoredTiers.length; i++) {
-            assertEq(_allStoredTiers[i].category, uint8(101), "wrong third cat");
+        for (uint256 i = maxIndexForTier100; i < allStoredTiers.length; i++) {
+            assertEq(allStoredTiers[i].category, uint8(101), "Wrong, third category (101).");
         }
     }
 
-    function testJBTieredNFTRewardDelegate_adjustTiers_addNewTiers_fetch_specifc_tier(
+    function test_adjustTiers_addNewTiers_fetchSpecificTier(
         uint256 initialNumberOfTiers,
-        uint256 numberOfFloorTiersToAdd,
+        uint256 numberOfTiersToAdd,
         uint256 seed
-    ) public {
+    )
+        public
+    {
         initialNumberOfTiers = bound(initialNumberOfTiers, 1, 14);
-        
-        numberOfFloorTiersToAdd = bound(numberOfFloorTiersToAdd, 1, 14);
-        uint16[] memory floorTiersToAdd = _createArray(numberOfFloorTiersToAdd, seed);
 
-        // Floor are sorted in ascending orderen
-        floorTiersToAdd = _sortArray(floorTiersToAdd);
+        numberOfTiersToAdd = bound(numberOfTiersToAdd, 1, 14);
+        uint16[] memory pricesForTiersToAdd = _createArray(numberOfTiersToAdd, seed);
 
-        // Initialize first tiers to add, category 0
-        defaultTierParams.category = 100;
-        JBTiered721Delegate _delegate = _initializeDelegateDefaultTiers(initialNumberOfTiers);
-        
-        // Create new tiers to add
-        defaultTierParams.category = 101;
-        (JB721TierParams[] memory _tiersParamsToAdd, ) = _createTiers(
-            defaultTierParams,
-            numberOfFloorTiersToAdd,
-            initialNumberOfTiers,
-            floorTiersToAdd);
+        // Sort tiers in ascending order.
+        pricesForTiersToAdd = _sortArray(pricesForTiersToAdd);
 
-        uint256 _tiersLeft = initialNumberOfTiers;
-        _tiersLeft = _addDeleteTiers(_delegate, _tiersLeft, 0, _tiersParamsToAdd);
+        // Initialize hook with default tiers from category 100.
+        defaultTierConfig.category = 100;
+        JB721TiersHook hook = _initHookDefaultTiers(initialNumberOfTiers);
 
-        uint256[] memory _categories = new uint256[](1);
-        _categories[0] = 101;
-        JB721Tier[] memory _storedTiers = _delegate.store().tiersOf(
-            address(_delegate), _categories, false, 0, initialNumberOfTiers + floorTiersToAdd.length
-        );
-        // check no of tiers
-        assertEq(_storedTiers.length, floorTiersToAdd.length);
-        // Check: Are all the tiers sorted?
-        for (uint256 i = 0; i < _storedTiers.length; i++) {
-            assertEq(_storedTiers[i].category, uint8(101));
+        // Create new tiers to add (with category 101).
+        defaultTierConfig.category = 101;
+        (JB721TierConfig[] memory tierConfigsToAdd,) =
+            _createTiers(defaultTierConfig, numberOfTiersToAdd, initialNumberOfTiers, pricesForTiersToAdd);
+
+        // Add the new tiers
+        uint256 tiersLeft = initialNumberOfTiers;
+        tiersLeft = _addDeleteTiers(hook, tiersLeft, 0, tierConfigsToAdd);
+
+        // Get the tiers from category 101.
+        uint256[] memory categories = new uint256[](1);
+        categories[0] = 101;
+        JB721Tier[] memory storedTiers =
+            hook.STORE().tiersOf(address(hook), categories, false, 0, initialNumberOfTiers + pricesForTiersToAdd.length);
+
+        // Check: does the number of stored tiers match the number of tiers that were added?
+        assertEq(storedTiers.length, pricesForTiersToAdd.length);
+
+        // Check: do the tiers have category 101?
+        for (uint256 i = 0; i < storedTiers.length; i++) {
+            assertEq(storedTiers[i].category, uint8(101));
         }
     }
 
-    function testJBTieredNFTRewardDelegate_adjustTiers_removeTiers(
+    function test_adjustTiers_removeTiers(
         uint256 initialNumberOfTiers,
         uint256 seed,
         uint256 numberOfTiersToRemove
-    ) public {
+    )
+        public
+    {
         initialNumberOfTiers = bound(initialNumberOfTiers, 0, 14);
         numberOfTiersToRemove = bound(numberOfTiersToRemove, 0, initialNumberOfTiers);
 
-        // Create random tiers to remove
+        // Create random tiers to remove.
         uint256[] memory tiersToRemove = new uint256[](numberOfTiersToRemove);
 
-        // seed to generate new random tiers, i to iterate to fill the tiersToRemove array
+        // Use the `seed` to generate new random tiers, and iterate on `i` to fill the `tiersToRemove` array.
         for (uint256 i; i < numberOfTiersToRemove;) {
-            uint256 _newTierCandidate = uint256(keccak256(abi.encode(seed))) % initialNumberOfTiers + 1;
-            bool _invalidTier;
-            if (_newTierCandidate != 0) {
+            uint256 newTierCandidate = uint256(keccak256(abi.encode(seed))) % initialNumberOfTiers + 1;
+            bool invalidTier;
+            if (newTierCandidate != 0) {
                 for (uint256 j; j < numberOfTiersToRemove; j++) {
                     // Same value twice?
-                    if (_newTierCandidate == tiersToRemove[j]) {
-                        _invalidTier = true;
+                    if (newTierCandidate == tiersToRemove[j]) {
+                        invalidTier = true;
                         break;
                     }
                 }
-                if (!_invalidTier) {
-                    tiersToRemove[i] = _newTierCandidate;
+                if (!invalidTier) {
+                    tiersToRemove[i] = newTierCandidate;
                     i++;
                 }
             }
-            // Overflow to loop over (seed is fuzzed, can be starting at max(uint256))
+            // Overflow to loop over (seed is fuzzed, and could start at `max(uint256)`).
             unchecked {
                 seed++;
             }
         }
-        
-        // Order the tiers to remove for event matching (which are ordered too)
-        tiersToRemove = _sortArray(tiersToRemove);
-        JB721TierParams[] memory _tierParams = new JB721TierParams[](initialNumberOfTiers);
-        JB721Tier[] memory _tiers = new JB721Tier[](initialNumberOfTiers);
 
+        // Order the tiers to remove for event matching (which are ordered too).
+        tiersToRemove = _sortArray(tiersToRemove);
+        JB721TierConfig[] memory tierConfigs = new JB721TierConfig[](initialNumberOfTiers);
+        JB721Tier[] memory tiers = new JB721Tier[](initialNumberOfTiers);
 
         for (uint256 i; i < initialNumberOfTiers; i++) {
-            _tierParams[i] = JB721TierParams({
+            tierConfigs[i] = JB721TierConfig({
                 price: uint104((i + 1) * 10),
-                initialQuantity: uint32(100),
+                initialSupply: uint32(100),
                 votingUnits: uint16(0),
-                reservedRate: uint16(i),
-                reservedTokenBeneficiary: reserveBeneficiary,
+                reserveFrequency: uint16(i),
+                reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
-                allowManualMint: false,
-                shouldUseReservedTokenBeneficiaryAsDefault: false,
+                allowOwnerMint: false,
+                useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: true
             });
-            _tiers[i] = JB721Tier({
+            tiers[i] = JB721Tier({
                 id: i + 1,
-                price: _tierParams[i].price,
-                remainingQuantity: _tierParams[i].initialQuantity,
-                initialQuantity: _tierParams[i].initialQuantity,
-                votingUnits: _tierParams[i].votingUnits,
-                reservedRate: _tierParams[i].reservedRate,
-                reservedTokenBeneficiary: _tierParams[i].reservedTokenBeneficiary,
-                encodedIPFSUri: _tierParams[i].encodedIPFSUri,
-                category: _tierParams[i].category,
-                allowManualMint: _tierParams[i].allowManualMint,
-                transfersPausable: _tierParams[i].transfersPausable,
+                price: tierConfigs[i].price,
+                remainingSupply: tierConfigs[i].initialSupply,
+                initialSupply: tierConfigs[i].initialSupply,
+                votingUnits: tierConfigs[i].votingUnits,
+                reserveFrequency: tierConfigs[i].reserveFrequency,
+                reserveBeneficiary: tierConfigs[i].reserveBeneficiary,
+                encodedIPFSUri: tierConfigs[i].encodedIPFSUri,
+                category: tierConfigs[i].category,
+                allowOwnerMint: tierConfigs[i].allowOwnerMint,
+                transfersPausable: tierConfigs[i].transfersPausable,
                 resolvedUri: ""
             });
         }
-        ForTest_JBTiered721DelegateStore _ForTest_store = new ForTest_JBTiered721DelegateStore();
-        ForTest_JBTiered721Delegate _delegate = new ForTest_JBTiered721Delegate(
+        ForTest_JB721TiersHookStore store = new ForTest_JB721TiersHookStore();
+        ForTest_JB721TiersHook hook = new ForTest_JB721TiersHook(
             projectId,
             IJBDirectory(mockJBDirectory),
             name,
             symbol,
-            IJBFundingCycleStore(mockJBFundingCycleStore),
+            IJBRulesets(mockJBRulesets),
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
-            _tierParams,
-            IJBTiered721DelegateStore(address(_ForTest_store)),
-            JBTiered721Flags({
-            preventOverspending: false,
-            lockReservedTokenChanges: false,
-            lockVotingUnitChanges: false,
-            lockManualMintingChanges: true
+            tierConfigs,
+            IJB721TiersHookStore(address(store)),
+            JB721TiersHookFlags({
+                preventOverspending: false,
+                noNewTiersWithReserves: false,
+                noNewTiersWithVotes: false,
+                noNewTiersWithOwnerMinting: true
             })
         );
-        _delegate.transferOwnership(owner);
+        hook.transferOwnership(owner);
 
-        
-        // Will be resized later
-        JB721TierParams[] memory tierParamsRemaining = new JB721TierParams[](initialNumberOfTiers);
+        // Will be resized later.
+        JB721TierConfig[] memory tierConfigsRemaining = new JB721TierConfig[](initialNumberOfTiers);
         JB721Tier[] memory tiersRemaining = new JB721Tier[](initialNumberOfTiers);
-        for (uint256 i; i < _tiers.length; i++) {
-            tierParamsRemaining[i] = _tierParams[i];
-            tiersRemaining[i] = _tiers[i];
+        for (uint256 i; i < tiers.length; i++) {
+            tierConfigsRemaining[i] = tierConfigs[i];
+            tiersRemaining[i] = tiers[i];
         }
+
+        // Iterate through the remaining tiers and remove the ones in `tiersToRemove`.
+        // Do this by "swapping" the tier to remove with the last element in the array, and then "popping" that last
+        // element.
         for (uint256 i; i < tiersRemaining.length;) {
-            bool _swappedAndPopped;
+            bool swappedAndPopped;
             for (uint256 j; j < tiersToRemove.length; j++) {
                 if (tiersRemaining[i].id == tiersToRemove[j]) {
-                    // Swap and pop tiers removed
+                    // Swap and pop removed tiers.
                     tiersRemaining[i] = tiersRemaining[tiersRemaining.length - 1];
-                    tierParamsRemaining[i] = tierParamsRemaining[tierParamsRemaining.length - 1];
-                    // Remove the last elelment / reduce array length by 1
+                    tierConfigsRemaining[i] = tierConfigsRemaining[tierConfigsRemaining.length - 1];
+                    // Remove the last elelment / reduce array length by 1.
                     assembly ("memory-safe") {
                         mstore(tiersRemaining, sub(mload(tiersRemaining), 1))
-                        mstore(tierParamsRemaining, sub(mload(tierParamsRemaining), 1))
+                        mstore(tierConfigsRemaining, sub(mload(tierConfigsRemaining), 1))
                     }
-                    _swappedAndPopped = true;
+                    swappedAndPopped = true;
                     break;
                 }
             }
-            if (!_swappedAndPopped) i++;
+            if (!swappedAndPopped) i++;
         }
-        // Check: correct event params?
+
+        // Check: was `RemoveTier` emitted with the correct values?
         for (uint256 i; i < tiersToRemove.length; i++) {
-            vm.expectEmit(true, false, false, true, address(_delegate));
+            vm.expectEmit(true, false, false, true, address(hook));
             emit RemoveTier(tiersToRemove[i], owner);
         }
         vm.prank(owner);
-        _delegate.adjustTiers(new JB721TierParams[](0), tiersToRemove);
+        hook.adjustTiers(new JB721TierConfig[](0), tiersToRemove);
         {
             uint256 finalNumberOfTiers = initialNumberOfTiers - tiersToRemove.length;
-            JB721Tier[] memory _storedTiers =
-                _delegate.test_store().tiersOf(address(_delegate), new uint256[](0), false, 0, finalNumberOfTiers);
-            // Check expected number of tiers remainings
-            assertEq(_storedTiers.length, finalNumberOfTiers);
-            // Check that all the remaining tiers still exist
-            assertTrue(_isIn(tiersRemaining, _storedTiers));
-            // Check that none of the removed tiers still exist
-            assertTrue(_isIn(_storedTiers, tiersRemaining));
+            JB721Tier[] memory storedTiers =
+                hook.test_store().tiersOf(address(hook), new uint256[](0), false, 0, finalNumberOfTiers);
+            // Check: are the expected number of tiers stored?
+            assertEq(storedTiers.length, finalNumberOfTiers);
+            // Check: are all of the remaining tiers still stored?
+            assertTrue(_isIn(tiersRemaining, storedTiers));
+            // Check: have all the removed tiers tiers been removed from storage?
+            assertTrue(_isIn(storedTiers, tiersRemaining));
         }
     }
 
-    function testJBTieredNFTRewardDelegate_adjustTiers_addAndRemoveTiers() public {
+    function test_adjustTiers_addAndRemoveTiers() public {
         uint256 initialNumberOfTiers = 5;
         uint256 numberOfTiersToAdd = 5;
         uint256 numberOfTiersToRemove = 3;
-        uint256[] memory floorTiersToAdd = new uint256[](numberOfTiersToAdd);
-        floorTiersToAdd[0] = 1;
-        floorTiersToAdd[1] = 4;
-        floorTiersToAdd[2] = 5;
-        floorTiersToAdd[3] = 6;
-        floorTiersToAdd[4] = 10;
-        uint256[] memory tierIdToRemove = new uint256[](numberOfTiersToRemove);
-        tierIdToRemove[0] = 1;
-        tierIdToRemove[1] = 3;
-        tierIdToRemove[2] = 4;
-        // Initial tiers data
-        JB721TierParams[] memory _tierParams = new JB721TierParams[](initialNumberOfTiers);
-        JB721Tier[] memory _tiers = new JB721Tier[](initialNumberOfTiers);
+        uint256[] memory tiersToAdd = new uint256[](numberOfTiersToAdd);
+        tiersToAdd[0] = 1;
+        tiersToAdd[1] = 4;
+        tiersToAdd[2] = 5;
+        tiersToAdd[3] = 6;
+        tiersToAdd[4] = 10;
+        uint256[] memory tierIdsToRemove = new uint256[](numberOfTiersToRemove);
+        tierIdsToRemove[0] = 1;
+        tierIdsToRemove[1] = 3;
+        tierIdsToRemove[2] = 4;
+        // Initial tiers configs and data.
+        JB721TierConfig[] memory tierConfigs = new JB721TierConfig[](initialNumberOfTiers);
+        JB721Tier[] memory tiers = new JB721Tier[](initialNumberOfTiers);
         for (uint256 i; i < initialNumberOfTiers; i++) {
-            _tierParams[i] = JB721TierParams({
+            tierConfigs[i] = JB721TierConfig({
                 price: uint104((i + 1) * 10),
-                initialQuantity: uint32(100),
+                initialSupply: uint32(100),
                 votingUnits: uint16(0),
-                reservedRate: uint16(i),
-                reservedTokenBeneficiary: reserveBeneficiary,
+                reserveFrequency: uint16(i),
+                reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
-                allowManualMint: false,
-                shouldUseReservedTokenBeneficiaryAsDefault: false,
+                allowOwnerMint: false,
+                useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: true
             });
-            _tiers[i] = JB721Tier({
+            tiers[i] = JB721Tier({
                 id: i + 1,
-                price: _tierParams[i].price,
-                remainingQuantity: _tierParams[i].initialQuantity,
-                initialQuantity: _tierParams[i].initialQuantity,
-                votingUnits: _tierParams[i].votingUnits,
-                reservedRate: _tierParams[i].reservedRate,
-                reservedTokenBeneficiary: _tierParams[i].reservedTokenBeneficiary,
-                encodedIPFSUri: _tierParams[i].encodedIPFSUri,
-                category: _tierParams[i].category,
-                allowManualMint: _tierParams[i].allowManualMint,
-                transfersPausable: _tierParams[i].transfersPausable,
+                price: tierConfigs[i].price,
+                remainingSupply: tierConfigs[i].initialSupply,
+                initialSupply: tierConfigs[i].initialSupply,
+                votingUnits: tierConfigs[i].votingUnits,
+                reserveFrequency: tierConfigs[i].reserveFrequency,
+                reserveBeneficiary: tierConfigs[i].reserveBeneficiary,
+                encodedIPFSUri: tierConfigs[i].encodedIPFSUri,
+                category: tierConfigs[i].category,
+                allowOwnerMint: tierConfigs[i].allowOwnerMint,
+                transfersPausable: tierConfigs[i].transfersPausable,
                 resolvedUri: ""
             });
         }
-        //  Deploy the delegate with the initial tiers
-        JBTiered721DelegateStore _store = new JBTiered721DelegateStore();
-        vm.etch(delegate_i, address(delegate).code);
-        JBTiered721Delegate _delegate = JBTiered721Delegate(delegate_i);
-        _delegate.initialize(
+        //  Deploy the hook and its store with the initial tiers.
+        JB721TiersHookStore store = new JB721TiersHookStore();
+        vm.etch(hook_i, address(hook).code);
+        JB721TiersHook hook = JB721TiersHook(hook_i);
+        hook.initialize(
             projectId,
             name,
             symbol,
-            IJBFundingCycleStore(mockJBFundingCycleStore),
+            IJBRulesets(mockJBRulesets),
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
-            JB721PricingParams({tiers: _tierParams, currency: 1, decimals: 18, prices: IJBPrices(address(0))}),
-            IJBTiered721DelegateStore(address(_store)),
-            JBTiered721Flags({
+            JB721InitTiersConfig({
+                tiers: tierConfigs,
+                currency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
+                decimals: 18,
+                prices: IJBPrices(address(0))
+            }),
+            IJB721TiersHookStore(address(store)),
+            JB721TiersHookFlags({
                 preventOverspending: false,
-                lockReservedTokenChanges: false,
-                lockVotingUnitChanges: false,
-                lockManualMintingChanges: true
+                noNewTiersWithReserves: false,
+                noNewTiersWithVotes: false,
+                noNewTiersWithOwnerMinting: true
             })
         );
-        _delegate.transferOwnership(owner);
-        // -- Build expected removed/remaining tiers --
-        JB721TierParams[] memory _tierDataRemaining = new JB721TierParams[](2);
-        JB721Tier[] memory _tiersRemaining = new JB721Tier[](2);
-        uint256 _arrayIndex;
+        hook.transferOwnership(owner);
+
+        // -- Build expected removed/remaining tiers -- //
+        JB721TierConfig[] memory tierConfigsRemaining = new JB721TierConfig[](2);
+        JB721Tier[] memory tiersRemaining = new JB721Tier[](2);
+        uint256 arrayIndex;
         for (uint256 i; i < initialNumberOfTiers; i++) {
-            // Tiers which will remain
+            // Tiers which will remain.
             if (i + 1 != 1 && i + 1 != 3 && i + 1 != 4) {
-                _tierDataRemaining[_arrayIndex] = JB721TierParams({
+                tierConfigsRemaining[arrayIndex] = JB721TierConfig({
                     price: uint104((i + 1) * 10),
-                    initialQuantity: uint32(100),
+                    initialSupply: uint32(100),
                     votingUnits: uint16(0),
-                    reservedRate: uint16(i),
-                    reservedTokenBeneficiary: reserveBeneficiary,
+                    reserveFrequency: uint16(i),
+                    reserveBeneficiary: reserveBeneficiary,
                     encodedIPFSUri: tokenUris[0],
                     category: uint24(100),
-                    allowManualMint: false,
-                    shouldUseReservedTokenBeneficiaryAsDefault: false,
+                    allowOwnerMint: false,
+                    useReserveBeneficiaryAsDefault: false,
                     transfersPausable: false,
                     useVotingUnits: true
                 });
-                _tiersRemaining[_arrayIndex] = JB721Tier({
+                tiersRemaining[arrayIndex] = JB721Tier({
                     id: i + 1,
-                    price: _tierDataRemaining[_arrayIndex].price,
-                    remainingQuantity: _tierDataRemaining[_arrayIndex].initialQuantity,
-                    initialQuantity: _tierDataRemaining[_arrayIndex].initialQuantity,
-                    votingUnits: _tierDataRemaining[_arrayIndex].votingUnits,
-                    reservedRate: _tierDataRemaining[_arrayIndex].reservedRate,
-                    reservedTokenBeneficiary: _tierDataRemaining[_arrayIndex].reservedTokenBeneficiary,
-                    encodedIPFSUri: _tierDataRemaining[_arrayIndex].encodedIPFSUri,
-                    category: _tierDataRemaining[_arrayIndex].category,
-                    allowManualMint: _tierDataRemaining[_arrayIndex].allowManualMint,
-                    transfersPausable: _tierDataRemaining[_arrayIndex].transfersPausable,
+                    price: tierConfigsRemaining[arrayIndex].price,
+                    remainingSupply: tierConfigsRemaining[arrayIndex].initialSupply,
+                    initialSupply: tierConfigsRemaining[arrayIndex].initialSupply,
+                    votingUnits: tierConfigsRemaining[arrayIndex].votingUnits,
+                    reserveFrequency: tierConfigsRemaining[arrayIndex].reserveFrequency,
+                    reserveBeneficiary: tierConfigsRemaining[arrayIndex].reserveBeneficiary,
+                    encodedIPFSUri: tierConfigsRemaining[arrayIndex].encodedIPFSUri,
+                    category: tierConfigsRemaining[arrayIndex].category,
+                    allowOwnerMint: tierConfigsRemaining[arrayIndex].allowOwnerMint,
+                    transfersPausable: tierConfigsRemaining[arrayIndex].transfersPausable,
                     resolvedUri: ""
                 });
-                _arrayIndex++;
+                arrayIndex++;
             } else {
                 // Otherwise, part of the tiers removed:
-                // Check: correct event params?
-                vm.expectEmit(true, false, false, true, address(_delegate));
+                // Check: was `RemoveTier` emitted with the correct values?
+                vm.expectEmit(true, false, false, true, address(hook));
                 emit RemoveTier(i + 1, owner);
             }
         }
-        // -- Build expected added tiers --
-        JB721TierParams[] memory _tierParamsToAdd = new JB721TierParams[](numberOfTiersToAdd);
-        JB721Tier[] memory _tiersAdded = new JB721Tier[](numberOfTiersToAdd);
+
+        // -- Build expected added tiers -- //
+        JB721TierConfig[] memory tierConfigsToAdd = new JB721TierConfig[](numberOfTiersToAdd);
+        JB721Tier[] memory tiersAdded = new JB721Tier[](numberOfTiersToAdd);
         for (uint256 i; i < numberOfTiersToAdd; i++) {
-            _tierParamsToAdd[i] = JB721TierParams({
-                price: uint104(floorTiersToAdd[i]) * 11,
-                initialQuantity: uint32(100),
+            tierConfigsToAdd[i] = JB721TierConfig({
+                price: uint104(tiersToAdd[i]) * 11,
+                initialSupply: uint32(100),
                 votingUnits: uint16(0),
-                reservedRate: uint16(0),
-                reservedTokenBeneficiary: reserveBeneficiary,
+                reserveFrequency: uint16(0),
+                reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100 + i),
-                allowManualMint: false,
-                shouldUseReservedTokenBeneficiaryAsDefault: false,
+                allowOwnerMint: false,
+                useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: true
             });
-            _tiersAdded[i] = JB721Tier({
-                id: _tiers.length + (i + 1),
-                price: _tierParamsToAdd[i].price,
-                remainingQuantity: _tierParamsToAdd[i].initialQuantity,
-                initialQuantity: _tierParamsToAdd[i].initialQuantity,
-                votingUnits: _tierParamsToAdd[i].votingUnits,
-                reservedRate: _tierParamsToAdd[i].reservedRate,
-                reservedTokenBeneficiary: _tierParamsToAdd[i].reservedTokenBeneficiary,
-                encodedIPFSUri: _tierParamsToAdd[i].encodedIPFSUri,
-                category: _tierParamsToAdd[i].category,
-                allowManualMint: _tierParamsToAdd[i].allowManualMint,
-                transfersPausable: _tierParamsToAdd[i].transfersPausable,
+            tiersAdded[i] = JB721Tier({
+                id: tiers.length + (i + 1),
+                price: tierConfigsToAdd[i].price,
+                remainingSupply: tierConfigsToAdd[i].initialSupply,
+                initialSupply: tierConfigsToAdd[i].initialSupply,
+                votingUnits: tierConfigsToAdd[i].votingUnits,
+                reserveFrequency: tierConfigsToAdd[i].reserveFrequency,
+                reserveBeneficiary: tierConfigsToAdd[i].reserveBeneficiary,
+                encodedIPFSUri: tierConfigsToAdd[i].encodedIPFSUri,
+                category: tierConfigsToAdd[i].category,
+                allowOwnerMint: tierConfigsToAdd[i].allowOwnerMint,
+                transfersPausable: tierConfigsToAdd[i].transfersPausable,
                 resolvedUri: ""
             });
-            vm.expectEmit(true, true, true, true, address(_delegate));
-            emit AddTier(_tiersAdded[i].id, _tierParamsToAdd[i], owner);
+            vm.expectEmit(true, true, true, true, address(hook));
+            emit AddTier(tiersAdded[i].id, tierConfigsToAdd[i], owner);
         }
         vm.prank(owner);
-        _delegate.adjustTiers(_tierParamsToAdd, tierIdToRemove);
-        JB721Tier[] memory _storedTiers = _delegate.store().tiersOf(
-            address(_delegate),
+        hook.adjustTiers(tierConfigsToAdd, tierIdsToRemove);
+        JB721Tier[] memory storedTiers = hook.STORE().tiersOf(
+            address(hook),
             new uint256[](0),
             false,
             0,
-            7 // 7 tiers remaining - Hardcoded to avoid stack too deep
+            7 // 7 tiers remaining - hard-coded to avoid stack too deep.
         );
-        // Check: Expected number of remaining tiers?
-        assertEq(_storedTiers.length, 7);
-        // // Check: Are all non-deleted and added tiers in the new tiers (unsorted)?
-        assertTrue(_isIn(_tiersRemaining, _storedTiers)); // Original tiers
-        assertTrue(_isIn(_tiersAdded, _storedTiers)); // New tiers
-        // Check: Are all the deleted tiers removed (remaining is tested supra)?
-        assertFalse(_isIn(_tiers, _storedTiers)); // Will emit _isIn: incomplete inclusion but without failing assertion
-        // Check: Are all the tiers sorted?
-        for (uint256 j = 1; j < _storedTiers.length; j++) {
-            assertLe(_storedTiers[j - 1].category, _storedTiers[j].category);
+        // Check: are the expected number of tiers stored?
+        assertEq(storedTiers.length, 7);
+        // Check: are all non-deleted and added tiers in the new tiers (unsorted)?
+        assertTrue(_isIn(tiersRemaining, storedTiers)); // Original tiers
+        assertTrue(_isIn(tiersAdded, storedTiers)); // New tiers
+        // Check: are all the deleted tiers removed?
+        assertFalse(_isIn(tiers, storedTiers)); // Will emit `_isIn: incomplete inclusion but without failing assertion`
+        // Check: are all the tiers sorted?
+        for (uint256 j = 1; j < storedTiers.length; j++) {
+            assertLe(storedTiers[j - 1].category, storedTiers[j].category);
         }
     }
 
-    function testJBTieredNFTRewardDelegate_adjustTiers_revertIfAddingWithVotingPower(
+    function test_adjustTiers_revertIfAddingWithVotingPower(
         uint256 initialNumberOfTiers,
         uint256 numberTiersToAdd
-    ) public {
-        // Include adding X new tiers when 0 preexisting ones
+    )
+        public
+    {
+        // Include adding X new tiers with 0 current tiers.
         initialNumberOfTiers = bound(initialNumberOfTiers, 0, 15);
         numberTiersToAdd = bound(numberTiersToAdd, 1, 15);
 
-        JB721TierParams[] memory _tierParams = new JB721TierParams[](initialNumberOfTiers);
-        JB721Tier[] memory _tiers = new JB721Tier[](initialNumberOfTiers);
+        JB721TierConfig[] memory tierConfigs = new JB721TierConfig[](initialNumberOfTiers);
+        JB721Tier[] memory tiers = new JB721Tier[](initialNumberOfTiers);
         for (uint256 i; i < initialNumberOfTiers; i++) {
-            _tierParams[i] = JB721TierParams({
+            tierConfigs[i] = JB721TierConfig({
                 price: uint104((i + 1) * 10),
-                initialQuantity: uint32(100),
+                initialSupply: uint32(100),
                 votingUnits: uint16(0),
-                reservedRate: uint16(i),
-                reservedTokenBeneficiary: reserveBeneficiary,
+                reserveFrequency: uint16(i),
+                reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
-                allowManualMint: false,
-                shouldUseReservedTokenBeneficiaryAsDefault: false,
+                allowOwnerMint: false,
+                useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: true
             });
-            _tiers[i] = JB721Tier({
+            tiers[i] = JB721Tier({
                 id: i + 1,
-                price: _tierParams[i].price,
-                remainingQuantity: _tierParams[i].initialQuantity,
-                initialQuantity: _tierParams[i].initialQuantity,
-                votingUnits: _tierParams[i].votingUnits,
-                reservedRate: _tierParams[i].reservedRate,
-                reservedTokenBeneficiary: _tierParams[i].reservedTokenBeneficiary,
-                encodedIPFSUri: _tierParams[i].encodedIPFSUri,
-                category: _tierParams[i].category,
-                allowManualMint: _tierParams[i].allowManualMint,
-                transfersPausable: _tierParams[i].transfersPausable,
+                price: tierConfigs[i].price,
+                remainingSupply: tierConfigs[i].initialSupply,
+                initialSupply: tierConfigs[i].initialSupply,
+                votingUnits: tierConfigs[i].votingUnits,
+                reserveFrequency: tierConfigs[i].reserveFrequency,
+                reserveBeneficiary: tierConfigs[i].reserveBeneficiary,
+                encodedIPFSUri: tierConfigs[i].encodedIPFSUri,
+                category: tierConfigs[i].category,
+                allowOwnerMint: tierConfigs[i].allowOwnerMint,
+                transfersPausable: tierConfigs[i].transfersPausable,
                 resolvedUri: ""
             });
         }
-        ForTest_JBTiered721DelegateStore _ForTest_store = new ForTest_JBTiered721DelegateStore();
-        ForTest_JBTiered721Delegate _delegate = new ForTest_JBTiered721Delegate(
-        projectId,
-        IJBDirectory(mockJBDirectory),
-        name,
-        symbol,
-        IJBFundingCycleStore(mockJBFundingCycleStore),
-        baseUri,
-        IJB721TokenUriResolver(mockTokenUriResolver),
-        contractUri,
-        _tierParams,
-        IJBTiered721DelegateStore(address(_ForTest_store)),
-        JBTiered721Flags({
-          preventOverspending: false,
-          lockReservedTokenChanges: false,
-          lockVotingUnitChanges: true,
-          lockManualMintingChanges: true
-        })
-      );
-        _delegate.transferOwnership(owner);
-        JB721TierParams[] memory _tierParamsToAdd = new JB721TierParams[](numberTiersToAdd);
-        JB721Tier[] memory _tiersAdded = new JB721Tier[](numberTiersToAdd);
-        for (uint256 i; i < numberTiersToAdd; i++) {
-            _tierParamsToAdd[i] = JB721TierParams({
-                price: uint104(0),
-                initialQuantity: uint32(100),
-                votingUnits: uint16(i + 1),
-                reservedRate: uint16(i),
-                reservedTokenBeneficiary: reserveBeneficiary,
-                encodedIPFSUri: tokenUris[0],
-                category: uint24(100),
-                allowManualMint: false,
-                shouldUseReservedTokenBeneficiaryAsDefault: false,
-                transfersPausable: false,
-                useVotingUnits: true
-            });
-            _tiersAdded[i] = JB721Tier({
-                id: _tiers.length + (i + 1),
-                price: _tierParamsToAdd[i].price,
-                remainingQuantity: _tierParamsToAdd[i].initialQuantity,
-                initialQuantity: _tierParamsToAdd[i].initialQuantity,
-                votingUnits: _tierParamsToAdd[i].votingUnits,
-                reservedRate: _tierParamsToAdd[i].reservedRate,
-                reservedTokenBeneficiary: _tierParamsToAdd[i].reservedTokenBeneficiary,
-                encodedIPFSUri: _tierParamsToAdd[i].encodedIPFSUri,
-                category: _tierParamsToAdd[i].category,
-                allowManualMint: _tierParamsToAdd[i].allowManualMint,
-                transfersPausable: _tierParamsToAdd[i].transfersPausable,
-                resolvedUri: ""
-            });
-        }
-        vm.expectRevert(abi.encodeWithSelector(JBTiered721DelegateStore.VOTING_UNITS_NOT_ALLOWED.selector));
-        vm.prank(owner);
-        _delegate.adjustTiers(_tierParamsToAdd, new uint256[](0));
-    }
-
-    function testJBTieredNFTRewardDelegate_adjustTiers_revertIfAddingWithReservedRate(
-        uint256 initialNumberOfTiers,
-        uint256 numberTiersToAdd
-    ) public {
-        // Include adding X new tiers when 0 preexisting ones
-        initialNumberOfTiers = bound(initialNumberOfTiers, 0, 15);
-        numberTiersToAdd = bound(numberTiersToAdd, 1, 15);
-
-        JB721TierParams[] memory _tierParam = new JB721TierParams[](initialNumberOfTiers);
-        JB721Tier[] memory _tiers = new JB721Tier[](initialNumberOfTiers);
-        for (uint256 i; i < initialNumberOfTiers; i++) {
-            _tierParam[i] = JB721TierParams({
-                price: uint104((i + 1) * 10),
-                initialQuantity: uint32(100),
-                votingUnits: uint16(0),
-                reservedRate: uint16(i),
-                reservedTokenBeneficiary: reserveBeneficiary,
-                encodedIPFSUri: tokenUris[0],
-                category: uint24(100),
-                allowManualMint: false,
-                shouldUseReservedTokenBeneficiaryAsDefault: false,
-                transfersPausable: false,
-                useVotingUnits: true
-            });
-            _tiers[i] = JB721Tier({
-                id: i + 1,
-                price: _tierParam[i].price,
-                remainingQuantity: _tierParam[i].initialQuantity,
-                initialQuantity: _tierParam[i].initialQuantity,
-                votingUnits: _tierParam[i].votingUnits,
-                reservedRate: _tierParam[i].reservedRate,
-                reservedTokenBeneficiary: _tierParam[i].reservedTokenBeneficiary,
-                encodedIPFSUri: _tierParam[i].encodedIPFSUri,
-                category: _tierParam[i].category,
-                allowManualMint: _tierParam[i].allowManualMint,
-                transfersPausable: _tierParam[i].transfersPausable,
-                resolvedUri: ""
-            });
-        }
-        ForTest_JBTiered721DelegateStore _ForTest_store = new ForTest_JBTiered721DelegateStore();
-        ForTest_JBTiered721Delegate _delegate = new ForTest_JBTiered721Delegate(
-        projectId,
-        IJBDirectory(mockJBDirectory),
-        name,
-        symbol,
-        IJBFundingCycleStore(mockJBFundingCycleStore),
-        baseUri,
-        IJB721TokenUriResolver(mockTokenUriResolver),
-        contractUri,
-        _tierParam,
-        IJBTiered721DelegateStore(address(_ForTest_store)),
-        JBTiered721Flags({
-          preventOverspending: false,
-          lockReservedTokenChanges: true,
-          lockVotingUnitChanges: false,
-          lockManualMintingChanges: true
-        })
-      );
-        _delegate.transferOwnership(owner);
-        JB721TierParams[] memory _tierParamsToAdd = new JB721TierParams[](numberTiersToAdd);
-        JB721Tier[] memory _tiersAdded = new JB721Tier[](numberTiersToAdd);
-        for (uint256 i; i < numberTiersToAdd; i++) {
-            _tierParamsToAdd[i] = JB721TierParams({
-                price: uint104((i + 1) * 100),
-                initialQuantity: uint32(100),
-                votingUnits: uint16(0),
-                reservedRate: uint16(i + 1),
-                reservedTokenBeneficiary: reserveBeneficiary,
-                encodedIPFSUri: tokenUris[0],
-                category: uint24(100),
-                allowManualMint: false,
-                shouldUseReservedTokenBeneficiaryAsDefault: false,
-                transfersPausable: false,
-                useVotingUnits: true
-            });
-            _tiersAdded[i] = JB721Tier({
-                id: _tiers.length + (i + 1),
-                price: _tierParamsToAdd[i].price,
-                remainingQuantity: _tierParamsToAdd[i].initialQuantity,
-                initialQuantity: _tierParamsToAdd[i].initialQuantity,
-                votingUnits: _tierParamsToAdd[i].votingUnits,
-                reservedRate: _tierParamsToAdd[i].reservedRate,
-                reservedTokenBeneficiary: _tierParamsToAdd[i].reservedTokenBeneficiary,
-                encodedIPFSUri: _tierParamsToAdd[i].encodedIPFSUri,
-                category: _tierParamsToAdd[i].category,
-                allowManualMint: _tierParamsToAdd[i].allowManualMint,
-                transfersPausable: _tierParamsToAdd[i].transfersPausable,
-                resolvedUri: ""
-            });
-        }
-        vm.expectRevert(abi.encodeWithSelector(JBTiered721DelegateStore.RESERVED_RATE_NOT_ALLOWED.selector));
-        vm.prank(owner);
-        _delegate.adjustTiers(_tierParamsToAdd, new uint256[](0));
-    }
-
-    function testJBTieredNFTRewardDelegate_adjustTiers_revertIfEmptyQuantity(
-        uint256 initialNumberOfTiers,
-        uint256 numberTiersToAdd
-    ) public {
-        // Include adding X new tiers when 0 preexisting ones
-        initialNumberOfTiers = bound(initialNumberOfTiers, 0, 15);
-        numberTiersToAdd = bound(numberTiersToAdd, 1, 15);
-
-        JB721TierParams[] memory _tierParams = new JB721TierParams[](initialNumberOfTiers);
-        JB721Tier[] memory _tiers = new JB721Tier[](initialNumberOfTiers);
-        for (uint256 i; i < initialNumberOfTiers; i++) {
-            _tierParams[i] = JB721TierParams({
-                price: uint104((i + 1) * 10),
-                initialQuantity: uint32(100),
-                votingUnits: uint16(0),
-                reservedRate: uint16(i),
-                reservedTokenBeneficiary: reserveBeneficiary,
-                encodedIPFSUri: tokenUris[0],
-                category: uint24(100),
-                allowManualMint: false,
-                shouldUseReservedTokenBeneficiaryAsDefault: false,
-                transfersPausable: false,
-                useVotingUnits: true
-            });
-            _tiers[i] = JB721Tier({
-                id: i + 1,
-                price: _tierParams[i].price,
-                remainingQuantity: _tierParams[i].initialQuantity,
-                initialQuantity: _tierParams[i].initialQuantity,
-                votingUnits: _tierParams[i].votingUnits,
-                reservedRate: _tierParams[i].reservedRate,
-                reservedTokenBeneficiary: _tierParams[i].reservedTokenBeneficiary,
-                encodedIPFSUri: _tierParams[i].encodedIPFSUri,
-                category: _tierParams[i].category,
-                allowManualMint: _tierParams[i].allowManualMint,
-                transfersPausable: _tierParams[i].transfersPausable,
-                resolvedUri: ""
-            });
-        }
-        ForTest_JBTiered721DelegateStore _ForTest_store = new ForTest_JBTiered721DelegateStore();
-        ForTest_JBTiered721Delegate _delegate = new ForTest_JBTiered721Delegate(
-        projectId,
-        IJBDirectory(mockJBDirectory),
-        name,
-        symbol,
-        IJBFundingCycleStore(mockJBFundingCycleStore),
-        baseUri,
-        IJB721TokenUriResolver(mockTokenUriResolver),
-        contractUri,
-        _tierParams,
-        IJBTiered721DelegateStore(address(_ForTest_store)),
-        JBTiered721Flags({
-          preventOverspending: false,
-          lockReservedTokenChanges: false,
-          lockVotingUnitChanges: false,
-          lockManualMintingChanges: true
-        })
-      );
-        _delegate.transferOwnership(owner);
-        JB721TierParams[] memory _tierParamsToAdd = new JB721TierParams[](numberTiersToAdd);
-        JB721Tier[] memory _tiersAdded = new JB721Tier[](numberTiersToAdd);
-        for (uint256 i; i < numberTiersToAdd; i++) {
-            _tierParamsToAdd[i] = JB721TierParams({
-                price: uint104((i + 1) * 100),
-                initialQuantity: uint32(0),
-                votingUnits: uint16(0),
-                reservedRate: uint16(0),
-                reservedTokenBeneficiary: reserveBeneficiary,
-                encodedIPFSUri: tokenUris[0],
-                category: uint24(100),
-                allowManualMint: false,
-                shouldUseReservedTokenBeneficiaryAsDefault: false,
-                transfersPausable: false,
-                useVotingUnits: false
-            });
-            _tiersAdded[i] = JB721Tier({
-                id: _tiers.length + (i + 1),
-                price: _tierParamsToAdd[i].price,
-                remainingQuantity: _tierParamsToAdd[i].initialQuantity,
-                initialQuantity: _tierParamsToAdd[i].initialQuantity,
-                votingUnits: _tierParamsToAdd[i].votingUnits,
-                reservedRate: _tierParamsToAdd[i].reservedRate,
-                reservedTokenBeneficiary: _tierParamsToAdd[i].reservedTokenBeneficiary,
-                encodedIPFSUri: _tierParamsToAdd[i].encodedIPFSUri,
-                category: _tierParamsToAdd[i].category,
-                allowManualMint: _tierParamsToAdd[i].allowManualMint,
-                transfersPausable: _tierParamsToAdd[i].transfersPausable,
-                resolvedUri: ""
-            });
-        }
-        vm.expectRevert(abi.encodeWithSelector(JBTiered721DelegateStore.NO_QUANTITY.selector));
-        vm.prank(owner);
-        _delegate.adjustTiers(_tierParamsToAdd, new uint256[](0));
-    }
-
-    function testJBTieredNFTRewardDelegate_adjustTiers_revertIfRemovingALockedTier(
-        uint256 initialNumberOfTiers,
-        uint256 tierLockedIndex
-    ) public {
-        initialNumberOfTiers = bound(initialNumberOfTiers, 1, 15);
-        tierLockedIndex = bound(tierLockedIndex, 0, initialNumberOfTiers - 1);
-
-        JB721TierParams[] memory _tierParams = new JB721TierParams[](initialNumberOfTiers);
-        JB721Tier[] memory _tiers = new JB721Tier[](initialNumberOfTiers);
-        for (uint256 i; i < initialNumberOfTiers; i++) {
-            _tierParams[i] = JB721TierParams({
-                price: uint104((i + 1) * 10),
-                initialQuantity: uint32(100),
-                votingUnits: uint16(0),
-                reservedRate: uint16(i),
-                reservedTokenBeneficiary: reserveBeneficiary,
-                encodedIPFSUri: tokenUris[0],
-                category: uint24(100),
-                allowManualMint: false,
-                shouldUseReservedTokenBeneficiaryAsDefault: false,
-                transfersPausable: false,
-                useVotingUnits: false
-            });
-            _tiers[i] = JB721Tier({
-                id: i + 1,
-                price: _tierParams[i].price,
-                remainingQuantity: _tierParams[i].initialQuantity,
-                initialQuantity: _tierParams[i].initialQuantity,
-                votingUnits: _tierParams[i].votingUnits,
-                reservedRate: _tierParams[i].reservedRate,
-                reservedTokenBeneficiary: _tierParams[i].reservedTokenBeneficiary,
-                encodedIPFSUri: _tierParams[i].encodedIPFSUri,
-                category: _tierParams[i].category,
-                allowManualMint: _tierParams[i].allowManualMint,
-                transfersPausable: _tierParams[i].transfersPausable,
-                resolvedUri: ""
-            });
-        }
-        JBTiered721DelegateStore _store = new JBTiered721DelegateStore();
-        vm.etch(delegate_i, address(delegate).code);
-        JBTiered721Delegate _delegate = JBTiered721Delegate(delegate_i);
-        _delegate.initialize(
-            projectId,
-            name,
-            symbol,
-            IJBFundingCycleStore(mockJBFundingCycleStore),
-            baseUri,
-            IJB721TokenUriResolver(mockTokenUriResolver),
-            contractUri,
-            JB721PricingParams({tiers: _tierParams, currency: 1, decimals: 18, prices: IJBPrices(address(0))}),
-            IJBTiered721DelegateStore(address(_store)),
-            JBTiered721Flags({
-                preventOverspending: false,
-                lockReservedTokenChanges: false,
-                lockVotingUnitChanges: false,
-                lockManualMintingChanges: true
-            })
-        );
-        _delegate.transferOwnership(owner);
-        uint256[] memory _tierToRemove = new uint256[](1);
-        _tierToRemove[0] = tierLockedIndex + 1;
-        // Check: reomve tier after lock
-        vm.warp(block.timestamp + 11);
-        vm.prank(owner);
-        _delegate.adjustTiers(new JB721TierParams[](0), _tierToRemove);
-        // Check: one less tier
-        assertEq(
-            _delegate.store().tiersOf(address(_delegate), new uint256[](0), false, 0, initialNumberOfTiers).length,
-            initialNumberOfTiers - 1
-        );
-    }
-
-    function testJBTieredNFTRewardDelegate_adjustTiers_revertIfInvalidCategorySortOrder(
-        uint256 initialNumberOfTiers,
-        uint256 numberTiersToAdd
-    ) public {
-        initialNumberOfTiers = bound(initialNumberOfTiers, 0, 15);
-        numberTiersToAdd = bound(numberTiersToAdd, 2, 15);
-
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(initialNumberOfTiers);
-
-        JB721TierParams[] memory _tierParamsToAdd = new JB721TierParams[](numberTiersToAdd);
-        for (uint256 i; i < numberTiersToAdd; i++) {
-            _tierParamsToAdd[i] = JB721TierParams({
-                price: uint104((i + 1) * 100),
-                initialQuantity: uint32(100),
-                votingUnits: uint16(0),
-                reservedRate: uint16(i),
-                reservedTokenBeneficiary: reserveBeneficiary,
-                encodedIPFSUri: tokenUris[0],
-                category: uint24(100),
-                allowManualMint: false,
-                shouldUseReservedTokenBeneficiaryAsDefault: false,
-                transfersPausable: false,
-                useVotingUnits: true
-            });
-        }
-        _tierParamsToAdd[numberTiersToAdd - 1].category = uint8(99);
-
-        vm.expectRevert(abi.encodeWithSelector(JBTiered721DelegateStore.INVALID_CATEGORY_SORT_ORDER.selector));
-        vm.prank(owner);
-        _delegate.adjustTiers(_tierParamsToAdd, new uint256[](0));
-    }
-
-    function testJBTieredNFTRewardDelegate_adjustTiers_revertIfMoreVotingUnitsNotAllowedWithPriceChange(
-        uint256 initialNumberOfTiers,
-        uint256 numberTiersToAdd
-    ) public {
-        // Include adding X new tiers when 0 preexisting ones
-        initialNumberOfTiers = bound(initialNumberOfTiers, 0, 15);
-        numberTiersToAdd = bound(numberTiersToAdd, 1, 15);
-
-        JB721TierParams[] memory _tierParams = new JB721TierParams[](initialNumberOfTiers);
-        for (uint256 i; i < initialNumberOfTiers; i++) {
-            _tierParams[i] = JB721TierParams({
-                price: uint104((i + 1) * 10),
-                initialQuantity: uint32(100),
-                votingUnits: uint16(0),
-                reservedRate: uint16(i),
-                reservedTokenBeneficiary: reserveBeneficiary,
-                encodedIPFSUri: tokenUris[0],
-                category: uint24(100),
-                allowManualMint: false,
-                shouldUseReservedTokenBeneficiaryAsDefault: false,
-                transfersPausable: false,
-                useVotingUnits: false
-            });
-        }
-
-        ForTest_JBTiered721DelegateStore _ForTest_store = new ForTest_JBTiered721DelegateStore();
-        ForTest_JBTiered721Delegate _delegate = new ForTest_JBTiered721Delegate(
+        ForTest_JB721TiersHookStore store = new ForTest_JB721TiersHookStore();
+        ForTest_JB721TiersHook hook = new ForTest_JB721TiersHook(
             projectId,
             IJBDirectory(mockJBDirectory),
             name,
             symbol,
-            IJBFundingCycleStore(mockJBFundingCycleStore),
+            IJBRulesets(mockJBRulesets),
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
-            _tierParams,
-            IJBTiered721DelegateStore(address(_ForTest_store)),
-            JBTiered721Flags({
-            preventOverspending: false,
-            lockReservedTokenChanges: false,
-            lockVotingUnitChanges: true,
-            lockManualMintingChanges: true
+            tierConfigs,
+            IJB721TiersHookStore(address(store)),
+            JB721TiersHookFlags({
+                preventOverspending: false,
+                noNewTiersWithReserves: false,
+                noNewTiersWithVotes: true,
+                noNewTiersWithOwnerMinting: true
             })
         );
-        _delegate.transferOwnership(owner);
-
-        JB721TierParams[] memory _tierParamsToAdd = new JB721TierParams[](numberTiersToAdd);
+        hook.transferOwnership(owner);
+        JB721TierConfig[] memory tierConfigsToAdd = new JB721TierConfig[](numberTiersToAdd);
+        JB721Tier[] memory tiersAdded = new JB721Tier[](numberTiersToAdd);
         for (uint256 i; i < numberTiersToAdd; i++) {
-            _tierParamsToAdd[i] = JB721TierParams({
-                price: uint104((i + 1) * 100),
-                initialQuantity: uint32(100),
-                votingUnits: uint16(0),
-                reservedRate: uint16(i),
-                reservedTokenBeneficiary: reserveBeneficiary,
+            tierConfigsToAdd[i] = JB721TierConfig({
+                price: uint104(0),
+                initialSupply: uint32(100),
+                votingUnits: uint16(i + 1),
+                reserveFrequency: uint16(i),
+                reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
-                allowManualMint: false,
-                shouldUseReservedTokenBeneficiaryAsDefault: false,
+                allowOwnerMint: false,
+                useReserveBeneficiaryAsDefault: false,
+                transfersPausable: false,
+                useVotingUnits: true
+            });
+            tiersAdded[i] = JB721Tier({
+                id: tiers.length + (i + 1),
+                price: tierConfigsToAdd[i].price,
+                remainingSupply: tierConfigsToAdd[i].initialSupply,
+                initialSupply: tierConfigsToAdd[i].initialSupply,
+                votingUnits: tierConfigsToAdd[i].votingUnits,
+                reserveFrequency: tierConfigsToAdd[i].reserveFrequency,
+                reserveBeneficiary: tierConfigsToAdd[i].reserveBeneficiary,
+                encodedIPFSUri: tierConfigsToAdd[i].encodedIPFSUri,
+                category: tierConfigsToAdd[i].category,
+                allowOwnerMint: tierConfigsToAdd[i].allowOwnerMint,
+                transfersPausable: tierConfigsToAdd[i].transfersPausable,
+                resolvedUri: ""
+            });
+        }
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.VOTING_UNITS_NOT_ALLOWED.selector));
+        vm.prank(owner);
+        hook.adjustTiers(tierConfigsToAdd, new uint256[](0));
+    }
+
+    function test_adjustTiers_revertIfAddingWithReserveFrequency(
+        uint256 initialNumberOfTiers,
+        uint256 numberTiersToAdd
+    )
+        public
+    {
+        // Include adding X new tiers with 0 current tiers.
+        initialNumberOfTiers = bound(initialNumberOfTiers, 0, 15);
+        numberTiersToAdd = bound(numberTiersToAdd, 1, 15);
+
+        JB721TierConfig[] memory tierConfigs = new JB721TierConfig[](initialNumberOfTiers);
+        JB721Tier[] memory tiers = new JB721Tier[](initialNumberOfTiers);
+        for (uint256 i; i < initialNumberOfTiers; i++) {
+            tierConfigs[i] = JB721TierConfig({
+                price: uint104((i + 1) * 10),
+                initialSupply: uint32(100),
+                votingUnits: uint16(0),
+                reserveFrequency: uint16(i),
+                reserveBeneficiary: reserveBeneficiary,
+                encodedIPFSUri: tokenUris[0],
+                category: uint24(100),
+                allowOwnerMint: false,
+                useReserveBeneficiaryAsDefault: false,
+                transfersPausable: false,
+                useVotingUnits: true
+            });
+            tiers[i] = JB721Tier({
+                id: i + 1,
+                price: tierConfigs[i].price,
+                remainingSupply: tierConfigs[i].initialSupply,
+                initialSupply: tierConfigs[i].initialSupply,
+                votingUnits: tierConfigs[i].votingUnits,
+                reserveFrequency: tierConfigs[i].reserveFrequency,
+                reserveBeneficiary: tierConfigs[i].reserveBeneficiary,
+                encodedIPFSUri: tierConfigs[i].encodedIPFSUri,
+                category: tierConfigs[i].category,
+                allowOwnerMint: tierConfigs[i].allowOwnerMint,
+                transfersPausable: tierConfigs[i].transfersPausable,
+                resolvedUri: ""
+            });
+        }
+        ForTest_JB721TiersHookStore store = new ForTest_JB721TiersHookStore();
+        ForTest_JB721TiersHook hook = new ForTest_JB721TiersHook(
+            projectId,
+            IJBDirectory(mockJBDirectory),
+            name,
+            symbol,
+            IJBRulesets(mockJBRulesets),
+            baseUri,
+            IJB721TokenUriResolver(mockTokenUriResolver),
+            contractUri,
+            tierConfigs,
+            IJB721TiersHookStore(address(store)),
+            JB721TiersHookFlags({
+                preventOverspending: false,
+                noNewTiersWithReserves: true, // <-- This is the flag we're testing.
+                noNewTiersWithVotes: false,
+                noNewTiersWithOwnerMinting: true
+            })
+        );
+        hook.transferOwnership(owner);
+        JB721TierConfig[] memory tierConfigsToAdd = new JB721TierConfig[](numberTiersToAdd);
+        JB721Tier[] memory tiersAdded = new JB721Tier[](numberTiersToAdd);
+        for (uint256 i; i < numberTiersToAdd; i++) {
+            tierConfigsToAdd[i] = JB721TierConfig({
+                price: uint104((i + 1) * 100),
+                initialSupply: uint32(100),
+                votingUnits: uint16(0),
+                reserveFrequency: uint16(i + 1),
+                reserveBeneficiary: reserveBeneficiary,
+                encodedIPFSUri: tokenUris[0],
+                category: uint24(100),
+                allowOwnerMint: false,
+                useReserveBeneficiaryAsDefault: false,
+                transfersPausable: false,
+                useVotingUnits: true
+            });
+            tiersAdded[i] = JB721Tier({
+                id: tiers.length + (i + 1),
+                price: tierConfigsToAdd[i].price,
+                remainingSupply: tierConfigsToAdd[i].initialSupply,
+                initialSupply: tierConfigsToAdd[i].initialSupply,
+                votingUnits: tierConfigsToAdd[i].votingUnits,
+                reserveFrequency: tierConfigsToAdd[i].reserveFrequency,
+                reserveBeneficiary: tierConfigsToAdd[i].reserveBeneficiary,
+                encodedIPFSUri: tierConfigsToAdd[i].encodedIPFSUri,
+                category: tierConfigsToAdd[i].category,
+                allowOwnerMint: tierConfigsToAdd[i].allowOwnerMint,
+                transfersPausable: tierConfigsToAdd[i].transfersPausable,
+                resolvedUri: ""
+            });
+        }
+
+        // Expect the `adjustTiers` call to revert because of the `noNewTiersWithReserves` flag.
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.RESERVE_FREQUENCY_NOT_ALLOWED.selector));
+        vm.prank(owner);
+        hook.adjustTiers(tierConfigsToAdd, new uint256[](0));
+    }
+
+    function test_adjustTiers_revertIfEmptyQuantity(uint256 initialNumberOfTiers, uint256 numberTiersToAdd) public {
+        // Include adding X new tiers with 0 current tiers.
+        initialNumberOfTiers = bound(initialNumberOfTiers, 0, 15);
+        numberTiersToAdd = bound(numberTiersToAdd, 1, 15);
+
+        JB721TierConfig[] memory tierConfigs = new JB721TierConfig[](initialNumberOfTiers);
+        JB721Tier[] memory tiers = new JB721Tier[](initialNumberOfTiers);
+        for (uint256 i; i < initialNumberOfTiers; i++) {
+            tierConfigs[i] = JB721TierConfig({
+                price: uint104((i + 1) * 10),
+                initialSupply: uint32(100),
+                votingUnits: uint16(0),
+                reserveFrequency: uint16(i),
+                reserveBeneficiary: reserveBeneficiary,
+                encodedIPFSUri: tokenUris[0],
+                category: uint24(100),
+                allowOwnerMint: false,
+                useReserveBeneficiaryAsDefault: false,
+                transfersPausable: false,
+                useVotingUnits: true
+            });
+            tiers[i] = JB721Tier({
+                id: i + 1,
+                price: tierConfigs[i].price,
+                remainingSupply: tierConfigs[i].initialSupply,
+                initialSupply: tierConfigs[i].initialSupply,
+                votingUnits: tierConfigs[i].votingUnits,
+                reserveFrequency: tierConfigs[i].reserveFrequency,
+                reserveBeneficiary: tierConfigs[i].reserveBeneficiary,
+                encodedIPFSUri: tierConfigs[i].encodedIPFSUri,
+                category: tierConfigs[i].category,
+                allowOwnerMint: tierConfigs[i].allowOwnerMint,
+                transfersPausable: tierConfigs[i].transfersPausable,
+                resolvedUri: ""
+            });
+        }
+        ForTest_JB721TiersHookStore store = new ForTest_JB721TiersHookStore();
+        ForTest_JB721TiersHook hook = new ForTest_JB721TiersHook(
+            projectId,
+            IJBDirectory(mockJBDirectory),
+            name,
+            symbol,
+            IJBRulesets(mockJBRulesets),
+            baseUri,
+            IJB721TokenUriResolver(mockTokenUriResolver),
+            contractUri,
+            tierConfigs,
+            IJB721TiersHookStore(address(store)),
+            JB721TiersHookFlags({
+                preventOverspending: false,
+                noNewTiersWithReserves: false,
+                noNewTiersWithVotes: false,
+                noNewTiersWithOwnerMinting: true
+            })
+        );
+        hook.transferOwnership(owner);
+        JB721TierConfig[] memory tierConfigsToAdd = new JB721TierConfig[](numberTiersToAdd);
+        JB721Tier[] memory tiersAdded = new JB721Tier[](numberTiersToAdd);
+        for (uint256 i; i < numberTiersToAdd; i++) {
+            tierConfigsToAdd[i] = JB721TierConfig({
+                price: uint104((i + 1) * 100),
+                initialSupply: uint32(0), // <-- This is the value we're testing.
+                votingUnits: uint16(0),
+                reserveFrequency: uint16(0),
+                reserveBeneficiary: reserveBeneficiary,
+                encodedIPFSUri: tokenUris[0],
+                category: uint24(100),
+                allowOwnerMint: false,
+                useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: false
             });
+            tiersAdded[i] = JB721Tier({
+                id: tiers.length + (i + 1),
+                price: tierConfigsToAdd[i].price,
+                remainingSupply: tierConfigsToAdd[i].initialSupply,
+                initialSupply: tierConfigsToAdd[i].initialSupply,
+                votingUnits: tierConfigsToAdd[i].votingUnits,
+                reserveFrequency: tierConfigsToAdd[i].reserveFrequency,
+                reserveBeneficiary: tierConfigsToAdd[i].reserveBeneficiary,
+                encodedIPFSUri: tierConfigsToAdd[i].encodedIPFSUri,
+                category: tierConfigsToAdd[i].category,
+                allowOwnerMint: tierConfigsToAdd[i].allowOwnerMint,
+                transfersPausable: tierConfigsToAdd[i].transfersPausable,
+                resolvedUri: ""
+            });
         }
-        _tierParamsToAdd[numberTiersToAdd - 1].category = uint8(99);
-        vm.expectRevert(abi.encodeWithSelector(JBTiered721DelegateStore.VOTING_UNITS_NOT_ALLOWED.selector));
+
+        // Expect the `adjustTiers` call to revert because of the `initialSupply` of 0.
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.NO_SUPPLY.selector));
         vm.prank(owner);
-        _delegate.adjustTiers(_tierParamsToAdd, new uint256[](0));
+        hook.adjustTiers(tierConfigsToAdd, new uint256[](0));
     }
-    function testJBTieredNFTRewardDelegate_cleanTiers_removeTheInactiveTiers(
+
+    function test_adjustTiers_revertIfInvalidCategorySortOrder(
+        uint256 initialNumberOfTiers,
+        uint256 numberTiersToAdd
+    )
+        public
+    {
+        initialNumberOfTiers = bound(initialNumberOfTiers, 0, 15);
+        numberTiersToAdd = bound(numberTiersToAdd, 2, 15);
+
+        ForTest_JB721TiersHook hook = _initializeForTestHook(initialNumberOfTiers);
+
+        JB721TierConfig[] memory tierConfigsToAdd = new JB721TierConfig[](numberTiersToAdd);
+        for (uint256 i; i < numberTiersToAdd; i++) {
+            tierConfigsToAdd[i] = JB721TierConfig({
+                price: uint104((i + 1) * 100),
+                initialSupply: uint32(100),
+                votingUnits: uint16(0),
+                reserveFrequency: uint16(i),
+                reserveBeneficiary: reserveBeneficiary,
+                encodedIPFSUri: tokenUris[0],
+                category: uint24(100),
+                allowOwnerMint: false,
+                useReserveBeneficiaryAsDefault: false,
+                transfersPausable: false,
+                useVotingUnits: true
+            });
+        }
+        // Set the second to last tier to have a category of `99`, which is less than the last tier's category of `100`.
+        tierConfigsToAdd[numberTiersToAdd - 1].category = uint8(99);
+
+        // Expect the `adjustTiers` call to revert because of the invalid category sort order.
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.INVALID_CATEGORY_SORT_ORDER.selector));
+        vm.prank(owner);
+        hook.adjustTiers(tierConfigsToAdd, new uint256[](0));
+    }
+
+    function test_adjustTiers_revertIfMoreVotingUnitsNotAllowedWithPriceChange(
+        uint256 initialNumberOfTiers,
+        uint256 numberTiersToAdd
+    )
+        public
+    {
+        // Include adding X new tiers with 0 current tiers.
+        initialNumberOfTiers = bound(initialNumberOfTiers, 0, 15);
+        numberTiersToAdd = bound(numberTiersToAdd, 1, 15);
+
+        JB721TierConfig[] memory tierConfigs = new JB721TierConfig[](initialNumberOfTiers);
+        for (uint256 i; i < initialNumberOfTiers; i++) {
+            tierConfigs[i] = JB721TierConfig({
+                price: uint104((i + 1) * 10),
+                initialSupply: uint32(100),
+                votingUnits: uint16(0),
+                reserveFrequency: uint16(i),
+                reserveBeneficiary: reserveBeneficiary,
+                encodedIPFSUri: tokenUris[0],
+                category: uint24(100),
+                allowOwnerMint: false,
+                useReserveBeneficiaryAsDefault: false,
+                transfersPausable: false,
+                useVotingUnits: false 
+            });
+        }
+
+        ForTest_JB721TiersHookStore store = new ForTest_JB721TiersHookStore();
+        ForTest_JB721TiersHook hook = new ForTest_JB721TiersHook(
+            projectId,
+            IJBDirectory(mockJBDirectory),
+            name,
+            symbol,
+            IJBRulesets(mockJBRulesets),
+            baseUri,
+            IJB721TokenUriResolver(mockTokenUriResolver),
+            contractUri,
+            tierConfigs,
+            IJB721TiersHookStore(address(store)),
+            JB721TiersHookFlags({
+                preventOverspending: false,
+                noNewTiersWithReserves: false,
+                noNewTiersWithVotes: true, // <-- This is the flag we're testing.
+                noNewTiersWithOwnerMinting: true
+            })
+        );
+        hook.transferOwnership(owner);
+
+        JB721TierConfig[] memory tierConfigsToAdd = new JB721TierConfig[](numberTiersToAdd);
+        for (uint256 i; i < numberTiersToAdd; i++) {
+            tierConfigsToAdd[i] = JB721TierConfig({
+                price: uint104((i + 1) * 100),
+                initialSupply: uint32(100),
+                votingUnits: uint16(0),
+                reserveFrequency: uint16(i),
+                reserveBeneficiary: reserveBeneficiary,
+                encodedIPFSUri: tokenUris[0],
+                category: uint24(100),
+                allowOwnerMint: false,
+                useReserveBeneficiaryAsDefault: false,
+                transfersPausable: false,
+                useVotingUnits: false  // <-- If false, voting power is based on tier price
+            });
+        }
+
+        // Expect the `adjustTiers` call to revert because of the `noNewTiersWithVotes` flag.
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.VOTING_UNITS_NOT_ALLOWED.selector));
+        vm.prank(owner);
+        hook.adjustTiers(tierConfigsToAdd, new uint256[](0));
+    }
+
+    function test_adjustTiers_revertIfMoreVotingUnitsNotAllowedUsingVotingUnits(
+        uint256 initialNumberOfTiers,
+        uint256 numberTiersToAdd
+    )
+        public
+    {
+        // Include adding X new tiers with 0 current tiers.
+        initialNumberOfTiers = bound(initialNumberOfTiers, 0, 15);
+        numberTiersToAdd = bound(numberTiersToAdd, 1, 15);
+
+        JB721TierConfig[] memory tierConfigs = new JB721TierConfig[](initialNumberOfTiers);
+        for (uint256 i; i < initialNumberOfTiers; i++) {
+            tierConfigs[i] = JB721TierConfig({
+                price: uint104((i + 1) * 10),
+                initialSupply: uint32(100),
+                votingUnits: uint16(0),
+                reserveFrequency: uint16(i),
+                reserveBeneficiary: reserveBeneficiary,
+                encodedIPFSUri: tokenUris[0],
+                category: uint24(100),
+                allowOwnerMint: false,
+                useReserveBeneficiaryAsDefault: false,
+                transfersPausable: false,
+                useVotingUnits: true 
+            });
+        }
+
+        ForTest_JB721TiersHookStore store = new ForTest_JB721TiersHookStore();
+        ForTest_JB721TiersHook hook = new ForTest_JB721TiersHook(
+            projectId,
+            IJBDirectory(mockJBDirectory),
+            name,
+            symbol,
+            IJBRulesets(mockJBRulesets),
+            baseUri,
+            IJB721TokenUriResolver(mockTokenUriResolver),
+            contractUri,
+            tierConfigs,
+            IJB721TiersHookStore(address(store)),
+            JB721TiersHookFlags({
+                preventOverspending: false,
+                noNewTiersWithReserves: false,
+                noNewTiersWithVotes: true, // <-- This is the flag we're testing.
+                noNewTiersWithOwnerMinting: true
+            })
+        );
+        hook.transferOwnership(owner);
+
+        JB721TierConfig[] memory tierConfigsToAdd = new JB721TierConfig[](numberTiersToAdd);
+        for (uint256 i; i < numberTiersToAdd; i++) {
+            tierConfigsToAdd[i] = JB721TierConfig({
+                price: uint104((i + 1) * 100),
+                initialSupply: uint32(100),
+                votingUnits: uint16(0),
+                reserveFrequency: uint16(i),
+                reserveBeneficiary: reserveBeneficiary,
+                encodedIPFSUri: tokenUris[0],
+                category: uint24(100),
+                allowOwnerMint: false,
+                useReserveBeneficiaryAsDefault: false,
+                transfersPausable: false,
+                useVotingUnits: true // <-- If false, voting power is based on tier price
+            });
+        }
+
+        // One new tier has a non-0 voting power
+        tierConfigsToAdd[numberTiersToAdd - 1].votingUnits = uint16(1);
+
+        // Expect the `adjustTiers` call to revert because of the `noNewTiersWithVotes` flag.
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.VOTING_UNITS_NOT_ALLOWED.selector));
+        vm.prank(owner);
+        hook.adjustTiers(tierConfigsToAdd, new uint256[](0));
+    }
+
+    function test_cleanTiers_removeInactiveTiers(
         uint256 initialNumberOfTiers,
         uint256 seed,
         uint256 numberOfTiersToRemove
-    ) public {
-        // Include adding X new tiers when 0 preexisting ones
+    )
+        public
+    {
+        // Include adding X new tiers with 0 current tiers.
         initialNumberOfTiers = bound(initialNumberOfTiers, 1, 15);
         numberOfTiersToRemove = bound(numberOfTiersToRemove, 0, initialNumberOfTiers - 1);
 
-        // Create random tiers to remove
+        // Create random tiers to remove.
         uint256[] memory tiersToRemove = new uint256[](numberOfTiersToRemove);
-        // seed to generate new random tiers, i to iterate to fill the tiersToRemove array
+        // Use `seed` to generate new random tiers, and iterate on `i` to fill the `tiersToRemove` array.
         for (uint256 i; i < numberOfTiersToRemove;) {
-            uint256 _newTierCandidate = uint256(keccak256(abi.encode(seed))) % initialNumberOfTiers;
-            bool _invalidTier;
-            if (_newTierCandidate != 0) {
+            uint256 newTierCandidate = uint256(keccak256(abi.encode(seed))) % initialNumberOfTiers;
+            bool invalidTier;
+            if (newTierCandidate != 0) {
                 for (uint256 j; j < numberOfTiersToRemove; j++) {
                     // Same value twice?
-                    if (_newTierCandidate == tiersToRemove[j]) {
-                        _invalidTier = true;
+                    if (newTierCandidate == tiersToRemove[j]) {
+                        invalidTier = true;
                         break;
                     }
                 }
-                if (!_invalidTier) {
-                    tiersToRemove[i] = _newTierCandidate;
+                if (!invalidTier) {
+                    tiersToRemove[i] = newTierCandidate;
                     i++;
                 }
             }
-            // Overflow to loop over (seed is fuzzed, can be starting at max(uint256))
+            // Overflow to loop over (the seed is fuzzed, and may start at max(uint256)).
             unchecked {
                 seed++;
             }
         }
-        // Order the tiers to remove for event matching (which are ordered too)
+        // Order the tiers to remove for event matching (which are ordered too).
         tiersToRemove = _sortArray(tiersToRemove);
-        JB721TierParams[] memory _tierParams = new JB721TierParams[](initialNumberOfTiers);
-        JB721Tier[] memory _tiers = new JB721Tier[](initialNumberOfTiers);
+        JB721TierConfig[] memory tierConfigs = new JB721TierConfig[](initialNumberOfTiers);
+        JB721Tier[] memory tiers = new JB721Tier[](initialNumberOfTiers);
         for (uint256 i; i < initialNumberOfTiers; i++) {
-            _tierParams[i] = JB721TierParams({
+            tierConfigs[i] = JB721TierConfig({
                 price: uint104((i + 1) * 10),
-                initialQuantity: uint32(100),
+                initialSupply: uint32(100),
                 votingUnits: uint16(0),
-                reservedRate: uint16(i),
-                reservedTokenBeneficiary: reserveBeneficiary,
+                reserveFrequency: uint16(i),
+                reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
-                allowManualMint: false,
-                shouldUseReservedTokenBeneficiaryAsDefault: false,
+                allowOwnerMint: false,
+                useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: false
             });
-            _tiers[i] = JB721Tier({
+            tiers[i] = JB721Tier({
                 id: i + 1,
-                price: _tierParams[i].price,
-                remainingQuantity: _tierParams[i].initialQuantity,
-                initialQuantity: _tierParams[i].initialQuantity,
-                votingUnits: _tierParams[i].votingUnits,
-                reservedRate: _tierParams[i].reservedRate,
-                reservedTokenBeneficiary: _tierParams[i].reservedTokenBeneficiary,
-                encodedIPFSUri: _tierParams[i].encodedIPFSUri,
-                category: _tierParams[i].category,
-                allowManualMint: _tierParams[i].allowManualMint,
-                transfersPausable: _tierParams[i].transfersPausable,
+                price: tierConfigs[i].price,
+                remainingSupply: tierConfigs[i].initialSupply,
+                initialSupply: tierConfigs[i].initialSupply,
+                votingUnits: tierConfigs[i].votingUnits,
+                reserveFrequency: tierConfigs[i].reserveFrequency,
+                reserveBeneficiary: tierConfigs[i].reserveBeneficiary,
+                encodedIPFSUri: tierConfigs[i].encodedIPFSUri,
+                category: tierConfigs[i].category,
+                allowOwnerMint: tierConfigs[i].allowOwnerMint,
+                transfersPausable: tierConfigs[i].transfersPausable,
                 resolvedUri: ""
             });
         }
-        ForTest_JBTiered721DelegateStore _ForTest_store = new ForTest_JBTiered721DelegateStore();
-        ForTest_JBTiered721Delegate _delegate = new ForTest_JBTiered721Delegate(
-        projectId,
-        IJBDirectory(mockJBDirectory),
-        name,
-        symbol,
-        IJBFundingCycleStore(mockJBFundingCycleStore),
-        baseUri,
-        IJB721TokenUriResolver(mockTokenUriResolver),
-        contractUri,
-        _tierParams,
-        IJBTiered721DelegateStore(address(_ForTest_store)),
-        JBTiered721Flags({
-          preventOverspending: false,
-          lockReservedTokenChanges: false,
-          lockVotingUnitChanges: false,
-          lockManualMintingChanges: true
-        })
-      );
-        _delegate.transferOwnership(owner);
+        ForTest_JB721TiersHookStore store = new ForTest_JB721TiersHookStore();
+        ForTest_JB721TiersHook hook = new ForTest_JB721TiersHook(
+            projectId,
+            IJBDirectory(mockJBDirectory),
+            name,
+            symbol,
+            IJBRulesets(mockJBRulesets),
+            baseUri,
+            IJB721TokenUriResolver(mockTokenUriResolver),
+            contractUri,
+            tierConfigs,
+            IJB721TiersHookStore(address(store)),
+            JB721TiersHookFlags({
+                preventOverspending: false,
+                noNewTiersWithReserves: false,
+                noNewTiersWithVotes: false,
+                noNewTiersWithOwnerMinting: true
+            })
+        );
+        hook.transferOwnership(owner);
         // Will be resized later
-        JB721TierParams[] memory tierParamsRemaining = new JB721TierParams[](initialNumberOfTiers);
+        JB721TierConfig[] memory tierConfigsRemaining = new JB721TierConfig[](initialNumberOfTiers);
         JB721Tier[] memory tiersRemaining = new JB721Tier[](initialNumberOfTiers);
-        for (uint256 i; i < _tiers.length; i++) {
-            tierParamsRemaining[i] = _tierParams[i];
-            tiersRemaining[i] = _tiers[i];
+        for (uint256 i; i < tiers.length; i++) {
+            tierConfigsRemaining[i] = tierConfigs[i];
+            tiersRemaining[i] = tiers[i];
         }
+
+        // Iterate through the remaining tiers and remove the ones in `tiersToRemove`.
+        // Do this by "swapping" the tier to remove with the last element in the array, and then "popping" that last
+        // element.
         for (uint256 i; i < tiersRemaining.length;) {
-            bool _swappedAndPopped;
+            bool swappedAndPopped;
             for (uint256 j; j < tiersToRemove.length; j++) {
                 if (tiersRemaining[i].id == tiersToRemove[j]) {
                     // Swap and pop tiers removed
                     tiersRemaining[i] = tiersRemaining[tiersRemaining.length - 1];
-                    tierParamsRemaining[i] = tierParamsRemaining[tierParamsRemaining.length - 1];
+                    tierConfigsRemaining[i] = tierConfigsRemaining[tierConfigsRemaining.length - 1];
                     // Remove the last elelment / reduce array length by 1
                     assembly ("memory-safe") {
                         mstore(tiersRemaining, sub(mload(tiersRemaining), 1))
-                        mstore(tierParamsRemaining, sub(mload(tierParamsRemaining), 1))
+                        mstore(tierConfigsRemaining, sub(mload(tierConfigsRemaining), 1))
                     }
-                    _swappedAndPopped = true;
+                    swappedAndPopped = true;
                     break;
                 }
             }
-            if (!_swappedAndPopped) i++;
+            if (!swappedAndPopped) i++;
         }
+
         vm.prank(owner);
-        _delegate.adjustTiers(new JB721TierParams[](0), tiersToRemove);
-        JB721Tier[] memory _tiersListDump = _delegate.test_store().ForTest_dumpTiersList(address(_delegate));
-        // Check: all the tiers are still in the linked list (both active and inactives)
-        assertTrue(_isIn(_tiers, _tiersListDump));
-        // Check: the linked list include only the tiers (active and inactives)
-        assertTrue(_isIn(_tiersListDump, _tiers));
-        // Check: correct event
-        vm.expectEmit(true, false, false, true, address(_delegate.test_store()));
-        emit CleanTiers(address(_delegate), beneficiary);
+        hook.adjustTiers(new JB721TierConfig[](0), tiersToRemove);
+        JB721Tier[] memory tiersListDump = hook.test_store().ForTest_dumpTiersList(address(hook));
+        // Check: are all of the tiers are still in the linked list (both active and inactive)?
+        assertTrue(_isIn(tiers, tiersListDump));
+        // Check: does the linked list include only the tiers (active and inactives)?
+        assertTrue(_isIn(tiersListDump, tiers));
+        // Check: was the correct event emitted?
+        vm.expectEmit(true, false, false, true, address(hook.test_store()));
+        emit CleanTiers(address(hook), beneficiary);
         vm.startPrank(beneficiary);
-        _delegate.test_store().cleanTiers(address(_delegate));
+        hook.test_store().cleanTiers(address(hook));
         vm.stopPrank();
-        _tiersListDump = _delegate.test_store().ForTest_dumpTiersList(address(_delegate));
-        // check no of tiers
-        assertEq(_tiersListDump.length, initialNumberOfTiers - numberOfTiersToRemove);
-        // Check: the activer tiers are in the likned list
-        assertTrue(_isIn(tiersRemaining, _tiersListDump));
-        // Check: the linked list is only the active tiers
-        assertTrue(_isIn(_tiersListDump, tiersRemaining));
+        tiersListDump = hook.test_store().ForTest_dumpTiersList(address(hook));
+        // Check: is the correct number of tiers remaining?
+        assertEq(tiersListDump.length, initialNumberOfTiers - numberOfTiersToRemove);
+        // Check: are all of the remaining tiers in the dump?
+        assertTrue(_isIn(tiersRemaining, tiersListDump));
+        // Check: does the dump include any tiers which shouldn't be remaining?
+        assertTrue(_isIn(tiersListDump, tiersRemaining));
     }
 
-    function testJBTieredNFTRewardDelegate_tiersOf_emptyArrayIfNoInitializedTiers(uint256 _size) public {
-        // Initialize with 0 tiers
-        JBTiered721Delegate _delegate = _initializeDelegateDefaultTiers(0);
+    function test_tiersOf_emptyArrayIfNoInitializedTiers(uint256 size) public {
+        // Initialize a hook without default tiers.
+        JB721TiersHook hook = _initHookDefaultTiers(0);
 
-        // Try to get _size tiers
-        JB721Tier[] memory _intialTiers = _delegate.store().tiersOf(
-            address(_delegate), new uint256[](0), false, 0, _size
-        );
-        
-        // Check: Array of size 0?
-        assertEq(_intialTiers.length, 0, "Length mismatch");
+        // Try to get `size` tiers
+        JB721Tier[] memory intialTiers = hook.STORE().tiersOf(address(hook), new uint256[](0), false, 0, size);
+
+        // Check: does the array have a length of 0?
+        assertEq(intialTiers.length, 0, "Length mismatch.");
     }
 }

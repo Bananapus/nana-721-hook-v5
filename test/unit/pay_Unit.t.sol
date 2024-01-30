@@ -1,1079 +1,1131 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.16;
+pragma solidity 0.8.23;
 
 import "../utils/UnitTestSetup.sol";
 
-contract TestJuice721dDelegate_didPay_Unit is UnitTestSetup {
+contract Test_afterPayRecorded_Unit is UnitTestSetup {
     using stdStorage for StdStorage;
-    function testJBTieredNFTRewardDelegate_didPay_mintCorrectAmountsAndReserved(uint256 _initialQuantity, uint256 _tokenToMint, uint256 _reservedRate) public {
-        _initialQuantity = 400; 
-        _reservedRate = bound(_reservedRate, 0, 200);
-        _tokenToMint = bound(_tokenToMint, 1, 200);
 
-        defaultTierParams.initialQuantity = uint32(_initialQuantity);
-        defaultTierParams.reservedRate = uint16(_reservedRate);
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(1); // 1 tier
+    function test_afterPayRecorded_mintAndReserveCorrectAmounts(
+        uint256 initialSupply,
+        uint256 nftsToMint,
+        uint256 reserveFrequency
+    )
+        public
+    {
+        initialSupply = 400;
+        reserveFrequency = bound(reserveFrequency, 0, 200);
+        nftsToMint = bound(nftsToMint, 1, 200);
 
-        // Mock the directory call
+        defaultTierConfig.initialSupply = uint32(initialSupply);
+        defaultTierConfig.reserveFrequency = uint16(reserveFrequency);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(1); // Initialize with 1 default tier.
+
+        // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
             abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
             abi.encode(true)
         );
 
-        uint16[] memory _tierIdsToMint = new uint16[](_tokenToMint);
+        uint16[] memory tierIdsToMint = new uint16[](nftsToMint);
 
-        for(uint256 i; i < _tokenToMint; i++) _tierIdsToMint[i] = uint16(1);
-
-        // Build the metadata with the tiers to mint and the overspending flag
-        bytes[] memory _data = new bytes[](1);
-        _data[0] = abi.encode(false, _tierIdsToMint);
-
-        // Pass the delegate id
-        bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_DELEGATE_ID;
-
-        // Generate the metadata
-        bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
-
-        JBDidPayData3_1_1 memory _payData = JBDidPayData3_1_1(
-            beneficiary,
-            projectId,
-            0,
-            JBTokenAmount(JBTokens.ETH, 10 * _tokenToMint, 18, JBCurrencies.ETH),
-            JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-            0,
-            beneficiary,
-            false,
-            "",
-            bytes(""),
-            _delegateMetadata
-        );
-
-        vm.prank(mockTerminalAddress);
-        _delegate.didPay(_payData);
-        
-        assertEq(_delegate.balanceOf(beneficiary), _tokenToMint);
-
-        if (_reservedRate > 0 && _initialQuantity - _tokenToMint > 0) {
-            uint256 _reservedToken = _tokenToMint / _reservedRate ;
-            if(_tokenToMint % _reservedRate > 0) _reservedToken += 1;
-
-            assertEq(_delegate.store().numberOfReservedTokensOutstandingFor(address(_delegate), 1), _reservedToken);
-
-            vm.prank(owner);
-            _delegate.mintReservesFor(1, _reservedToken);
-            assertEq(_delegate.balanceOf(reserveBeneficiary), _reservedToken);
-        } else assertEq(_delegate.balanceOf(reserveBeneficiary), 0);
-    }
-
-    // If the amount payed is below the price to receive an NFT the pay should not revert if no metadata passed
-    function testJBTieredNFTRewardDelegate_didPay_doesRevertOnAmountBelowPriceIfNoMetadataIfPreventOverspending() public {
-        JBTiered721Delegate _delegate = _initializeDelegateDefaultTiers(10, true);
-
-        // Mock the directory call
-        mockAndExpect(
-            address(mockJBDirectory),
-            abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
-            abi.encode(true)
-        );
-
-        vm.expectRevert(abi.encodeWithSelector(JBTiered721Delegate.OVERSPENDING.selector));
-
-        vm.prank(mockTerminalAddress);
-        _delegate.didPay(
-            JBDidPayData3_1_1(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBTokens.ETH, tiers[0].price - 1, 18, JBCurrencies.ETH), // 1 wei below the minimum amount
-                JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                msg.sender,
-                false,
-                "",
-                new bytes(0),
-                new bytes(0)
-            )
-        );
-
-    }
-
-    // If the amount payed is below the price to receive an NFT the pay should revert if no metadata passed and the allow overspending flag is false.
-    function testJBTieredNFTRewardDelegate_didPay_doesNotRevertOnAmountBelowPriceIfNoMetadata() public {
-        // Mock the directory call
-        mockAndExpect(
-            address(mockJBDirectory),
-            abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
-            abi.encode(true)
-        );
-
-        vm.prank(mockTerminalAddress);
-        delegate.didPay(
-            JBDidPayData3_1_1(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBTokens.ETH, tiers[0].price - 1, 18, JBCurrencies.ETH), // 1 wei below the minimum amount
-                JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                msg.sender,
-                false,
-                "",
-                new bytes(0),
-                new bytes(0)
-            )
-        );
-
-        assertEq(delegate.creditsOf(msg.sender), tiers[0].price - 1);
-    }
-
-    // If the amount is above contribution floor and a tier is passed, mint as many corresponding tier as possible
-    function testJBTieredNFTRewardDelegate_didPay_mintCorrectTier() public {
-        // Mock the directory call
-        mockAndExpect(
-            address(mockJBDirectory),
-            abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
-            abi.encode(true)
-        );
-
-        uint256 _totalSupplyBeforePay = delegate.store().totalSupplyOf(address(delegate));
-        
-        bool _allowOverspending;
-        uint16[] memory _tierIdsToMint = new uint16[](3);
-        _tierIdsToMint[0] = 1;
-        _tierIdsToMint[1] = 1;
-        _tierIdsToMint[2] = 2;
-
-        // Build the metadata with the tiers to mint and the overspending flag
-        bytes[] memory _data = new bytes[](1);
-        _data[0] = abi.encode(_allowOverspending, _tierIdsToMint);
-
-        // Pass the delegate id
-        bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_DELEGATE_ID;
-
-        // Generate the metadata
-        bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
-        vm.prank(mockTerminalAddress);
-        delegate.didPay(
-            JBDidPayData3_1_1(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBTokens.ETH, tiers[0].price * 2 + tiers[1].price, 18, JBCurrencies.ETH),
-                JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                msg.sender,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
-        );
-
-        // Make sure a new NFT was minted
-        assertEq(_totalSupplyBeforePay + 3, delegate.store().totalSupplyOf(address(delegate)));
-
-        // Correct tier has been minted?
-        assertEq(delegate.ownerOf(_generateTokenId(1, 1)), msg.sender);
-        assertEq(delegate.ownerOf(_generateTokenId(1, 2)), msg.sender);
-        assertEq(delegate.ownerOf(_generateTokenId(2, 1)), msg.sender);
-    }
-
-    function testJBTieredNFTRewardDelegate_didPay_mintNoneIfNonePassed(uint8 _amount) public {
-        // Mock the directory call
-        mockAndExpect(
-            address(mockJBDirectory),
-            abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
-            abi.encode(true)
-        );
-
-        uint256 _totalSupplyBeforePay = delegate.store().totalSupplyOf(address(delegate));
-
-        bool _allowOverspending = true;
-        uint16[] memory _tierIdsToMint = new uint16[](0);
-        bytes memory _metadata = abi.encode(
-            bytes32(0), bytes32(0), type(IJBTiered721Delegate).interfaceId, _allowOverspending, _tierIdsToMint
-        );
-
-        vm.prank(mockTerminalAddress);
-        delegate.didPay(
-            JBDidPayData3_1_1(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBTokens.ETH, _amount, 18, JBCurrencies.ETH),
-                JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                msg.sender,
-                false,
-                "",
-                bytes(""),
-                _metadata
-            )
-        );
-
-        // Make sure no new NFT was minted if amount >= contribution floor
-        assertEq(_totalSupplyBeforePay, delegate.store().totalSupplyOf(address(delegate)));
-    }
-
-    function testJBTieredNFTRewardDelegate_didPay_mintTierAndTrackLeftover() public {
-        uint256 _leftover = tiers[0].price - 1;
-        uint256 _amount = tiers[0].price + _leftover;
-
-        // Mock the directory call
-        mockAndExpect(
-            address(mockJBDirectory),
-            abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
-            abi.encode(true)
-        );
-
-        bool _allowOverspending = true;
-        uint16[] memory _tierIdsToMint = new uint16[](1);
-        _tierIdsToMint[0] = uint16(1);
-
-        // Build the metadata with the tiers to mint and the overspending flag
-        bytes[] memory _data = new bytes[](1);
-        _data[0] = abi.encode(_allowOverspending, _tierIdsToMint);
-
-        // Pass the delegate id
-        bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_DELEGATE_ID;
-
-        // Generate the metadata
-        bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
-
-        // calculating new credits
-        uint256 _newCredits = _leftover + delegate.creditsOf(beneficiary);
-
-        vm.expectEmit(true, true, true, true, address(delegate));
-        emit AddCredits(_newCredits, _newCredits, beneficiary, mockTerminalAddress);
-
-        vm.prank(mockTerminalAddress);
-        delegate.didPay(
-            JBDidPayData3_1_1(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBTokens.ETH, _amount, 18, JBCurrencies.ETH),
-                JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                beneficiary,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
-        );
-
-        // Check: credit is updated?
-        assertEq(delegate.creditsOf(beneficiary), _leftover);
-    }
-
-    // Mint a given tier with a leftover, mint another given tier then, if the accumulated credit is enough, mint an extra tier
-    function testJBTieredNFTRewardDelegate_didPay_mintCorrectTiersWhenUsingPartialCredits() public {
-        uint256 _leftover = tiers[0].price + 1; // + 1 to avoid rounding error
-        uint256 _amount = tiers[0].price * 2 + tiers[1].price + _leftover / 2;
-
-        // Mock the directory call
-        mockAndExpect(
-            address(mockJBDirectory),
-            abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
-            abi.encode(true)
-        );
-
-        bool _allowOverspending = true;
-        uint16[] memory _tierIdsToMint = new uint16[](3);
-        _tierIdsToMint[0] = 1;
-        _tierIdsToMint[1] = 1;
-        _tierIdsToMint[2] = 2;
-
-        // Build the metadata with the tiers to mint and the overspending flag
-        bytes[] memory _data = new bytes[](1);
-        _data[0] = abi.encode(_allowOverspending, _tierIdsToMint);
-
-        // Pass the delegate id
-        bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_DELEGATE_ID;
-
-        // Generate the metadata
-        bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
-
-        uint256 _credits = delegate.creditsOf(beneficiary);
-
-        _leftover = _leftover / 2 + _credits; //left over amount
-
-        vm.expectEmit(true, true, true, true, address(delegate));
-        emit AddCredits(_leftover - _credits, _leftover, beneficiary, mockTerminalAddress);
-
-        // First call will mint the 3 tiers requested + accumulate half of first floor in credit
-        vm.prank(mockTerminalAddress);
-        delegate.didPay(
-            JBDidPayData3_1_1(
-                beneficiary,
-                projectId,
-                0,
-                JBTokenAmount(JBTokens.ETH, _amount, 18, JBCurrencies.ETH),
-                JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                beneficiary,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
-        );
-
-        uint256 _totalSupplyBefore = delegate.store().totalSupplyOf(address(delegate));
-        {
-            // We now attempt an additional tier 1 by using the credit we collected from last pay
-            uint16[] memory _moreTierIdsToMint = new uint16[](4);
-            _moreTierIdsToMint[0] = 1;
-            _moreTierIdsToMint[1] = 1;
-            _moreTierIdsToMint[2] = 2;
-            _moreTierIdsToMint[3] = 1;
-
-            _data[0] = abi.encode(_allowOverspending, _moreTierIdsToMint);
-
-            // Generate the metadata
-            _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
+        for (uint256 i; i < nftsToMint; i++) {
+            tierIdsToMint[i] = uint16(1);
         }
 
-        // fetch existing credits
-        _credits = delegate.creditsOf(beneficiary);
-        vm.expectEmit(true, true, true, true, address(delegate));
-        emit UseCredits(
-            _credits,
-            0, // no stashed credits
+        // Build the metadata using the tiers to mint and the overspending flag.
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encode(false, tierIdsToMint);
+
+        // Pass the hook ID.
+        bytes4[] memory ids = new bytes4[](1);
+        ids[0] = bytes4(bytes20(address(hook)));
+
+        // Generate the metadata.
+        bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
+
+        JBAfterPayRecordedContext memory payContext = JBAfterPayRecordedContext({
+            payer: beneficiary,
+            projectId: projectId,
+            rulesetId: 0,
+            amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 10 * nftsToMint, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+            forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                // forwarded to the hook.
+            weight: 10 ** 18,
+            projectTokenCount: 0,
+            beneficiary: beneficiary,
+            hookMetadata: bytes(""),
+            payerMetadata: hookMetadata
+        });
+
+        vm.prank(mockTerminalAddress);
+        hook.afterPayRecordedWith(payContext);
+
+        // Check: has the correct number of NFTs been minted for the beneficiary?
+        assertEq(hook.balanceOf(beneficiary), nftsToMint);
+
+        // Check: were the correct number of NFTs reserved?
+        if (reserveFrequency > 0 && initialSupply - nftsToMint > 0) {
+            uint256 reservedToken = nftsToMint / reserveFrequency;
+            if (nftsToMint % reserveFrequency > 0) reservedToken += 1;
+
+            assertEq(hook.STORE().numberOfPendingReservesFor(address(hook), 1), reservedToken);
+
+            // Mint the pending reserves for the beneficiary.
+            vm.prank(owner);
+            hook.mintPendingReservesFor(1, reservedToken);
+
+            // Check: did the reserve beneficiary receive the correct number of NFTs?
+            assertEq(hook.balanceOf(reserveBeneficiary), reservedToken);
+        } else {
+            // Check: does the reserve beneficiary have no NFTs?
+            assertEq(hook.balanceOf(reserveBeneficiary), 0);
+        }
+    }
+
+    // If the amount paid is less than the NFT's price, the payment should revert if overspending is not allowed and no
+    // metadata was passed.
+    function test_afterPayRecorded_revertsOnAmountBelowPriceIfNoMetadataAndOverspendingIsPrevented() public {
+        JB721TiersHook hook = _initHookDefaultTiers(10, true);
+
+        // Mock the directory call.
+        mockAndExpect(
+            address(mockJBDirectory),
+            abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
+            abi.encode(true)
+        );
+
+        // Expect a revert for overspending.
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHook.OVERSPENDING.selector));
+
+        vm.prank(mockTerminalAddress);
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                // 1 wei below the minimum amount
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: new bytes(0)
+            })
+        );
+    }
+
+    // If the amount paid is less than the NFT's price, the payment should not revert if overspending is allowed and no
+    // metadata was passed.
+    function test_afterPayRecorded_doesNotRevertOnAmountBelowPriceIfNoMetadata() public {
+        // Mock the directory call.
+        mockAndExpect(
+            address(mockJBDirectory),
+            abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
+            abi.encode(true)
+        );
+
+        vm.prank(mockTerminalAddress);
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                // 1 wei below the minimum amount
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: new bytes(0)
+            })
+        );
+
+        // Check: does the payer have the correct number of pay credits?
+        assertEq(hook.payCreditsOf(msg.sender), tiers[0].price - 1);
+    }
+
+    // If a tier is passed and the amount paid exceeds that NFT's price, mint as many NFTs as possible.
+    function test_afterPayRecorded_mintCorrectTier() public {
+        // Mock the directory call.
+        mockAndExpect(
+            address(mockJBDirectory),
+            abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
+            abi.encode(true)
+        );
+
+        uint256 totalSupplyBeforePay = hook.STORE().totalSupplyOf(address(hook));
+
+        bool allowOverspending;
+        uint16[] memory tierIdsToMint = new uint16[](3);
+        tierIdsToMint[0] = 1;
+        tierIdsToMint[1] = 1;
+        tierIdsToMint[2] = 2;
+
+        // Build the metadata using the tiers to mint and the overspending flag.
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encode(allowOverspending, tierIdsToMint);
+
+        // Pass the hook ID.
+        bytes4[] memory ids = new bytes4[](1);
+        ids[0] = bytes4(bytes20(address(hook)));
+
+        // Generate the metadata.
+        bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
+        vm.prank(mockTerminalAddress);
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN,
+                    tiers[0].price * 2 + tiers[1].price,
+                    18,
+                    uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: hookMetadata
+            })
+        );
+
+        // Check: has the correct number of NFTs been minted?
+        assertEq(totalSupplyBeforePay + 3, hook.STORE().totalSupplyOf(address(hook)));
+
+        // Check: has the correct number of NFTs been minted in each tier?
+        assertEq(hook.ownerOf(_generateTokenId(1, 1)), msg.sender);
+        assertEq(hook.ownerOf(_generateTokenId(1, 2)), msg.sender);
+        assertEq(hook.ownerOf(_generateTokenId(2, 1)), msg.sender);
+    }
+
+    // If no tiers are passed, no NFTs should be minted.
+    function test_afterPayRecorded_mintNoneIfNonePassed(uint8 amount) public {
+        // Mock the directory call.
+        mockAndExpect(
+            address(mockJBDirectory),
+            abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
+            abi.encode(true)
+        );
+
+        uint256 totalSupplyBeforePay = hook.STORE().totalSupplyOf(address(hook));
+
+        bool allowOverspending = true;
+        uint16[] memory tierIdsToMint = new uint16[](0);
+        bytes memory metadata =
+            abi.encode(bytes32(0), bytes32(0), type(IJB721TiersHook).interfaceId, allowOverspending, tierIdsToMint);
+
+        vm.prank(mockTerminalAddress);
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: metadata
+            })
+        );
+
+        // Check: has the total supply stayed the same?
+        assertEq(totalSupplyBeforePay, hook.STORE().totalSupplyOf(address(hook)));
+    }
+
+    function test_afterPayRecorded_mintTierAndTrackLeftover() public {
+        uint256 leftover = tiers[0].price - 1;
+        uint256 amount = tiers[0].price + leftover;
+
+        // Mock the directory call.
+        mockAndExpect(
+            address(mockJBDirectory),
+            abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
+            abi.encode(true)
+        );
+
+        bool allowOverspending = true;
+        uint16[] memory tierIdsToMint = new uint16[](1);
+        tierIdsToMint[0] = uint16(1);
+
+        // Build the metadata using the tiers to mint and the overspending flag.
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encode(allowOverspending, tierIdsToMint);
+
+        // Pass the hook ID.
+        bytes4[] memory ids = new bytes4[](1);
+        ids[0] = bytes4(bytes20(address(hook)));
+
+        // Generate the metadata.
+        bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
+
+        // Calculate the new pay credits.
+        uint256 newPayCredits = leftover + hook.payCreditsOf(beneficiary);
+
+        vm.expectEmit(true, true, true, true, address(hook));
+        emit AddPayCredits(newPayCredits, newPayCredits, beneficiary, mockTerminalAddress);
+
+        vm.prank(mockTerminalAddress);
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: beneficiary,
+                hookMetadata: new bytes(0),
+                payerMetadata: hookMetadata
+            })
+        );
+
+        // Check: has the pay credit balance been updated appropriately?
+        assertEq(hook.payCreditsOf(beneficiary), leftover);
+    }
+
+    // Mint various tiers, leaving leftovers, and use the resulting pay credits to mint more NFTs.
+    function test_afterPayRecorded_mintCorrectTiersWhenPartiallyUsingPayCredits() public {
+        uint256 leftover = tiers[0].price + 1; // + 1 to avoid rounding error
+        uint256 amount = tiers[0].price * 2 + tiers[1].price + leftover / 2;
+
+        // Mock the directory call.
+        mockAndExpect(
+            address(mockJBDirectory),
+            abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
+            abi.encode(true)
+        );
+
+        bool allowOverspending = true;
+        uint16[] memory tierIdsToMint = new uint16[](3);
+        tierIdsToMint[0] = 1;
+        tierIdsToMint[1] = 1;
+        tierIdsToMint[2] = 2;
+
+        // Build the metadata using the tiers to mint and the overspending flag.
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encode(allowOverspending, tierIdsToMint);
+
+        // Pass the hook ID.
+        bytes4[] memory ids = new bytes4[](1);
+        ids[0] = bytes4(bytes20(address(hook)));
+
+        // Generate the metadata.
+        bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
+
+        uint256 payCredits = hook.payCreditsOf(beneficiary);
+
+        leftover = leftover / 2 + payCredits; // Amount left over.
+
+        vm.expectEmit(true, true, true, true, address(hook));
+        emit AddPayCredits(leftover - payCredits, leftover, beneficiary, mockTerminalAddress);
+
+        // First call will mint the 3 tiers requested and accumulate half of the first price in pay credits.
+        vm.prank(mockTerminalAddress);
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: beneficiary,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: beneficiary,
+                hookMetadata: new bytes(0),
+                payerMetadata: hookMetadata
+            })
+        );
+
+        uint256 totalSupplyBefore = hook.STORE().totalSupplyOf(address(hook));
+        {
+            // We now attempt to mint an additional NFT from tier 1 using the pay credits we collected.
+            uint16[] memory moreTierIdsToMint = new uint16[](4);
+            moreTierIdsToMint[0] = 1;
+            moreTierIdsToMint[1] = 1;
+            moreTierIdsToMint[2] = 2;
+            moreTierIdsToMint[3] = 1;
+
+            data[0] = abi.encode(allowOverspending, moreTierIdsToMint);
+
+            // Generate the metadata.
+            hookMetadata = metadataHelper.createMetadata(ids, data);
+        }
+
+        // Fetch existing credits.
+        payCredits = hook.payCreditsOf(beneficiary);
+        vm.expectEmit(true, true, true, true, address(hook));
+        emit UsePayCredits(
+            payCredits,
+            0, // No stashed credits.
             beneficiary,
             mockTerminalAddress
         );
 
-        // Second call will mint another 3 tiers requested + mint from the first tier with the credit
+        // Second call will mint another 3 tiers requested and mint from the first tier using pay credits.
         vm.prank(mockTerminalAddress);
-        delegate.didPay(
-            JBDidPayData3_1_1(
-                beneficiary,
-                projectId,
-                0,
-                JBTokenAmount(JBTokens.ETH, _amount, 18, JBCurrencies.ETH),
-                JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                beneficiary,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: beneficiary,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: beneficiary,
+                hookMetadata: new bytes(0),
+                payerMetadata: hookMetadata
+            })
         );
 
-        // Check: total supply has increased?
-        assertEq(_totalSupplyBefore + 4, delegate.store().totalSupplyOf(address(delegate)));
+        // Check: has the total supply increased?
+        assertEq(totalSupplyBefore + 4, hook.STORE().totalSupplyOf(address(hook)));
 
-        // Check: correct tiers have been minted
-        // .. On first pay?
-        assertEq(delegate.ownerOf(_generateTokenId(1, 1)), beneficiary);
-        assertEq(delegate.ownerOf(_generateTokenId(1, 2)), beneficiary);
-        assertEq(delegate.ownerOf(_generateTokenId(2, 1)), beneficiary);
+        // Check: have the correct tiers been minted...
+        // ... from the first payment?
+        assertEq(hook.ownerOf(_generateTokenId(1, 1)), beneficiary);
+        assertEq(hook.ownerOf(_generateTokenId(1, 2)), beneficiary);
+        assertEq(hook.ownerOf(_generateTokenId(2, 1)), beneficiary);
 
-        // ... On second pay?
-        assertEq(delegate.ownerOf(_generateTokenId(1, 3)), beneficiary);
-        assertEq(delegate.ownerOf(_generateTokenId(1, 4)), beneficiary);
-        assertEq(delegate.ownerOf(_generateTokenId(1, 5)), beneficiary);
-        assertEq(delegate.ownerOf(_generateTokenId(2, 2)), beneficiary);
+        // ... from the second payment?
+        assertEq(hook.ownerOf(_generateTokenId(1, 3)), beneficiary);
+        assertEq(hook.ownerOf(_generateTokenId(1, 4)), beneficiary);
+        assertEq(hook.ownerOf(_generateTokenId(1, 5)), beneficiary);
+        assertEq(hook.ownerOf(_generateTokenId(2, 2)), beneficiary);
 
-        // Check: no credit is left?
-        assertEq(delegate.creditsOf(beneficiary), 0);
+        // Check: have all pay credits been used?
+        assertEq(hook.payCreditsOf(beneficiary), 0);
     }
 
-    function testJBTieredNFTRewardDelegate_didPay_doNotMintWithSomeoneElseCredit() public {
-        uint256 _leftover = tiers[0].price + 1; // + 1 to avoid rounding error
-        uint256 _amount = tiers[0].price * 2 + tiers[1].price + _leftover / 2;
+    function test_afterPayRecorded_doNotMintWithSomeoneElsesCredits() public {
+        uint256 leftover = tiers[0].price + 1; // + 1 to avoid rounding error.
+        uint256 amount = tiers[0].price * 2 + tiers[1].price + leftover / 2;
 
-        // Mock the directory call
+        // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
             abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
             abi.encode(true)
         );
 
-        bool _allowOverspending = true;
-        uint16[] memory _tierIdsToMint = new uint16[](3);
-        _tierIdsToMint[0] = 1;
-        _tierIdsToMint[1] = 1;
-        _tierIdsToMint[2] = 2;
+        bool allowOverspending = true;
+        uint16[] memory tierIdsToMint = new uint16[](3);
+        tierIdsToMint[0] = 1;
+        tierIdsToMint[1] = 1;
+        tierIdsToMint[2] = 2;
 
-        // Build the metadata with the tiers to mint and the overspending flag
-        bytes[] memory _data = new bytes[](1);
-        _data[0] = abi.encode(_allowOverspending, _tierIdsToMint);
+        // Build the metadata using the tiers to mint and the overspending flag.
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encode(allowOverspending, tierIdsToMint);
 
-        // Pass the delegate id
-        bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_DELEGATE_ID;
+        // Pass the hook ID.
+        bytes4[] memory ids = new bytes4[](1);
+        ids[0] = bytes4(bytes20(address(hook)));
 
-        // Generate the metadata
-        bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
+        // Generate the metadata.
+        bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
 
-        // First call will mint the 3 tiers requested + accumulate half of first floor in credit
+        // The first call will mint the 3 tiers requested and accumulate half of the first price as pay credits.
         vm.prank(mockTerminalAddress);
-        delegate.didPay(
-            JBDidPayData3_1_1(
-                beneficiary,
-                projectId,
-                0,
-                JBTokenAmount(JBTokens.ETH, _amount, 18, JBCurrencies.ETH),
-                JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                beneficiary,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: beneficiary,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: beneficiary,
+                hookMetadata: new bytes(0),
+                payerMetadata: hookMetadata
+            })
         );
 
-        uint256 _totalSupplyBefore = delegate.store().totalSupplyOf(address(delegate));
-        uint256 _creditBefore = delegate.creditsOf(beneficiary);
+        uint256 totalSupplyBefore = hook.STORE().totalSupplyOf(address(hook));
+        uint256 payCreditsBefore = hook.payCreditsOf(beneficiary);
 
-        // Second call will mint another 3 tiers requested BUT not with the credit accumulated
+        // The second call will mint another 3 tiers requested but NOT with the pay credits.
         vm.prank(mockTerminalAddress);
-        delegate.didPay(
-            JBDidPayData3_1_1(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBTokens.ETH, _amount, 18, JBCurrencies.ETH),
-                JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                beneficiary,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: beneficiary,
+                hookMetadata: new bytes(0),
+                payerMetadata: hookMetadata
+            })
         );
 
-        // Check: total supply has increased with the 3 token?
-        assertEq(_totalSupplyBefore + 3, delegate.store().totalSupplyOf(address(delegate)));
+        // Check: has the total supply has increased by 3 NFTs?
+        assertEq(totalSupplyBefore + 3, hook.STORE().totalSupplyOf(address(hook)));
 
-        // Check: correct tiers have been minted
-        // .. On first pay?
-        assertEq(delegate.ownerOf(_generateTokenId(1, 1)), beneficiary);
-        assertEq(delegate.ownerOf(_generateTokenId(1, 2)), beneficiary);
-        assertEq(delegate.ownerOf(_generateTokenId(2, 1)), beneficiary);
+        // Check: were the correct tiers minted...
+        // ... from the first payment?
+        assertEq(hook.ownerOf(_generateTokenId(1, 1)), beneficiary);
+        assertEq(hook.ownerOf(_generateTokenId(1, 2)), beneficiary);
+        assertEq(hook.ownerOf(_generateTokenId(2, 1)), beneficiary);
 
-        // ... On second pay, without extra from the credit?
-        assertEq(delegate.ownerOf(_generateTokenId(1, 3)), beneficiary);
-        assertEq(delegate.ownerOf(_generateTokenId(1, 4)), beneficiary);
-        assertEq(delegate.ownerOf(_generateTokenId(2, 2)), beneficiary);
+        // ... from the second payment (without extras from the pay credits)?
+        assertEq(hook.ownerOf(_generateTokenId(1, 3)), beneficiary);
+        assertEq(hook.ownerOf(_generateTokenId(1, 4)), beneficiary);
+        assertEq(hook.ownerOf(_generateTokenId(2, 2)), beneficiary);
 
-        // Check: credit is now having both left-overs?
-        assertEq(delegate.creditsOf(beneficiary), _creditBefore * 2);
+        // Check: are pay credits from both payments left over?
+        assertEq(hook.payCreditsOf(beneficiary), payCreditsBefore * 2);
     }
 
-    // Terminal is in currency 1 with 18 decimal, delegate is in currency 2, with 9 decimals
-    // The conversion rate is set at 1:2
-    function testJBTieredNFTRewardDelegate_didPay_mintCorrectTierWithAnotherCurrency() public {
-        address _jbPrice = address(bytes20(keccak256("MockJBPrice")));
-        vm.etch(_jbPrice, new bytes(1));
+    // The terminal uses currency 1 with 18 decimals, and the hook uses currency 2 with 9 decimals.
+    // The conversion rate is set at 1:2.
+    function test_afterPayRecorded_mintCorrectTierWithAnotherCurrency() public {
+        address jbPrice = address(bytes20(keccak256("MockJBPrice")));
+        vm.etch(jbPrice, new bytes(1));
 
-        // currency 2 with 9 decimals
-        JBTiered721Delegate _delegate = _initializeDelegateDefaultTiers(10, false, 2, 9, _jbPrice);
+        // Currency 2, with 9 decimals.
+        JB721TiersHook hook = _initHookDefaultTiers(10, false, 2, 9, jbPrice);
 
-        // Mock the directory call
+        // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
             abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
             abi.encode(true)
         );
 
-        // Mock the price oracle call
-        uint256 _amountInEth = (tiers[0].price * 2 + tiers[1].price) * 2;
-        mockAndExpect(_jbPrice, abi.encodeCall(IJBPrices.priceFor, (1, 2, 18)), abi.encode(2 * 10 ** 9));
-
-        uint256 _totalSupplyBeforePay = _delegate.store().totalSupplyOf(address(delegate));
-
-        bool _allowOverspending = true;
-        uint16[] memory _tierIdsToMint = new uint16[](3);
-        _tierIdsToMint[0] = 1;
-        _tierIdsToMint[1] = 1;
-        _tierIdsToMint[2] = 2;
-
-        // Build the metadata with the tiers to mint and the overspending flag
-        bytes[] memory _data = new bytes[](1);
-        _data[0] = abi.encode(_allowOverspending, _tierIdsToMint);
-
-        // Pass the delegate id
-        bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_DELEGATE_ID;
-
-        // Generate the metadata
-        bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
-
-        vm.prank(mockTerminalAddress);
-        _delegate.didPay(
-            JBDidPayData3_1_1(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBTokens.ETH, _amountInEth, 18, JBCurrencies.ETH),
-                JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                msg.sender,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+        // Mock the price oracle call.
+        uint256 amountInEth = (tiers[0].price * 2 + tiers[1].price) * 2;
+        mockAndExpect(
+            jbPrice,
+            abi.encodeCall(IJBPrices.pricePerUnitOf, (projectId, uint32(uint160(JBConstants.NATIVE_TOKEN)), 2, 18)),
+            abi.encode(2 * 10 ** 9)
         );
 
-        // Make sure a new NFT was minted
-        assertEq(_totalSupplyBeforePay + 3, _delegate.store().totalSupplyOf(address(_delegate)));
+        uint256 totalSupplyBeforePay = hook.STORE().totalSupplyOf(address(hook));
 
-        // Correct tier has been minted?
-        assertEq(_delegate.ownerOf(_generateTokenId(1, 1)), msg.sender);
-        assertEq(_delegate.ownerOf(_generateTokenId(1, 2)), msg.sender);
-        assertEq(_delegate.ownerOf(_generateTokenId(2, 1)), msg.sender);
+        bool allowOverspending = true;
+        uint16[] memory tierIdsToMint = new uint16[](3);
+        tierIdsToMint[0] = 1;
+        tierIdsToMint[1] = 1;
+        tierIdsToMint[2] = 2;
+
+        // Build the metadata using the tiers to mint and the overspending flag.
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encode(allowOverspending, tierIdsToMint);
+
+        // Pass the hook ID.
+        bytes4[] memory ids = new bytes4[](1);
+        ids[0] = bytes4(bytes20(address(hook)));
+
+        // Generate the metadata.
+        bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
+
+        vm.prank(mockTerminalAddress);
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, amountInEth, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: hookMetadata
+            })
+        );
+
+        // Make sure 3 new NFTs were minted.
+        assertEq(totalSupplyBeforePay + 3, hook.STORE().totalSupplyOf(address(hook)));
+
+        // Check: have the correct NFT tiers been minted?
+        assertEq(hook.ownerOf(_generateTokenId(1, 1)), msg.sender);
+        assertEq(hook.ownerOf(_generateTokenId(1, 2)), msg.sender);
+        assertEq(hook.ownerOf(_generateTokenId(2, 1)), msg.sender);
     }
 
-    // If the tier has been removed, revert
-    function testJBTieredNFTRewardDelegate_didPay_revertIfTierRemoved() public {
-        // Mock the directory call
+    // If the tier has been removed, revert.
+    function test_afterPayRecorded_revertIfTierRemoved() public {
+        // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
             abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
             abi.encode(true)
         );
 
-        uint256 _totalSupplyBeforePay = delegate.store().totalSupplyOf(address(delegate));
+        uint256 totalSupplyBeforePay = hook.STORE().totalSupplyOf(address(hook));
 
-        bool _allowOverspending;
-        uint16[] memory _tierIdsToMint = new uint16[](3);
-        _tierIdsToMint[0] = 1;
-        _tierIdsToMint[1] = 1;
-        _tierIdsToMint[2] = 2;
+        bool allowOverspending;
+        uint16[] memory tierIdsToMint = new uint16[](3);
+        tierIdsToMint[0] = 1;
+        tierIdsToMint[1] = 1;
+        tierIdsToMint[2] = 2;
 
-        // Build the metadata with the tiers to mint and the overspending flag
-        bytes[] memory _data = new bytes[](1);
-        _data[0] = abi.encode(_allowOverspending, _tierIdsToMint);
+        // Build the metadata using the tiers to mint and the overspending flag.
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encode(allowOverspending, tierIdsToMint);
 
-        // Pass the delegate id
-        bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_DELEGATE_ID;
+        // Pass the hook ID.
+        bytes4[] memory ids = new bytes4[](1);
+        ids[0] = bytes4(bytes20(address(hook)));
 
-        // Generate the metadata
-        bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
+        // Generate the metadata.
+        bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
 
-        uint256[] memory _toRemove = new uint256[](1);
-        _toRemove[0] = 1;
+        uint256[] memory toRemove = new uint256[](1);
+        toRemove[0] = 1;
 
         vm.prank(owner);
-        delegate.adjustTiers(new JB721TierParams[](0), _toRemove);
+        hook.adjustTiers(new JB721TierConfig[](0), toRemove);
 
-        vm.expectRevert(abi.encodeWithSelector(JBTiered721DelegateStore.TIER_REMOVED.selector));
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.TIER_REMOVED.selector));
 
         vm.prank(mockTerminalAddress);
-        delegate.didPay(
-            JBDidPayData3_1_1(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBTokens.ETH, tiers[0].price * 2 + tiers[1].price, 18, JBCurrencies.ETH),
-                JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                msg.sender,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN,
+                    tiers[0].price * 2 + tiers[1].price,
+                    18,
+                    uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: hookMetadata
+            })
         );
 
-        // Make sure no new NFT was minted
-        assertEq(_totalSupplyBeforePay, delegate.store().totalSupplyOf(address(delegate)));
+        // Check: has the total supply stayed the same?
+        assertEq(totalSupplyBeforePay, hook.STORE().totalSupplyOf(address(hook)));
     }
 
-    function testJBTieredNFTRewardDelegate_didPay_revertIfNonExistingTier(uint256 _invalidTier) public {
-        _invalidTier = bound(_invalidTier, tiers.length + 1, type(uint16).max);
+    function test_afterPayRecorded_revertIfTierDoesNotExist(uint256 invalidTier) public {
+        invalidTier = bound(invalidTier, tiers.length + 1, type(uint16).max);
 
-        // Mock the directory call
+        // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
             abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
             abi.encode(true)
         );
 
-        uint256 _totalSupplyBeforePay = delegate.store().totalSupplyOf(address(delegate));
+        uint256 totalSupplyBeforePay = hook.STORE().totalSupplyOf(address(hook));
 
-        bool _allowOverspending;
-        uint16[] memory _tierIdsToMint = new uint16[](1);
-        _tierIdsToMint[0] = uint16(_invalidTier);
+        bool allowOverspending;
+        uint16[] memory tierIdsToMint = new uint16[](1);
+        tierIdsToMint[0] = uint16(invalidTier);
 
-        // Build the metadata with the tiers to mint and the overspending flag
-        bytes[] memory _data = new bytes[](1);
-        _data[0] = abi.encode(_allowOverspending, _tierIdsToMint);
+        // Build the metadata using the tiers to mint and the overspending flag.
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encode(allowOverspending, tierIdsToMint);
 
-        // Pass the delegate id
-        bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_DELEGATE_ID;
+        // Pass the hook ID.
+        bytes4[] memory ids = new bytes4[](1);
+        ids[0] = bytes4(bytes20(address(hook)));
 
-        // Generate the metadata
-        bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
+        // Generate the metadata.
+        bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
 
-        uint256[] memory _toRemove = new uint256[](1);
-        _toRemove[0] = 1;
+        uint256[] memory toRemove = new uint256[](1);
+        toRemove[0] = 1;
 
         vm.prank(owner);
-        delegate.adjustTiers(new JB721TierParams[](0), _toRemove);
+        hook.adjustTiers(new JB721TierConfig[](0), toRemove);
 
-        vm.expectRevert(abi.encodeWithSelector(JBTiered721DelegateStore.INVALID_TIER.selector));
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.INVALID_TIER.selector));
 
         vm.prank(mockTerminalAddress);
-        delegate.didPay(
-            JBDidPayData3_1_1(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBTokens.ETH, tiers[0].price * 2 + tiers[1].price, 18, JBCurrencies.ETH),
-                JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                msg.sender,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN,
+                    tiers[0].price * 2 + tiers[1].price,
+                    18,
+                    uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: hookMetadata
+            })
         );
 
-        // Make sure no new NFT was minted
-        assertEq(_totalSupplyBeforePay, delegate.store().totalSupplyOf(address(delegate)));
+        // Check: has the total supply stayed the same?
+        assertEq(totalSupplyBeforePay, hook.STORE().totalSupplyOf(address(hook)));
     }
 
-    // If the amount is not enought to cover all the tiers requested, revert
-    function testJBTieredNFTRewardDelegate_didPay_revertIfAmountTooLow() public {
-        // Mock the directory call
+    // If the amount is not enought to pay for all of the requested tiers, revert.
+    function test_afterPayRecorded_revertIfAmountTooLow() public {
+        // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
             abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
             abi.encode(true)
         );
 
-        uint256 _totalSupplyBeforePay = delegate.store().totalSupplyOf(address(delegate));
+        uint256 totalSupplyBeforePay = hook.STORE().totalSupplyOf(address(hook));
 
-        bool _allowOverspending;
-        uint16[] memory _tierIdsToMint = new uint16[](3);
-        _tierIdsToMint[0] = 1;
-        _tierIdsToMint[1] = 1;
-        _tierIdsToMint[2] = 2;
+        bool allowOverspending;
+        uint16[] memory tierIdsToMint = new uint16[](3);
+        tierIdsToMint[0] = 1;
+        tierIdsToMint[1] = 1;
+        tierIdsToMint[2] = 2;
 
-        // Build the metadata with the tiers to mint and the overspending flag
-        bytes[] memory _data = new bytes[](1);
-        _data[0] = abi.encode(_allowOverspending, _tierIdsToMint);
+        // Build the metadata using the tiers to mint and the overspending flag.
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encode(allowOverspending, tierIdsToMint);
 
-        // Pass the delegate id
-        bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_DELEGATE_ID;
+        // Pass the hook ID.
+        bytes4[] memory ids = new bytes4[](1);
+        ids[0] = bytes4(bytes20(address(hook)));
 
-        // Generate the metadata
-        bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
+        // Generate the metadata.
+        bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
 
-        vm.expectRevert(abi.encodeWithSelector(JBTiered721DelegateStore.INSUFFICIENT_AMOUNT.selector));
+        // Expect a revert for the amount being too low.
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.PRICE_EXCEEDS_AMOUNT.selector));
 
         vm.prank(mockTerminalAddress);
-        delegate.didPay(
-            JBDidPayData3_1_1(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBTokens.ETH, tiers[0].price * 2 + tiers[1].price - 1, 18, JBCurrencies.ETH),
-                JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                msg.sender,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN,
+                    tiers[0].price * 2 + tiers[1].price - 1,
+                    18,
+                    uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: hookMetadata
+            })
         );
 
-        // Make sure no new NFT was minted
-        assertEq(_totalSupplyBeforePay, delegate.store().totalSupplyOf(address(delegate)));
+        // Check: has the total supply stayed the same?
+        assertEq(totalSupplyBeforePay, hook.STORE().totalSupplyOf(address(hook)));
     }
 
-    function testJBTieredNFTRewardDelegate_didPay_revertIfAllowanceRunsOutInParticularTier() public {
-        // Mock the directory call
+    function test_afterPayRecorded_revertIfAllowanceRunsOutInSpecifiedTier() public {
+        // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
             abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
             abi.encode(true)
         );
 
-        uint256 _supplyLeft = tiers[0].initialQuantity;
+        uint256 supplyLeft = tiers[0].initialSupply;
 
         while (true) {
-            uint256 _totalSupplyBeforePay = delegate.store().totalSupplyOf(address(delegate));
+            uint256 totalSupplyBeforePay = hook.STORE().totalSupplyOf(address(hook));
 
-            bool _allowOverspending = true;
+            bool allowOverspending = true;
 
             uint16[] memory tierSelected = new uint16[](1);
             tierSelected[0] = 1;
 
-            // Build the metadata with the tiers to mint and the overspending flag
-            bytes[] memory _data = new bytes[](1);
-            _data[0] = abi.encode(_allowOverspending, tierSelected);
+            // Build the metadata using the tiers to mint and the overspending flag.
+            bytes[] memory data = new bytes[](1);
+            data[0] = abi.encode(allowOverspending, tierSelected);
 
-            // Pass the delegate id
-            bytes4[] memory _ids = new bytes4[](1);
-            _ids[0] = PAY_DELEGATE_ID;
+            // Pass the hook ID.
+            bytes4[] memory ids = new bytes4[](1);
+            ids[0] = bytes4(bytes20(address(hook)));
 
-            // Generate the metadata
-            bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
+            // Generate the metadata.
+            bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
 
-            // If there is no supply left this should revert
-            if (_supplyLeft == 0) {
-                vm.expectRevert(abi.encodeWithSelector(JBTiered721DelegateStore.OUT.selector));
+            // If there is no remaining supply, this should revert.
+            if (supplyLeft == 0) {
+                vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.INSUFFICIENT_SUPPLY_REMAINING.selector));
             }
 
-            // Perform the pay
+            // Execute the payment.
             vm.prank(mockTerminalAddress);
-            delegate.didPay(
-                JBDidPayData3_1_1(
-                    msg.sender,
-                    projectId,
-                    0,
-                    JBTokenAmount(JBTokens.ETH, tiers[0].price, 18, JBCurrencies.ETH),
-                    JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                    0,
-                    msg.sender,
-                    false,
-                    "",
-                    bytes(""),
-                    _delegateMetadata
-                )
+            hook.afterPayRecordedWith(
+                JBAfterPayRecordedContext({
+                    payer: msg.sender,
+                    projectId: projectId,
+                    rulesetId: 0,
+                    amount: JBTokenAmount(
+                        JBConstants.NATIVE_TOKEN, tiers[0].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
+                        ),
+                    forwardedAmount: JBTokenAmount(
+                        JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
+                        ), // 0, forwarded to the hook.
+                    weight: 10 ** 18,
+                    projectTokenCount: 0,
+                    beneficiary: msg.sender,
+                    hookMetadata: new bytes(0),
+                    payerMetadata: hookMetadata
+                })
             );
-            // Make sure if there was no supply left there was no NFT minted
-            if (_supplyLeft == 0) {
-                assertEq(delegate.store().totalSupplyOf(address(delegate)), _totalSupplyBeforePay);
+            // If there's no supply left...
+            if (supplyLeft == 0) {
+                // Check: has the total supply stayed the same?
+                assertEq(hook.STORE().totalSupplyOf(address(hook)), totalSupplyBeforePay);
                 break;
             } else {
-                assertEq(delegate.store().totalSupplyOf(address(delegate)), _totalSupplyBeforePay + 1);
+                // Otherwise, check that the total supply has increased by 1.
+                assertEq(hook.STORE().totalSupplyOf(address(hook)), totalSupplyBeforePay + 1);
             }
-            --_supplyLeft;
+            --supplyLeft;
         }
     }
 
-    function testJBTieredNFTRewardDelegate_didPay_revertIfCallerIsNotATerminalOfProjectId(address _terminal) public {
-        vm.assume(_terminal != mockTerminalAddress);
+    function test_afterPayRecorded_revertIfCallerIsNotATerminalOfProjectId(address terminal) public {
+        vm.assume(terminal != mockTerminalAddress);
 
-        // Mock the directory call
+        // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
-            abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, _terminal),
+            abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, terminal),
             abi.encode(false)
         );
 
-        // The caller is the _expectedCaller however the terminal in the calldata is not correct
-        vm.prank(_terminal);
+        // The caller is the `_expectedCaller`. However, the terminal in the calldata is not correct.
+        vm.prank(terminal);
 
-        vm.expectRevert(abi.encodeWithSelector(JB721Delegate.INVALID_PAYMENT_EVENT.selector));
+        // Expect a revert for the caller not being a terminal of the project.
+        vm.expectRevert(abi.encodeWithSelector(JB721Hook.INVALID_PAY.selector));
 
-        delegate.didPay(
-            JBDidPayData3_1_1(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(address(0), 0, 18, JBCurrencies.ETH),
-                JBTokenAmount(address(0), 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                msg.sender,
-                false,
-                "",
-                bytes(""),
-                new bytes(0)
-            )
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(address(0), 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: new bytes(0)
+            })
         );
     }
 
-    function testJBTieredNFTRewardDelegate_didPay_doNotMintIfNotUsingCorrectToken(address token) public {
-        vm.assume(token != JBTokens.ETH);
+    function test_afterPayRecorded_doNotMintIfNotUsingCorrectToken(address token) public {
+        vm.assume(token != JBConstants.NATIVE_TOKEN);
 
-        // Mock the directory call
+        // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
             abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
             abi.encode(true)
         );
 
-        // The caller is the _expectedCaller however the terminal in the calldata is not correct
+        // The caller is the `_expectedCaller`. However, the terminal in the calldata is not correct.
         vm.prank(mockTerminalAddress);
-        delegate.didPay(
-            JBDidPayData3_1_1(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(token, 0, 18, JBCurrencies.ETH),
-                JBTokenAmount(token, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                msg.sender,
-                false,
-                "",
-                bytes(""),
-                new bytes(0)
-            )
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(token, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: new bytes(0)
+            })
         );
 
-        // Check: nothing has been minted
-        assertEq(delegate.store().totalSupplyOf(address(delegate)), 0);
+        // Check: has the total supply stayed at 0?
+        assertEq(hook.STORE().totalSupplyOf(address(hook)), 0);
     }
 
-    function testJBTieredNFTRewardDelegate_didPay_mintTiersWhenUsingExistingCredits_when_existing_credits_more_than_new_credits(
-    ) public {
-        uint256 _leftover = tiers[0].price + 1; // + 1 to avoid rounding error
-        uint256 _amount = tiers[0].price * 2 + tiers[1].price + _leftover / 2;
+    function test_afterPayRecorded_mintWithExistingCreditsWhenMoreExistingCreditsThanNewCredits() public {
+        uint256 leftover = tiers[0].price + 1; // + 1 to avoid rounding error.
+        uint256 amount = tiers[0].price * 2 + tiers[1].price + leftover / 2;
 
-        // Mock the directory call
+        // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
             abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
             abi.encode(true)
         );
 
-        bool _allowOverspending = true;
-        uint16[] memory _tierIdsToMint = new uint16[](3);
-        _tierIdsToMint[0] = 1;
-        _tierIdsToMint[1] = 1;
-        _tierIdsToMint[2] = 2;
+        bool allowOverspending = true;
+        uint16[] memory tierIdsToMint = new uint16[](3);
+        tierIdsToMint[0] = 1;
+        tierIdsToMint[1] = 1;
+        tierIdsToMint[2] = 2;
 
-        // Build the metadata with the tiers to mint and the overspending flag
-        bytes[] memory _data = new bytes[](1);
-        _data[0] = abi.encode(_allowOverspending, _tierIdsToMint);
+        // Build the metadata using the tiers to mint and the overspending flag.
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encode(allowOverspending, tierIdsToMint);
 
-        // Pass the delegate id
-        bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_DELEGATE_ID;
+        // Pass the hook ID.
+        bytes4[] memory ids = new bytes4[](1);
+        ids[0] = bytes4(bytes20(address(hook)));
 
-        // Generate the metadata
-        bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
+        // Generate the metadata.
+        bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
 
-        uint256 _credits = delegate.creditsOf(beneficiary);
-        _leftover = _leftover / 2 + _credits; //left over amount
+        uint256 credits = hook.payCreditsOf(beneficiary);
+        leftover = leftover / 2 + credits; // Leftover amount.
 
-        vm.expectEmit(true, true, true, true, address(delegate));
-        emit AddCredits(_leftover - _credits, _leftover, beneficiary, mockTerminalAddress);
+        vm.expectEmit(true, true, true, true, address(hook));
+        emit AddPayCredits(leftover - credits, leftover, beneficiary, mockTerminalAddress);
 
-        // First call will mint the 3 tiers requested + accumulate half of first floor in credit
+        // The first call will mint the 3 tiers requested and accumulate half of the first price as pay credits.
         vm.prank(mockTerminalAddress);
-        delegate.didPay(
-            JBDidPayData3_1_1(
-                beneficiary,
-                projectId,
-                0,
-                JBTokenAmount(JBTokens.ETH, _amount, 18, JBCurrencies.ETH),
-                JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                beneficiary,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: beneficiary,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: beneficiary,
+                hookMetadata: new bytes(0),
+                payerMetadata: hookMetadata
+            })
         );
 
-        uint256 _totalSupplyBefore = delegate.store().totalSupplyOf(address(delegate));
+        uint256 totalSupplyBefore = hook.STORE().totalSupplyOf(address(hook));
         {
-            // We now attempt an additional tier 1 by using the credit we collected from last pay
-            uint16[] memory _moreTierIdsToMint = new uint16[](1);
-            _moreTierIdsToMint[0] = 1;
+            // We now attempt to mint an additional NFT from tier 1 by using the pay credits we collected from the last
+            // payment.
+            uint16[] memory moreTierIdsToMint = new uint16[](1);
+            moreTierIdsToMint[0] = 1;
 
-            _data[0] = abi.encode(_allowOverspending, _moreTierIdsToMint);
+            data[0] = abi.encode(allowOverspending, moreTierIdsToMint);
 
-            // Generate the metadata
-            _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
+            // Generate the metadata.
+            hookMetadata = metadataHelper.createMetadata(ids, data);
         }
 
-        // fetch existing credits
-        _credits = delegate.creditsOf(beneficiary);
+        // Fetch the existing pay credits.
+        credits = hook.payCreditsOf(beneficiary);
 
-        // using existing credits to mint
-        _leftover = tiers[0].price - 1 - _credits;
-        vm.expectEmit(true, true, true, true, address(delegate));
-        emit UseCredits(_credits - _leftover, _leftover, beneficiary, mockTerminalAddress);
+        // Use existing credits to mint.
+        leftover = tiers[0].price - 1 - credits;
+        vm.expectEmit(true, true, true, true, address(hook));
+        emit UsePayCredits(credits - leftover, leftover, beneficiary, mockTerminalAddress);
 
-        // minting with left over credits
+        // Mint with leftover pay credits.
         vm.prank(mockTerminalAddress);
-        delegate.didPay(
-            JBDidPayData3_1_1(
-                beneficiary,
-                projectId,
-                0,
-                JBTokenAmount(JBTokens.ETH, tiers[0].price - 1, 18, JBCurrencies.ETH),
-                JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                beneficiary,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: beneficiary,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN, tiers[0].price - 1, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: beneficiary,
+                hookMetadata: new bytes(0),
+                payerMetadata: hookMetadata
+            })
         );
 
-        // total supply increases
-        assertEq(_totalSupplyBefore + 1, delegate.store().totalSupplyOf(address(delegate)));
+        // Check: has the total supply increased by 1?
+        assertEq(totalSupplyBefore + 1, hook.STORE().totalSupplyOf(address(hook)));
     }
 
-    function testJBTieredNFTRewardDelegate_didPay_revertIfUnexpectedLeftover() public {
-        uint256 _leftover = tiers[1].price - 1;
-        uint256 _amount = tiers[0].price + _leftover;
+    function test_afterPayRecorded_revertIfUnexpectedLeftover() public {
+        uint256 leftover = tiers[1].price - 1;
+        uint256 amount = tiers[0].price + leftover;
 
-        // Mock the directory call
+        // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
             abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
             abi.encode(true)
         );
-        bool _allowOverspending;
-        uint16[] memory _tierIdsToMint = new uint16[](0);
+        bool allowOverspending;
+        uint16[] memory tierIdsToMint = new uint16[](0);
 
-        // Build the metadata with the tiers to mint and the overspending flag
-        bytes[] memory _data = new bytes[](1);
-        _data[0] = abi.encode(_allowOverspending, _tierIdsToMint);
+        // Build the metadata using the tiers to mint and the overspending flag.
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encode(allowOverspending, tierIdsToMint);
 
-        // Pass the delegate id
-        bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_DELEGATE_ID;
+        // Pass the hook ID.
+        bytes4[] memory ids = new bytes4[](1);
+        ids[0] = bytes4(bytes20(address(hook)));
 
-        // Generate the metadata
-        bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
+        // Generate the metadata.
+        bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
         vm.prank(mockTerminalAddress);
-        vm.expectRevert(abi.encodeWithSelector(JBTiered721Delegate.OVERSPENDING.selector));
-        delegate.didPay(
-            JBDidPayData3_1_1(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBTokens.ETH, _amount, 18, JBCurrencies.ETH),
-                JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                beneficiary,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHook.OVERSPENDING.selector));
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: beneficiary,
+                hookMetadata: new bytes(0),
+                payerMetadata: hookMetadata
+            })
         );
     }
 
-    function testJBTieredNFTRewardDelegate_didPay_revertIfUnexpectedLeftoverAndPrevented(bool _prevent) public {
-        uint256 _leftover = tiers[1].price - 1;
-        uint256 _amount = tiers[0].price + _leftover;
+    function test_afterPayRecorded_revertIfUnexpectedLeftoverAndOverspendingPrevented(bool prevent) public {
+        uint256 leftover = tiers[1].price - 1;
+        uint256 amount = tiers[0].price + leftover;
 
-        // Mock the directory call
+        // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
             abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
             abi.encode(true)
         );
 
-        // Get the currently selected flags
-        JBTiered721Flags memory flags = delegate.store().flagsOf(address(delegate));
+        // Get the current flags.
+        JB721TiersHookFlags memory flags = hook.STORE().flagsOf(address(hook));
 
-        // Modify the prevent
-        flags.preventOverspending = _prevent;
+        // Set the prevent flag to the given value.
+        flags.preventOverspending = prevent;
 
-        // Mock the call to return the new flags
+        // Mock the call to return the new flags.
         mockAndExpect(
-            address(delegate.store()),
-            abi.encodeWithSelector(IJBTiered721DelegateStore.flagsOf.selector, address(delegate)),
+            address(hook.STORE()),
+            abi.encodeWithSelector(IJB721TiersHookStore.flagsOf.selector, address(hook)),
             abi.encode(flags)
         );
 
-        bool _allowOverspending = true;
-        uint16[] memory _tierIdsToMint = new uint16[](0);
+        bool allowOverspending = true;
+        uint16[] memory tierIdsToMint = new uint16[](0);
 
-        bytes memory _metadata = abi.encode(
-            bytes32(0), bytes32(0), type(IJBTiered721Delegate).interfaceId, _allowOverspending, _tierIdsToMint
-        );
+        bytes memory metadata =
+            abi.encode(bytes32(0), bytes32(0), type(IJB721TiersHook).interfaceId, allowOverspending, tierIdsToMint);
 
-        // If prevent is enabled the call should revert, otherwise we should receive credits
-        if (_prevent) {
-            vm.expectRevert(abi.encodeWithSelector(JBTiered721Delegate.OVERSPENDING.selector));
+        // If prevent is enabled the call should revert. Otherwise, we should receive pay credits.
+        if (prevent) {
+            vm.expectRevert(abi.encodeWithSelector(JB721TiersHook.OVERSPENDING.selector));
         } else {
-            uint256 _credits = delegate.creditsOf(beneficiary);
-            uint256 _stashedCredits = _credits;
-            // calculating new credits since _leftover is non zero
-            uint256 _newCredits = tiers[0].price + _leftover + _stashedCredits;
-            vm.expectEmit(true, true, true, true, address(delegate));
-            emit AddCredits(_newCredits - _credits, _newCredits, beneficiary, mockTerminalAddress);
+            uint256 payCredits = hook.payCreditsOf(beneficiary);
+            uint256 stashedPayCredits = payCredits;
+            // Calculating new pay credit balance (since leftover is non-zero).
+            uint256 newPayCredits = tiers[0].price + leftover + stashedPayCredits;
+            vm.expectEmit(true, true, true, true, address(hook));
+            emit AddPayCredits(newPayCredits - payCredits, newPayCredits, beneficiary, mockTerminalAddress);
         }
         vm.prank(mockTerminalAddress);
-        delegate.didPay(
-            JBDidPayData3_1_1(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBTokens.ETH, _amount, 18, JBCurrencies.ETH),
-                JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                beneficiary,
-                false,
-                "",
-                bytes(""),
-                _metadata
-            )
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, amount, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: beneficiary,
+                hookMetadata: new bytes(0),
+                payerMetadata: metadata
+            })
         );
     }
 
-    // Mint are still possible, transfer to other addresses than 0 (ie burn) are reverting (if delegate flag pausable is true)
-    function testJBTieredNFTRewardDelegate_beforeTransferHook_revertTransferIfTransferPausedInFundingCycle() public {
-        
-        defaultTierParams.transfersPausable = true;
-        JBTiered721Delegate _delegate = _initializeDelegateDefaultTiers(10);
+    // If transfers are paused, transfers which do not involve the zero address are reverted,
+    // as long as the `transfersPausable` flag must be true.
+    // Transfers involving the zero address (minting and burning) are not affected.
+    function test_transferFrom_revertTransferIfPausedInRuleset() public {
+        defaultTierConfig.transfersPausable = true;
+        JB721TiersHook hook = _initHookDefaultTiers(10);
 
-        // Mock the directory call
+        // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
             abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
             abi.encode(true)
         );
 
-
         mockAndExpect(
-            mockJBFundingCycleStore,
-            abi.encodeCall(IJBFundingCycleStore.currentOf, projectId),
+            mockJBRulesets,
+            abi.encodeCall(IJBRulesets.currentOf, projectId),
             abi.encode(
-                JBFundingCycle({
-                    number: 1,
-                    configuration: block.timestamp,
-                    basedOn: 0,
+                JBRuleset({
+                    cycleNumber: 1,
+                    id: block.timestamp,
+                    basedOnId: 0,
                     start: block.timestamp,
                     duration: 600,
                     weight: 10e18,
-                    discountRate: 0,
-                    ballot: IJBFundingCycleBallot(address(0)),
-                    metadata: JBFundingCycleMetadataResolver.packFundingCycleMetadata(
-                        JBFundingCycleMetadata({
-                            global: JBGlobalFundingCycleMetadata({
-                                allowSetTerminals: false,
-                                allowSetController: false,
-                                pauseTransfers: false
-                            }),
+                    decayRate: 0,
+                    approvalHook: IJBRulesetApprovalHook(address(0)),
+                    metadata: JBRulesetMetadataResolver.packRulesetMetadata(
+                        JBRulesetMetadata({
                             reservedRate: 5000, //50%
                             redemptionRate: 5000, //50%
-                            ballotRedemptionRate: 5000,
+                            baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
                             pausePay: false,
-                            pauseDistributions: false,
-                            pauseRedeem: false,
-                            pauseBurn: false,
-                            allowMinting: true,
+                            pauseCreditTransfers: false,
+                            allowOwnerMinting: true,
                             allowTerminalMigration: false,
+                            allowSetTerminals: false,
                             allowControllerMigration: false,
+                            allowSetController: false,
                             holdFees: false,
-                            preferClaimedTokenOverride: false,
-                            useTotalOverflowForRedemptions: false,
-                            useDataSourceForPay: true,
-                            useDataSourceForRedeem: true,
-                            dataSource: address(_delegate),
+                            useTotalSurplusForRedemptions: false,
+                            useDataHookForPay: true,
+                            useDataHookForRedeem: true,
+                            dataHook: address(hook),
                             metadata: 1 // 001_2
                         })
                         )
@@ -1081,184 +1133,205 @@ contract TestJuice721dDelegate_didPay_Unit is UnitTestSetup {
             )
         );
 
-        bool _allowOverspending;
-        uint16[] memory _tierIdsToMint = new uint16[](3);
-        _tierIdsToMint[0] = 1;
-        _tierIdsToMint[1] = 1;
-        _tierIdsToMint[2] = 2;
+        bool allowOverspending;
+        uint16[] memory tierIdsToMint = new uint16[](3);
+        tierIdsToMint[0] = 1;
+        tierIdsToMint[1] = 1;
+        tierIdsToMint[2] = 2;
 
-        // Build the metadata with the tiers to mint and the overspending flag
-        bytes[] memory _data = new bytes[](1);
-        _data[0] = abi.encode(_allowOverspending, _tierIdsToMint);
+        // Build the metadata using the tiers to mint and the overspending flag.
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encode(allowOverspending, tierIdsToMint);
 
-        // Pass the delegate id
-        bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_DELEGATE_ID;
+        // Pass the hook ID.
+        bytes4[] memory ids = new bytes4[](1);
+        ids[0] = bytes4(bytes20(address(hook)));
 
-        // Generate the metadata
-        bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
+        // Generate the metadata.
+        bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
 
         vm.prank(mockTerminalAddress);
-        _delegate.didPay(
-            JBDidPayData3_1_1(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBTokens.ETH, tiers[0].price * 2 + tiers[1].price, 18, JBCurrencies.ETH),
-                JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                msg.sender,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN,
+                    tiers[0].price * 2 + tiers[1].price,
+                    18,
+                    uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: hookMetadata
+            })
         );
 
-        uint256 _tokenId = _generateTokenId(1, 1);
+        uint256 tokenId = _generateTokenId(1, 1);
 
-        vm.expectRevert(JBTiered721Delegate.TRANSFERS_PAUSED.selector);
+        // Expect a revert on account of transfers being paused.
+        vm.expectRevert(JB721TiersHook.TIER_TRANSFERS_PAUSED.selector);
 
         vm.prank(msg.sender);
-        IERC721(_delegate).transferFrom(msg.sender, beneficiary, _tokenId);
+        IERC721(hook).transferFrom(msg.sender, beneficiary, tokenId);
     }
 
-    // If FC has the pause transfer flag but the delegate flag 'pausable' is false, transfer are not paused
-    // (this bypasses the call to the FC store)
-    function testJBTieredNFTRewardDelegate_beforeTransferHook_pauseFlagOverrideFundingCycleTransferPaused() public {
-
-        // Mock the directory call
+    // If the ruleset metadata has `pauseTransfers` enabled,
+    // BUT the tier being transferred has `transfersPausable` disabled,
+    // transfer are not paused (this bypasses the call to `JBRulesets`).
+    function test_transferFrom_pauseFlagOverridesRuleset() public {
+        // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
             abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
             abi.encode(true)
         );
 
-       JBTiered721Delegate _delegate = _initializeDelegateDefaultTiers(10);
+        JB721TiersHook hook = _initHookDefaultTiers(10);
 
-        bool _allowOverspending;
-        uint16[] memory _tierIdsToMint = new uint16[](3);
-        _tierIdsToMint[0] = 1;
-        _tierIdsToMint[1] = 1;
-        _tierIdsToMint[2] = 2;
+        bool allowOverspending;
+        uint16[] memory tierIdsToMint = new uint16[](3);
+        tierIdsToMint[0] = 1;
+        tierIdsToMint[1] = 1;
+        tierIdsToMint[2] = 2;
 
-        // Build the metadata with the tiers to mint and the overspending flag
-        bytes[] memory _data = new bytes[](1);
-        _data[0] = abi.encode(_allowOverspending, _tierIdsToMint);
+        // Build the metadata using the tiers to mint and the overspending flag.
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encode(allowOverspending, tierIdsToMint);
 
-        // Pass the delegate id
-        bytes4[] memory _ids = new bytes4[](1);
-        _ids[0] = PAY_DELEGATE_ID;
+        // Pass the hook ID.
+        bytes4[] memory ids = new bytes4[](1);
+        ids[0] = bytes4(bytes20(address(hook)));
 
-        // Generate the metadata
-        bytes memory _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
+        // Generate the metadata.
+        bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
 
         vm.prank(mockTerminalAddress);
-        _delegate.didPay(
-            JBDidPayData3_1_1(
-                msg.sender,
-                projectId,
-                0,
-                JBTokenAmount(JBTokens.ETH, tiers[0].price * 2 + tiers[1].price, 18, JBCurrencies.ETH),
-                JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                msg.sender,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: msg.sender,
+                projectId: projectId,
+                rulesetId: 0,
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN,
+                    tiers[0].price * 2 + tiers[1].price,
+                    18,
+                    uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
+                projectTokenCount: 0,
+                beneficiary: msg.sender,
+                hookMetadata: new bytes(0),
+                payerMetadata: hookMetadata
+            })
         );
 
-
-        uint256 _tokenId = _generateTokenId(1, 1);
+        uint256 tokenId = _generateTokenId(1, 1);
         vm.prank(msg.sender);
-        IERC721(_delegate).transferFrom(msg.sender, beneficiary, _tokenId);
-        // Check: token transferred
-        assertEq(IERC721(_delegate).ownerOf(_tokenId), beneficiary);
+        IERC721(hook).transferFrom(msg.sender, beneficiary, tokenId);
+        // Check: was the NFT transferred to the beneficiary?
+        assertEq(IERC721(hook).ownerOf(tokenId), beneficiary);
     }
 
-    // This bypasses the call to FC store
-    function testJBTieredNFTRewardDelegate_beforeTransferHook_redeemEvenIfTransferPausedInFundingCycle() public {
-        address _holder = address(bytes20(keccak256("_holder")));
+    // Redeem an NFT, even if transfers are paused in the ruleset metadata. This should bypass the call to `JBRulesets`.
+    function test_afterRedeemRecordedWith_redeemEvenIfTransfersPausedInRuleset() public {
+        address holder = address(bytes20(keccak256("holder")));
 
-        JBTiered721Delegate _delegate = _initializeDelegateDefaultTiers(10);
+        JB721TiersHook hook = _initHookDefaultTiers(10);
 
-        // Mock the directory call
+        // Mock the directory call.
         mockAndExpect(
             address(mockJBDirectory),
             abi.encodeWithSelector(IJBDirectory.isTerminalOf.selector, projectId, mockTerminalAddress),
             abi.encode(true)
         );
 
-        // Metadata to mint
-        bytes memory _delegateMetadata;
-        bytes[] memory _data = new bytes[](1);
-        bytes4[] memory _ids = new bytes4[](1);
+        // Build the metadata which will be used to mint.
+        bytes memory hookMetadata;
+        bytes[] memory data = new bytes[](1);
+        bytes4[] memory ids = new bytes4[](1);
 
         {
-            // Craft the metadata: mint the specified tier
+            // Craft the metadata: mint the specified tier.
             uint16[] memory rawMetadata = new uint16[](1);
             rawMetadata[0] = uint16(1); // 1 indexed
 
-            // Build the metadata with the tiers to mint and the overspending flag
-            _data[0] = abi.encode(true, rawMetadata);
+            // Build the metadata using the tiers to mint and the overspending flag.
+            data[0] = abi.encode(true, rawMetadata);
 
-            // Pass the delegate id
-            _ids[0] = PAY_DELEGATE_ID;
+            // Pass the hook ID.
+            ids[0] = bytes4(bytes20(address(hook)));
 
-            // Generate the metadata
-            _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
+            // Generate the metadata.
+            hookMetadata = metadataHelper.createMetadata(ids, data);
         }
 
-        // We mint the NFTs otherwise the voting balance does not get incremented
-        // which leads to underflow on redeem
+        // Mint the NFTs. Otherwise, the voting balance is not incremented which leads to an underflow upon redemption.
         vm.prank(mockTerminalAddress);
-        _delegate.didPay(
-            JBDidPayData3_1_1(
-                _holder,
-                projectId,
-                0,
-                JBTokenAmount(JBTokens.ETH, tiers[0].price, 18, JBCurrencies.ETH),
-                JBTokenAmount(JBTokens.ETH, 0, 18, JBCurrencies.ETH), // 0 fwd to delegate
-                0,
-                _holder,
-                false,
-                "",
-                bytes(""),
-                _delegateMetadata
-            )
-        );
-
-        uint256[] memory _tokenToRedeem = new uint256[](1);
-        _tokenToRedeem[0] = _generateTokenId(1, 1);
-
-        // Build the metadata with the tiers to redeem
-        _data[0] = abi.encode(_tokenToRedeem);
-
-        // Pass the delegate id
-        _ids[0] = REDEEM_DELEGATE_ID;
-
-        // Generate the metadata
-        _delegateMetadata = metadataHelper.createMetadata(_ids, _data);
-
-        vm.prank(mockTerminalAddress);
-        _delegate.didRedeem(
-            JBDidRedeemData3_1_1({
-                holder: _holder,
+        hook.afterPayRecordedWith(
+            JBAfterPayRecordedContext({
+                payer: holder,
                 projectId: projectId,
-                currentFundingCycleConfiguration: 1,
+                rulesetId: 0,
+                amount: JBTokenAmount(
+                    JBConstants.NATIVE_TOKEN, tiers[0].price, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))
+                    ),
+                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
+                    // forwarded to the hook.
+                weight: 10 ** 18,
                 projectTokenCount: 0,
-                reclaimedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencies.ETH}),
-                forwardedAmount: JBTokenAmount({token: address(0), value: 0, decimals: 18, currency: JBCurrencies.ETH}), // 0 fwd to delegate
-                beneficiary: payable(_holder),
-                memo: "thy shall redeem",
-                dataSourceMetadata: bytes(""),
-                redeemerMetadata: _delegateMetadata
+                beneficiary: holder,
+                hookMetadata: new bytes(0),
+                payerMetadata: hookMetadata
             })
         );
-        
-        // Balance should be 0 again
-        assertEq(_delegate.balanceOf(_holder), 0);
+
+        uint256[] memory tokenToRedeem = new uint256[](1);
+        tokenToRedeem[0] = _generateTokenId(1, 1);
+
+        // Build the metadata with the tiers to redeem.
+        data[0] = abi.encode(tokenToRedeem);
+
+        // Pass the hook ID.
+        ids[0] = bytes4(bytes20(address(hook)));
+
+        // Generate the metadata.
+        hookMetadata = metadataHelper.createMetadata(ids, data);
+
+        vm.prank(mockTerminalAddress);
+        hook.afterRedeemRecordedWith(
+            JBAfterRedeemRecordedContext({
+                holder: holder,
+                projectId: projectId,
+                rulesetId: 1,
+                redeemCount: 0,
+                reclaimedAmount: JBTokenAmount({
+                    token: address(0),
+                    value: 0,
+                    decimals: 18,
+                    currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
+                }),
+                forwardedAmount: JBTokenAmount({
+                    token: address(0),
+                    value: 0,
+                    decimals: 18,
+                    currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
+                }), // 0, forwarded to the hook.
+                redemptionRate: 5000,
+                beneficiary: payable(holder),
+                hookMetadata: bytes(""),
+                redeemerMetadata: hookMetadata
+            })
+        );
+
+        // Check: has the holder's balance returned to 0?
+        assertEq(hook.balanceOf(holder), 0);
     }
 }

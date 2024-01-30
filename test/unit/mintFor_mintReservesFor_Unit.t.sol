@@ -1,150 +1,159 @@
-pragma solidity ^0.8.16;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.23;
 
 import "../utils/UnitTestSetup.sol";
 
-contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
+contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
     using stdStorage for StdStorage;
 
-    function testJBTieredNFTRewardDelegate_mintReservesFor_mintReservedToken() public {
-        // 120 are minted, 1 out of these is reserved, meaning 119 non-reserved are minted. The reservedRate is 40% (4000/10000)
-        // meaning there are 47 total reserved to mint, 1 being already minted, 46 are outstanding
-        uint256 initialQuantity = 200;
-        uint256 totalMinted = 120;
-        uint256 reservedMinted = 1;
-        uint256 reservedRate = 4000;
-        uint256 nbTiers = 3;
+    function test_mintPendingReservesFor_mintsCorrectly() public {
+        uint256 initialSupply = 200; // The number of NFTs available for each tier.
+        uint256 totalMinted = 120; // The number of NFTs already minted for each tier (out of `initialSupply`).
+        uint256 reservedMinted = 1; // The number of reserve NFTs already minted (out of `totalMinted`).
+        uint256 reserveFrequency = 4000; // The frequency at which NFTs are reserved (4000/10000 = 40%).
+        uint256 numberOfTiers = 3; // The number of tiers to set up.
 
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(nbTiers);
-        
-        for (uint256 i; i < nbTiers; i++) {
-            _delegate.test_store().ForTest_setTier(
-                address(_delegate),
+        // With 120 total NFTs minted and 1 being a reserve mint, 119 are non-reserved.
+        // With a 40% reserve frequency, 47 should be reserved.
+        // Accounting for the 1 already minted, there should be 46 pending reserve mints.
+
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
+
+        // Initialize `numberOfTiers` tiers.
+        for (uint256 i; i < numberOfTiers; i++) {
+            hook.test_store().ForTest_setTier(
+                address(hook),
                 i + 1,
                 JBStored721Tier({
                     price: uint104((i + 1) * 10),
-                    remainingQuantity: uint32(initialQuantity - totalMinted),
-                    initialQuantity: uint32(initialQuantity),
+                    remainingSupply: uint32(initialSupply - totalMinted),
+                    initialSupply: uint32(initialSupply),
                     votingUnits: uint16(0),
-                    reservedRate: uint16(reservedRate),
+                    reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: _delegate.test_store().ForTest_packBools(false, false, true)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true)
                 })
             );
-            _delegate.test_store().ForTest_setReservesMintedFor(address(_delegate), i + 1, reservedMinted);
+            hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
         }
 
-        for (uint256 tier = 1; tier <= nbTiers; tier++) {
-            uint256 mintable = _delegate.test_store().numberOfReservedTokensOutstandingFor(address(_delegate), tier);
+        // Iterate through the tiers, minting the pending reserves,
+        // and ensuring that the correct number of NFTs have been minted.
+        for (uint256 tier = 1; tier <= numberOfTiers; tier++) {
+            uint256 mintable = hook.test_store().numberOfPendingReservesFor(address(hook), tier);
 
+            // Mint the reserve NFTs for the tier.
             for (uint256 token = 1; token <= mintable; token++) {
-                vm.expectEmit(true, true, true, true, address(_delegate));
-                emit MintReservedToken(_generateTokenId(tier, totalMinted + token), tier, reserveBeneficiary, owner);
+                vm.expectEmit(true, true, true, true, address(hook));
+                emit MintReservedNft(_generateTokenId(tier, totalMinted + token), tier, reserveBeneficiary, owner);
             }
 
             vm.prank(owner);
-            _delegate.mintReservesFor(tier, mintable);
+            hook.mintPendingReservesFor(tier, mintable);
 
-            // Check balance
-            assertEq(_delegate.balanceOf(reserveBeneficiary), mintable * tier);
+            // Check: does the reserve beneficiary have the correct number of NFTs?
+            assertEq(hook.balanceOf(reserveBeneficiary), mintable * tier);
         }
     }
 
-    function testJBTieredNFTRewardDelegate_mintReservesFor_mintMultipleReservedToken() public {
-        // 120 are minted, 1 out of these is reserved, meaning 119 non-reserved are minted. The reservedRate is 40% (4000/10000)
-        // meaning there are 47 total reserved to mint, 1 being already minted, 46 are outstanding
-        uint256 initialQuantity = 200;
-        uint256 totalMinted = 120;
-        uint256 reservedMinted = 1;
-        uint256 reservedRate = 4000;
-        uint256 nbTiers = 3;
+    function test_mintPendingReservesFor_mintMultipleReservedTokens() public {
+        uint256 initialSupply = 200; // The number of NFTs available for each tier.
+        uint256 totalMinted = 120; // The number of NFTs already minted for each tier (out of `initialSupply`).
+        uint256 reservedMinted = 1; // The number of reserve NFTs already minted (out of `totalMinted`).
+        uint256 reserveFrequency = 4000; // The frequency at which NFTs are reserved (4000/10000 = 40%).
+        uint256 numberOfTiers = 3; // The number of tiers to set up.
 
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(nbTiers);
+        // With 120 total NFTs minted and 1 being a reserve mint, 119 are non-reserved.
+        // With a 40% reserve frequency, 47 should be reserved.
+        // Accounting for the 1 already minted, there should be 46 pending reserve mints.
 
-        for (uint256 i; i < nbTiers; i++) {
-            _delegate.test_store().ForTest_setTier(
-                address(_delegate),
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
+
+        // Initialize `numberOfTiers` tiers.
+        for (uint256 i; i < numberOfTiers; i++) {
+            hook.test_store().ForTest_setTier(
+                address(hook),
                 i + 1,
                 JBStored721Tier({
                     price: uint104((i + 1) * 10),
-                    remainingQuantity: uint32(initialQuantity - totalMinted),
-                    initialQuantity: uint32(initialQuantity),
+                    remainingSupply: uint32(initialSupply - totalMinted),
+                    initialSupply: uint32(initialSupply),
                     votingUnits: uint16(0),
-                    reservedRate: uint16(reservedRate),
+                    reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: _delegate.test_store().ForTest_packBools(false, false, true)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true)
                 })
             );
-            _delegate.test_store().ForTest_setReservesMintedFor(address(_delegate), i + 1, reservedMinted);
+
+            // Set the number of reserve NFTs already minted for the tier.
+            hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
         }
 
-        uint256 _totalMintable; // Keep a running counter
+        uint256 totalMintable; // Keep a running counter of how many reserve NFTs should be mintable.
 
-        JBTiered721MintReservesForTiersData[] memory _reservedToMint =
-            new JBTiered721MintReservesForTiersData[](nbTiers);
+        JB721TiersMintReservesConfig[] memory reservesToMint = new JB721TiersMintReservesConfig[](numberOfTiers);
 
-        for (uint256 tier = 1; tier <= nbTiers; tier++) {
-            uint256 mintable = _delegate.test_store().numberOfReservedTokensOutstandingFor(address(_delegate), tier);
-            _reservedToMint[tier - 1] = JBTiered721MintReservesForTiersData({tierId: tier, count: mintable});
-            _totalMintable += mintable;
+        // Iterate through the tiers, calculating how many reserve NFTs should be mintable.
+        for (uint256 tier = 1; tier <= numberOfTiers; tier++) {
+            uint256 mintable = hook.test_store().numberOfPendingReservesFor(address(hook), tier);
+            reservesToMint[tier - 1] = JB721TiersMintReservesConfig({tierId: tier, count: mintable});
+            totalMintable += mintable;
             for (uint256 token = 1; token <= mintable; token++) {
-                uint256 _tokenNonce = totalMinted + token; // Avoid stack too deep
-                vm.expectEmit(true, true, true, true, address(_delegate));
-                emit MintReservedToken(_generateTokenId(tier, _tokenNonce), tier, reserveBeneficiary, owner);
+                uint256 tokenNonce = totalMinted + token; // Avoid stack too deep
+                vm.expectEmit(true, true, true, true, address(hook));
+                emit MintReservedNft(_generateTokenId(tier, tokenNonce), tier, reserveBeneficiary, owner);
             }
         }
 
+        // Mint the pending reserve NFTs.
         vm.prank(owner);
-        _delegate.mintReservesFor(_reservedToMint);
+        hook.mintPendingReservesFor(reservesToMint);
 
-        // Check balance
-        assertEq(_delegate.balanceOf(reserveBeneficiary), _totalMintable);
+        // Check: does the reserve beneficiary has the correct number of NFTs?
+        assertEq(hook.balanceOf(reserveBeneficiary), totalMintable);
     }
 
-    function testJBTieredNFTRewardDelegate_mintReservesFor_revertIfReservedMintingIsPausedInFundingCycle() public {
-        // 120 are minted, 1 out of these is reserved, meaning 119 non-reserved are minted. The reservedRate is 40% (4000/10000)
-        // meaning there are 47 total reserved to mint, 1 being already minted, 46 are outstanding
-        uint256 initialQuantity = 200;
-        uint256 totalMinted = 120;
-        uint256 reservedMinted = 1;
-        uint256 reservedRate = 4000;
-        uint256 nbTiers = 3;
+    function test_mintPendingReservesFor_revertIfReservedMintingIsPausedInRuleset() public {
+        uint256 initialSupply = 200; // The number of NFTs available for each tier.
+        uint256 totalMinted = 120; // The number of NFTs already minted for each tier (out of `initialSupply`).
+        uint256 reservedMinted = 1; // The number of reserve NFTs already minted (out of `totalMinted`).
+        uint256 reserveFrequency = 4000; // The frequency at which NFTs are reserved (4000/10000 = 40%).
+        uint256 numberOfTiers = 3; // The number of tiers to set up.
 
+        // Set up the ruleset to pause reserved minting.
+        // This is done with the `JBRulesetMetadata.metadata` field.
+        // The second bit in `JBRulesetMetadata.metadata` is the `mintPendingReservesPaused` bit.
+        // See `JB721TiersRulesetMetadataResolver`.
         mockAndExpect(
-            mockJBFundingCycleStore,
-            abi.encodeCall(IJBFundingCycleStore.currentOf, projectId),
+            mockJBRulesets,
+            abi.encodeCall(IJBRulesets.currentOf, projectId),
             abi.encode(
-                JBFundingCycle({
-                    number: 1,
-                    configuration: block.timestamp,
-                    basedOn: 0,
+                JBRuleset({
+                    cycleNumber: 1,
+                    id: block.timestamp,
+                    basedOnId: 0,
                     start: block.timestamp,
                     duration: 600,
                     weight: 10e18,
-                    discountRate: 0,
-                    ballot: IJBFundingCycleBallot(address(0)),
-                    metadata: JBFundingCycleMetadataResolver.packFundingCycleMetadata(
-                        JBFundingCycleMetadata({
-                            global: JBGlobalFundingCycleMetadata({
-                                allowSetTerminals: false,
-                                allowSetController: false,
-                                pauseTransfers: false
-                            }),
+                    decayRate: 0,
+                    approvalHook: IJBRulesetApprovalHook(address(0)),
+                    metadata: JBRulesetMetadataResolver.packRulesetMetadata(
+                        JBRulesetMetadata({
                             reservedRate: 5000, //50%
                             redemptionRate: 5000, //50%
-                            ballotRedemptionRate: 5000,
+                            baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
                             pausePay: false,
-                            pauseDistributions: false,
-                            pauseRedeem: false,
-                            pauseBurn: false,
-                            allowMinting: true,
+                            pauseCreditTransfers: false,
+                            allowOwnerMinting: true,
                             allowTerminalMigration: false,
+                            allowSetTerminals: false,
                             allowControllerMigration: false,
+                            allowSetController: false,
                             holdFees: false,
-                            preferClaimedTokenOverride: false,
-                            useTotalOverflowForRedemptions: false,
-                            useDataSourceForPay: true,
-                            useDataSourceForRedeem: true,
-                            dataSource: address(0),
+                            useTotalSurplusForRedemptions: false,
+                            useDataHookForPay: true,
+                            useDataHookForRedeem: true,
+                            dataHook: address(0),
                             metadata: 2 // == 010_2
                         })
                         )
@@ -152,170 +161,168 @@ contract TestJuice721dDelegate_mintFor_mintReservesFor_Unit is UnitTestSetup {
             )
         );
 
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(nbTiers);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
 
-        for (uint256 i; i < nbTiers; i++) {
-            _delegate.test_store().ForTest_setTier(
-                address(_delegate),
+        for (uint256 i; i < numberOfTiers; i++) {
+            hook.test_store().ForTest_setTier(
+                address(hook),
                 i + 1,
                 JBStored721Tier({
                     price: uint104((i + 1) * 10),
-                    remainingQuantity: uint32(initialQuantity - totalMinted),
-                    initialQuantity: uint32(initialQuantity),
+                    remainingSupply: uint32(initialSupply - totalMinted),
+                    initialSupply: uint32(initialSupply),
                     votingUnits: uint16(0),
-                    reservedRate: uint16(reservedRate),
+                    reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: _delegate.test_store().ForTest_packBools(false, false, true)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true)
                 })
             );
-            _delegate.test_store().ForTest_setReservesMintedFor(address(_delegate), i + 1, reservedMinted);
+            hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
         }
 
-        for (uint256 tier = 1; tier <= nbTiers; tier++) {
-            uint256 mintable = _delegate.test_store().numberOfReservedTokensOutstandingFor(address(_delegate), tier);
+        // Iterate through the tiers, attempting to mint the pending reserves.
+        // Check: is the correct error thrown?
+        for (uint256 tier = 1; tier <= numberOfTiers; tier++) {
+            uint256 mintable = hook.test_store().numberOfPendingReservesFor(address(hook), tier);
             vm.prank(owner);
-            vm.expectRevert(JBTiered721Delegate.RESERVED_TOKEN_MINTING_PAUSED.selector);
-            _delegate.mintReservesFor(tier, mintable);
+            vm.expectRevert(JB721TiersHook.MINT_RESERVE_NFTS_PAUSED.selector);
+            hook.mintPendingReservesFor(tier, mintable);
         }
     }
 
-    function testJBTieredNFTRewardDelegate_mintReservesFor_revertIfNotEnoughReservedLeft() public {
-        uint256 initialQuantity = 200;
-        uint256 totalMinted = 120;
-        uint256 reservedMinted = 1;
-        uint256 reservedRate = 4000;
+    function test_mintPendingReservesFor_revertIfNotEnoughPendingReserves() public {
+        uint256 initialSupply = 200; // The number of NFTs available for each tier.
+        uint256 totalMinted = 120; // The number of NFTs already minted for each tier (out of `initialSupply`).
+        uint256 reservedMinted = 1; // The number of reserve NFTs already minted (out of `totalMinted`).
+        uint256 reserveFrequency = 4000; // The frequency at which NFTs are reserved (4000/10000 = 40%).
 
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(10);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
+        // Initialize `numberOfTiers` tiers.
         for (uint256 i; i < 10; i++) {
-            _delegate.test_store().ForTest_setTier(
-                address(_delegate),
+            hook.test_store().ForTest_setTier(
+                address(hook),
                 i + 1,
                 JBStored721Tier({
                     price: uint104((i + 1) * 10),
-                    remainingQuantity: uint32(initialQuantity - totalMinted),
-                    initialQuantity: uint32(initialQuantity),
+                    remainingSupply: uint32(initialSupply - totalMinted),
+                    initialSupply: uint32(initialSupply),
                     votingUnits: uint16(0),
-                    reservedRate: uint16(reservedRate),
+                    reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: _delegate.test_store().ForTest_packBools(false, false, true)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true)
                 })
             );
-            _delegate.test_store().ForTest_setReservesMintedFor(address(_delegate), i + 1, reservedMinted);
+            hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
         }
 
+        // Iterate through the tiers, attempting to mint more pending reserves than what is available.
         for (uint256 i = 1; i <= 10; i++) {
-            // Get the amount that we can mint successfully
-            uint256 amount = _delegate.test_store().numberOfReservedTokensOutstandingFor(address(_delegate), i);
-            // Increase it by 1 to cause an error
+            // Get the number that we could mint successfully.
+            uint256 amount = hook.test_store().numberOfPendingReservesFor(address(hook), i);
+            // Increase it by 1 to cause an error, then attempt to mint.
             amount++;
-            vm.expectRevert(abi.encodeWithSelector(JBTiered721DelegateStore.INSUFFICIENT_RESERVES.selector));
+            // Check: is the correct error thrown?
+            vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.INSUFFICIENT_PENDING_RESERVES.selector));
             vm.prank(owner);
-            _delegate.mintReservesFor(i, amount);
+            hook.mintPendingReservesFor(i, amount);
         }
     }
 
-    function testJBTieredNFTRewardDelegate_use_default_reserved_token_beneficiary() public {
-        uint256 initialQuantity = 200;
-        uint256 totalMinted = 120;
-        uint256 reservedRate = 9;
-
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(10);
-
-        for (uint256 i; i < 10; i++) {
-            _delegate.test_store().ForTest_setTier(
-                address(_delegate),
-                i + 1,
-                JBStored721Tier({
-                    price: uint104((i + 1) * 10),
-                    remainingQuantity: uint32(initialQuantity - totalMinted),
-                    initialQuantity: uint32(initialQuantity),
-                    votingUnits: uint16(0),
-                    reservedRate: uint16(reservedRate),
-                    category: uint24(100),
-                    packedBools: _delegate.test_store().ForTest_packBools(false, false, true)
-                })
-            );
-        }
-    }
-
-    function testJBTieredNFTRewardDelegate_no_reserved_rate_if_no_beneficiary_set() public {
-        uint256 initialQuantity = 200;
-        uint256 totalMinted = 120;
-        uint256 reservedMinted = 10;
-        uint256 reservedRate = 9;
+    function test_numberOfPendingReservesFor_noReservesIfNoBeneficiarySet() public {
+        uint256 initialSupply = 200; // The number of NFTs available for each tier.
+        uint256 totalMinted = 120; // The number of NFTs already minted for each tier (out of `initialSupply`).
+        uint256 reservedMinted = 10; // The number of reserve NFTs already minted (out of `totalMinted`).
+        uint256 reserveFrequency = 9; // The frequency at which NFTs are reserved.
+            // (For every 9 NFTs minted, 1 is reserved).
 
         reserveBeneficiary = address(0);
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(10);
+        ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
+        // Initialize `numberOfTiers` tiers, and set the number of reserve NFTs already minted for each tier.
+        // Although the `reserveFrequency` is set, it should be ignored since there is no reserve beneficiary.
         for (uint256 i; i < 10; i++) {
-            _delegate.test_store().ForTest_setTier(
-                address(_delegate),
+            hook.test_store().ForTest_setTier(
+                address(hook),
                 i + 1,
                 JBStored721Tier({
                     price: uint104((i + 1) * 10),
-                    remainingQuantity: uint32(initialQuantity - totalMinted),
-                    initialQuantity: uint32(initialQuantity),
+                    remainingSupply: uint32(initialSupply - totalMinted),
+                    initialSupply: uint32(initialSupply),
                     votingUnits: uint16(0),
-                    reservedRate: uint16(reservedRate),
+                    reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: _delegate.test_store().ForTest_packBools(false, false, true)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true)
                 })
             );
-            _delegate.test_store().ForTest_setReservesMintedFor(address(_delegate), i + 1, reservedMinted);
+            hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
         }
 
-        // fetching existing tiers
-        JB721Tier[] memory _storedTiers = _delegate.test_store().tiersOf(address(_delegate), new uint256[](0), false, 0, 10);
+        // Fetch the stored tiers.
+        JB721Tier[] memory storedTiers = hook.test_store().tiersOf(address(hook), new uint256[](0), false, 0, 10);
 
-        // making sure reserved rate is 0
+        // Check: did the reserve frequency default to 0 for all tiers?
         for (uint256 i; i < 10; i++) {
-            assertEq(_storedTiers[i].reservedRate, 0, "wrong reserved rate");
+            assertEq(storedTiers[i].reserveFrequency, 0, "Reserve frequency should be zero (no beneficiary set).");
         }
+        // Check: are we sure there are no pending reserves for all tiers?
         for (uint256 i; i < 10; i++) {
-            assertEq(_delegate.test_store().numberOfReservedTokensOutstandingFor(address(_delegate), i + 1), 0, "wrong outstanding reserved tokens");
+            assertEq(
+                hook.test_store().numberOfPendingReservesFor(address(hook), i + 1),
+                0,
+                "There should not be any pending reserves (no beneficiary set)."
+            );
         }
     }
 
-    function testJBTieredNFTRewardDelegate_mintFor_mintArrayOfTiers() public {
-        uint256 nbTiers = 3;
-        
-        defaultTierParams.allowManualMint = true;
-        defaultTierParams.reservedRate = 0;
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(nbTiers);
+    function test_mintFor_mintArrayOfTiers() public {
+        uint256 numberOfTiers = 3;
 
-        uint16[] memory _tiersToMint = new uint16[](nbTiers * 2);
-        for (uint256 i; i < nbTiers; i++) {
-            _tiersToMint[i] = uint16(i) + 1;
-            _tiersToMint[_tiersToMint.length - 1 - i] = uint16(i) + 1;
+        defaultTierConfig.allowOwnerMint = true;
+        defaultTierConfig.reserveFrequency = 0;
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
+
+        // Mint 6 NFTs, 2 from each tier.
+        uint16[] memory tiersToMint = new uint16[](numberOfTiers * 2);
+        for (uint256 i; i < numberOfTiers; i++) {
+            tiersToMint[i] = uint16(i) + 1;
+            tiersToMint[tiersToMint.length - 1 - i] = uint16(i) + 1;
         }
 
         vm.prank(owner);
-        _delegate.mintFor(_tiersToMint, beneficiary);
+        hook.mintFor(tiersToMint, beneficiary);
 
-        assertEq(_delegate.balanceOf(beneficiary), 6);
-        assertEq(_delegate.ownerOf(_generateTokenId(1, 1)), beneficiary);
-        assertEq(_delegate.ownerOf(_generateTokenId(1, 2)), beneficiary);
-        assertEq(_delegate.ownerOf(_generateTokenId(2, 1)), beneficiary);
-        assertEq(_delegate.ownerOf(_generateTokenId(2, 2)), beneficiary);
-        assertEq(_delegate.ownerOf(_generateTokenId(3, 1)), beneficiary);
-        assertEq(_delegate.ownerOf(_generateTokenId(3, 2)), beneficiary);
+        // Check: does the beneficiary have the correct number of NFTs?
+        assertEq(hook.balanceOf(beneficiary), 6);
+
+        // Check: does the beneficiary own the correct NFTs?
+        assertEq(hook.ownerOf(_generateTokenId(1, 1)), beneficiary);
+        assertEq(hook.ownerOf(_generateTokenId(1, 2)), beneficiary);
+        assertEq(hook.ownerOf(_generateTokenId(2, 1)), beneficiary);
+        assertEq(hook.ownerOf(_generateTokenId(2, 2)), beneficiary);
+        assertEq(hook.ownerOf(_generateTokenId(3, 1)), beneficiary);
+        assertEq(hook.ownerOf(_generateTokenId(3, 2)), beneficiary);
     }
 
-    function testJBTieredNFTRewardDelegate_mintFor_revertIfManualMintNotAllowed() public {
-        uint256 nbTiers = 10;
+    function test_mintFor_revertIfManualMintNotAllowed() public {
+        uint256 numberOfTiers = 10;
 
-        uint16[] memory _tiersToMint = new uint16[](nbTiers * 2);
-        for (uint256 i; i < nbTiers; i++) {
-            _tiersToMint[i] = uint16(i) + 1;
-            _tiersToMint[_tiersToMint.length - 1 - i] = uint16(i) + 1;
+        uint16[] memory tiersToMint = new uint16[](numberOfTiers * 2);
+        for (uint256 i; i < numberOfTiers; i++) {
+            tiersToMint[i] = uint16(i) + 1;
+            tiersToMint[tiersToMint.length - 1 - i] = uint16(i) + 1;
         }
 
-        defaultTierParams.allowManualMint = false;
-        ForTest_JBTiered721Delegate _delegate = _initializeForTestDelegate(nbTiers);
+        // Set the `allowOwnerMint` flag to false and initialize the hook.
+        defaultTierConfig.allowOwnerMint = false;
+        ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
 
         vm.prank(owner);
-        vm.expectRevert(abi.encodeWithSelector(JBTiered721DelegateStore.CANT_MINT_MANUALLY.selector));
-        _delegate.mintFor(_tiersToMint, beneficiary);
+
+        // Expect the function call to revert with the specified error message.
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.CANT_MINT_MANUALLY.selector));
+
+        // Call the `mintFor` function to trigger the revert.
+        hook.mintFor(tiersToMint, beneficiary);
     }
 }
