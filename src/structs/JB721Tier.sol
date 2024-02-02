@@ -14,7 +14,7 @@ pragma solidity ^0.8.0;
 /// @custom:member category The category that NFTs in this tier belongs to. Used to group NFT tiers.
 /// @custom:member allowOwnerMint A boolean indicating whether the contract's owner can mint NFTs from this tier
 /// on-demand.
-/// @custom:member cannotBeRemoved If the tier cannot be removed once added.
+/// @custom:member cannotBeRemoved A boolean indicating whether attempts to remove this tier will revert.
 /// @custom:member transfersPausable A boolean indicating whether transfers for NFTs in tier can be paused.
 /// @custom:member resolvedUri A resolved token URI for NFTs in this tier. Only available if the NFT this tier belongs
 /// to has a resolver.

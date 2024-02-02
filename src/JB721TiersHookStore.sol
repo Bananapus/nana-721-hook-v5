@@ -1103,7 +1103,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @param allowOwnerMint Whether or not owner minting is allowed in new tiers.
     /// @param transfersPausable Whether or not 721 transfers can be paused.
     /// @param useVotingUnits Whether or not custom voting unit amounts are allowed in new tiers.
-    /// @param cannotBeRemoved Whether or not the tier can be removed once added.
+    /// @param cannotBeRemoved Whether or not attempts to remove the tier will revert.
     /// @return packed The packed bools.
     function _packBools(
         bool allowOwnerMint,
