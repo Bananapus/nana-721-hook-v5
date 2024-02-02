@@ -21,6 +21,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     //*********************************************************************//
 
     error CANT_MINT_MANUALLY();
+    error CANT_REMOVE_TIER();
     error PRICE_EXCEEDS_AMOUNT();
     error INSUFFICIENT_PENDING_RESERVES();
     error INVALID_CATEGORY_SORT_ORDER();
@@ -313,8 +314,9 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             balance = tierBalanceOf[hook][account][i];
 
             if (balance != 0) storedTier = _storedTierOf[hook][i];
-
-            (,, bool useVotingUnits) = _unpackBools(storedTier.packedBools);
+  
+            // Parse the flags.
+            (,, bool useVotingUnits,) = _unpackBools(storedTier.packedBools);
 
             // Add the voting units for the address' balance in this tier.
             // Use custom voting units if set. Otherwise, use the tier's price.
@@ -350,7 +352,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         JBStored721Tier memory storedTier = _storedTierOf[hook][tierId];
 
         // Check if voting units should be used. Price will be used otherwise.
-        (,, bool useVotingUnits) = _unpackBools(storedTier.packedBools);
+        (,, bool useVotingUnits,) = _unpackBools(storedTier.packedBools);
 
         // Return the address' voting units within the tier.
         return balance * (useVotingUnits ? storedTier.votingUnits : storedTier.price);
@@ -574,7 +576,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
                 votingUnits: uint40(tierToAdd.votingUnits),
                 reserveFrequency: uint16(tierToAdd.reserveFrequency),
                 category: uint24(tierToAdd.category),
-                packedBools: _packBools(tierToAdd.allowOwnerMint, tierToAdd.transfersPausable, tierToAdd.useVotingUnits)
+                packedBools: _packBools(tierToAdd.allowOwnerMint, tierToAdd.transfersPausable, tierToAdd.useVotingUnits, tierToAdd.cannotBeRemoved)
             });
 
             // If this is the first tier in a new category, store it as the first tier in that category.
@@ -753,6 +755,15 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             // Set the tier being iterated upon (0-indexed).
             tierId = tierIds[i];
 
+            // Get a reference to the stored tier.
+            JBStored721Tier storage storedTier = _storedTierOf[msg.sender][tierId];
+
+            // Parse the flags.
+            (,,,bool cannotBeRemoved) = _unpackBools(storedTier.packedBools);
+
+            // Make sure the tier can be removed.
+            if (cannotBeRemoved) revert CANT_REMOVE_TIER();
+
             // Remove the tier by marking it as removed in the bitmap.
             _removedTiersBitmapWordOf[msg.sender].removeTier(tierId);
         }
@@ -801,7 +812,8 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             // Keep a reference to the stored tier being iterated on.
             storedTier = _storedTierOf[msg.sender][tierId];
 
-            (bool allowOwnerMint,,) = _unpackBools(storedTier.packedBools);
+            // Parse the flags.
+            (bool allowOwnerMint,,,) = _unpackBools(storedTier.packedBools);
 
             // If this is an owner mint, make sure owner minting is allowed.
             if (isOwnerMint && !allowOwnerMint) revert CANT_MINT_MANUALLY();
@@ -938,7 +950,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Get a reference to the reserve beneficiary.
         address reserveBeneficiary = reserveBeneficiaryOf(hook, tierId);
 
-        (bool allowOwnerMint, bool transfersPausable, bool useVotingUnits) = _unpackBools(storedTier.packedBools);
+        (bool allowOwnerMint, bool transfersPausable, bool useVotingUnits, bool cannotBeRemoved) = _unpackBools(storedTier.packedBools);
 
         return JB721Tier({
             id: tierId,
@@ -953,6 +965,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             category: storedTier.category,
             allowOwnerMint: allowOwnerMint,
             transfersPausable: transfersPausable,
+            cannotBeRemoved: cannotBeRemoved,
             resolvedUri: !includeResolvedUri || tokenUriResolverOf[hook] == IJB721TokenUriResolver(address(0))
                 ? ""
                 : tokenUriResolverOf[hook].tokenUriOf(hook, _generateTokenId(tierId, 0))
@@ -1090,11 +1103,13 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @param allowOwnerMint Whether or not owner minting is allowed in new tiers.
     /// @param transfersPausable Whether or not 721 transfers can be paused.
     /// @param useVotingUnits Whether or not custom voting unit amounts are allowed in new tiers.
+    /// @param cannotBeRemoved Whether or not the tier can be removed once added.
     /// @return packed The packed bools.
     function _packBools(
         bool allowOwnerMint,
         bool transfersPausable,
-        bool useVotingUnits
+        bool useVotingUnits,
+        bool cannotBeRemoved
     )
         internal
         pure
@@ -1104,6 +1119,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             packed := or(allowOwnerMint, packed)
             packed := or(shl(0x1, transfersPausable), packed)
             packed := or(shl(0x2, useVotingUnits), packed)
+            packed := or(shl(0x3, cannotBeRemoved), packed)
         }
     }
 
@@ -1112,15 +1128,17 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @param allowOwnerMint Whether or not owner minting is allowed in new tiers.
     /// @param transfersPausable Whether or not 721 transfers can be paused.
     /// @param useVotingUnits Whether or not custom voting unit amounts are allowed in new tiers.
+    /// @param cannotBeRemoved Whether or not the tier can be removed once added.
     function _unpackBools(uint8 packed)
         internal
         pure
-        returns (bool allowOwnerMint, bool transfersPausable, bool useVotingUnits)
+        returns (bool allowOwnerMint, bool transfersPausable, bool useVotingUnits, bool cannotBeRemoved)
     {
         assembly {
             allowOwnerMint := iszero(iszero(and(0x1, packed)))
             transfersPausable := iszero(iszero(and(0x2, packed)))
             useVotingUnits := iszero(iszero(and(0x4, packed)))
+            cannotBeRemoved := iszero(iszero(and(0x8, packed)))
         }
     }
 }
