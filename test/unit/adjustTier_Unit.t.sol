@@ -1019,11 +1019,8 @@ contract Test_adjustTier_Unit is UnitTestSetup {
     }
 
     function  test_adjustTiers_revertIfCannotRemoveTier() public {
-        uint256 initialNumberOfTiers = 1;
-        uint256 numberOfTiersToAdd = 1;
+        uint256 initialNumberOfTiers = 2;
         uint256 numberOfTiersToRemove = 1;
-        uint256[] memory tiersToAdd = new uint256[](numberOfTiersToAdd);
-        tiersToAdd[0] = 1;
         uint256[] memory tierIdsToRemove = new uint256[](numberOfTiersToRemove);
         tierIdsToRemove[0] = 1;
         // Initial tiers configs and data.
@@ -1041,6 +1038,20 @@ contract Test_adjustTier_Unit is UnitTestSetup {
             transfersPausable: false,
             useVotingUnits: true,
             cannotBeRemoved: true
+        });
+        tierConfigs[1] = JB721TierConfig({
+            price: 10,
+            initialSupply: uint32(100),
+            votingUnits: uint16(0),
+            reserveFrequency: uint16(0),
+            reserveBeneficiary: reserveBeneficiary,
+            encodedIPFSUri: tokenUris[0],
+            category: uint24(100),
+            allowOwnerMint: false,
+            useReserveBeneficiaryAsDefault: false,
+            transfersPausable: false,
+            useVotingUnits: true,
+            cannotBeRemoved: false
         });
         //  Deploy the hook and its store with the initial tiers.
         JB721TiersHookStore store = new JB721TiersHookStore();
