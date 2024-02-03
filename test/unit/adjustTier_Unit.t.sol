@@ -1018,6 +1018,64 @@ contract Test_adjustTier_Unit is UnitTestSetup {
         hook.adjustTiers(tierConfigsToAdd, new uint256[](0));
     }
 
+    function  test_adjustTiers_revertIfCannotRemoveTier() public {
+        uint256 initialNumberOfTiers = 1;
+        uint256 numberOfTiersToAdd = 1;
+        uint256 numberOfTiersToRemove = 1;
+        uint256[] memory tiersToAdd = new uint256[](numberOfTiersToAdd);
+        tiersToAdd[0] = 1;
+        uint256[] memory tierIdsToRemove = new uint256[](numberOfTiersToRemove);
+        tierIdsToRemove[0] = 1;
+        // Initial tiers configs and data.
+        JB721TierConfig[] memory tierConfigs = new JB721TierConfig[](initialNumberOfTiers);
+        tierConfigs[0] = JB721TierConfig({
+            price: 10,
+            initialSupply: uint32(100),
+            votingUnits: uint16(0),
+            reserveFrequency: uint16(0),
+            reserveBeneficiary: reserveBeneficiary,
+            encodedIPFSUri: tokenUris[0],
+            category: uint24(100),
+            allowOwnerMint: false,
+            useReserveBeneficiaryAsDefault: false,
+            transfersPausable: false,
+            useVotingUnits: true,
+            cannotBeRemoved: true
+        });
+        //  Deploy the hook and its store with the initial tiers.
+        JB721TiersHookStore store = new JB721TiersHookStore();
+        vm.etch(hook_i, address(hook).code);
+        JB721TiersHook hook = JB721TiersHook(hook_i);
+        hook.initialize(
+            projectId,
+            name,
+            symbol,
+            IJBRulesets(mockJBRulesets),
+            baseUri,
+            IJB721TokenUriResolver(mockTokenUriResolver),
+            contractUri,
+            JB721InitTiersConfig({
+                tiers: tierConfigs,
+                currency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
+                decimals: 18,
+                prices: IJBPrices(address(0))
+            }),
+            IJB721TiersHookStore(address(store)),
+            JB721TiersHookFlags({
+                preventOverspending: false,
+                noNewTiersWithReserves: false,
+                noNewTiersWithVotes: false,
+                noNewTiersWithOwnerMinting: true
+            })
+        );
+        hook.transferOwnership(owner);
+
+        // Expect the `adjustTiers` call to revert because cannot remove tier.
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.CANT_REMOVE_TIER.selector));
+        vm.prank(owner);
+        hook.adjustTiers(new JB721TierConfig[](0), tierIdsToRemove);
+    }
+
     function test_adjustTiers_revertIfEmptyQuantity(uint256 initialNumberOfTiers, uint256 numberTiersToAdd) public {
         // Include adding X new tiers with 0 current tiers.
         initialNumberOfTiers = bound(initialNumberOfTiers, 0, 15);
