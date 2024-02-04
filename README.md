@@ -1,12 +1,12 @@
 # Juicebox NFT Hook
 
-Juicebox projects can use an NFT hook to sell tiered NFTs (ERC-721s) with different prices and artwork. When the project is paid, the hook may mint NFTs to the payer, depending on the hook's setup, the amount paid, and information specified by the payer. The project's owner can enable NFT redemptions through this hook, allowing holders to burn their NFTs to reclaim funds from the project (in proportion to the NFT's price).
+Juicebox projects can use a 721 tiers hook to sell tiered NFTs (ERC-721s) with different prices and artwork. When the project is paid, the hook may mint NFTs to the payer, depending on the hook's setup, the amount paid, and information specified by the payer. The project's owner can enable NFT redemptions through this hook, allowing holders to burn their NFTs to reclaim funds from the project (in proportion to the NFT's price).
 
 *If you're having trouble understanding this contract, take a look at the [core Juicebox contracts](https://github.com/bananapus/juice-contracts-v4) and the [documentation](https://docs.juicebox.money/) first. If you have questions, reach out on [Discord](https://discord.com/invite/ErQYmth4dS).*
 
 ## Develop
 
-`juice-nft-hook` uses the [Foundry](https://github.com/foundry-rs/foundry) development toolchain for builds, tests, and deployments. To get set up, install [Foundry](https://github.com/foundry-rs/foundry):
+`juice-721-hook` uses the [Foundry](https://github.com/foundry-rs/foundry) development toolchain for builds, tests, and deployments. To get set up, install [Foundry](https://github.com/foundry-rs/foundry):
 
 ```bash
 curl -L https://foundry.paradigm.xyz | sh
@@ -35,7 +35,7 @@ Some useful commands:
 
 To learn more, visit the [Foundry Book](https://book.getfoundry.sh/) docs.
 
-We recommend using [Juan Blanco's solidity extension](https://marketplace.visualstudio.com/items?itemName=JuanBlanco.solidity) for VSCode.
+We recommend using the [Hardhat Solidity extension](https://marketplace.visualstudio.com/items?itemName=NomicFoundation.hardhat-solidity) for VSCode.
 
 ## Utilities
 
@@ -61,10 +61,10 @@ Each pay/redeem hook can then execute custom behavior based on the custom data (
 
 ## Mechanism
 
-A project using an NFT hook can specify any number of NFT tiers.
+A project using a 721 tiers hook can specify any number of NFT tiers.
 
 - NFT tiers can be removed by the project owner as long as they are not locked.
-- NFT tiers can be added by the project owner as long as they respect the hook's `flags`. The flags specify if newly added tiers can have votes (voting units), if new tiers can have non-zero reserve frequencies, or if new tiers can allow on-demand minting by the project's owner.
+- NFT tiers can be added by the project owner as long as they respect the hook's `flags`. The flags specify if newly added tiers can have votes (voting units), if new tiers can have non-zero reserve frequencies, if new tiers can allow on-demand minting by the project's owner, and if the tier can be removed.
 
 Each tier has the following optional properties:
 
@@ -76,7 +76,7 @@ Each tier has the following optional properties:
 - A number of votes each NFT should represent on-chain (optional).
 - A flag to specify whether the NFTs in the tier can always be transferred, or if transfers can be paused depending on the project's ruleset.
 - A flag to specify whether the contract's owner can mint NFTs from the tier on-demand.
-- A set of flags which restrict tiers added in the future (the votes/reserved frequency/on-demand minting flags noted above).
+- A set of flags which restrict tiers added in the future (the votes/reserved frequency/on-demand minting/can be removed flags noted above).
 
 Additional notes:
 
@@ -89,6 +89,6 @@ Additional notes:
 
 ## Architecture
 
-To use an NFT hook, a Juicebox project should be created by a `JBNFTHookProjectDeployer` instead of a `JBController`. The deployer will create a `JBNFTHook` (through an associated `JBNFTHookDeployer`) and add it to the project's first ruleset. New rulesets can be queued through the `JBNFTHookProjectDeployer` if the project's owner gives it the `QUEUE_RULESETS` permission (`JBPermissions` ID `2`).
+To use a 721 tiers hook, a Juicebox project should be created by a `JB721TiersHookProjectDeployer` instead of a `JBController`. The deployer will create a `JB721TiersHook` (through an associated `JB721TiersHookDeployer`) and add it to the project's first ruleset. New rulesets can be queued through the `JB721TiersHookProjectDeployer` if the project's owner gives it the `QUEUE_RULESETS` permission (`JBPermissions` ID `2`).
 
-All `JBNFTHook`s store their data in the `JBNFTHookStore` contract.
+All `JB721TiersHook`s store their data in the `JB721TiersHookStore` contract.
