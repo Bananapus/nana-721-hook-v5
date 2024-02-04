@@ -25,7 +25,8 @@ interface IJB721TiersHookStore_ForTest is IJB721TiersHookStore {
     function ForTest_packBools(
         bool allowOwnerMint,
         bool transfersPausable,
-        bool useVotingUnits
+        bool useVotingUnits,
+        bool cannotBeRemoved
     )
         external
         returns (uint8);
@@ -105,7 +106,7 @@ contract ForTest_JB721TiersHookStore is JB721TiersHookStore, IJB721TiersHookStor
             storedTier = _storedTierOf[nft][currentSortIndex];
 
             // Unpack stored tier.
-            (bool allowOwnerMint, bool transfersPausable,) = _unpackBools(storedTier.packedBools);
+            (bool allowOwnerMint, bool transfersPausable,,) = _unpackBools(storedTier.packedBools);
 
             // Add the tier to the array being returned.
             tiers[numberOfIncludedTiers++] = JB721Tier({
@@ -120,6 +121,7 @@ contract ForTest_JB721TiersHookStore is JB721TiersHookStore, IJB721TiersHookStor
                 category: storedTier.category,
                 allowOwnerMint: allowOwnerMint,
                 transfersPausable: transfersPausable,
+                cannotBeRemoved: false,
                 resolvedUri: ""
             });
             // Set the next sort index.
@@ -157,16 +159,17 @@ contract ForTest_JB721TiersHookStore is JB721TiersHookStore, IJB721TiersHookStor
     function ForTest_packBools(
         bool allowOwnerMint,
         bool transfersPausable,
-        bool useVotingUnits
+        bool useVotingUnits,
+        bool cannotBeRemoved
     )
         public
         pure
         returns (uint8)
     {
-        return _packBools(allowOwnerMint, transfersPausable, useVotingUnits);
+        return _packBools(allowOwnerMint, transfersPausable, useVotingUnits, cannotBeRemoved);
     }
 
-    function ForTest_unpackBools(uint8 packed) public pure returns (bool, bool, bool) {
+    function ForTest_unpackBools(uint8 packed) public pure returns (bool, bool, bool, bool) {
         return _unpackBools(packed);
     }
 }

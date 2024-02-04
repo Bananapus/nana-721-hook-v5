@@ -545,7 +545,8 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
-                useVotingUnits: true
+                useVotingUnits: true,
+                cannotBeRemoved: false
             });
             tiers[i] = JB721Tier({
                 id: i + 1,
@@ -559,6 +560,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 category: tierConfigs[i].category,
                 allowOwnerMint: tierConfigs[i].allowOwnerMint,
                 transfersPausable: tierConfigs[i].transfersPausable,
+                cannotBeRemoved: tierConfigs[i].cannotBeRemoved,
                 resolvedUri: ""
             });
         }
@@ -662,7 +664,8 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
-                useVotingUnits: true
+                useVotingUnits: true,
+                cannotBeRemoved: false
             });
             tiers[i] = JB721Tier({
                 id: i + 1,
@@ -676,6 +679,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 category: tierConfigs[i].category,
                 allowOwnerMint: tierConfigs[i].allowOwnerMint,
                 transfersPausable: tierConfigs[i].transfersPausable,
+                cannotBeRemoved: tierConfigs[i].cannotBeRemoved,
                 resolvedUri: ""
             });
         }
@@ -725,7 +729,8 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                     allowOwnerMint: false,
                     useReserveBeneficiaryAsDefault: false,
                     transfersPausable: false,
-                    useVotingUnits: true
+                    useVotingUnits: true,
+                    cannotBeRemoved: false
                 });
                 tiersRemaining[arrayIndex] = JB721Tier({
                     id: i + 1,
@@ -739,6 +744,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                     category: tierConfigsRemaining[arrayIndex].category,
                     allowOwnerMint: tierConfigsRemaining[arrayIndex].allowOwnerMint,
                     transfersPausable: tierConfigsRemaining[arrayIndex].transfersPausable,
+                    cannotBeRemoved: tierConfigsRemaining[arrayIndex].cannotBeRemoved,
                     resolvedUri: ""
                 });
                 arrayIndex++;
@@ -765,7 +771,8 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
-                useVotingUnits: true
+                useVotingUnits: true,
+                cannotBeRemoved: false
             });
             tiersAdded[i] = JB721Tier({
                 id: tiers.length + (i + 1),
@@ -779,6 +786,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 category: tierConfigsToAdd[i].category,
                 allowOwnerMint: tierConfigsToAdd[i].allowOwnerMint,
                 transfersPausable: tierConfigsToAdd[i].transfersPausable,
+                cannotBeRemoved: tierConfigsToAdd[i].cannotBeRemoved,
                 resolvedUri: ""
             });
             vm.expectEmit(true, true, true, true, address(hook));
@@ -830,7 +838,8 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
-                useVotingUnits: true
+                useVotingUnits: true,
+                cannotBeRemoved: false
             });
             tiers[i] = JB721Tier({
                 id: i + 1,
@@ -844,6 +853,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 category: tierConfigs[i].category,
                 allowOwnerMint: tierConfigs[i].allowOwnerMint,
                 transfersPausable: tierConfigs[i].transfersPausable,
+                cannotBeRemoved: tierConfigs[i].cannotBeRemoved,
                 resolvedUri: ""
             });
         }
@@ -881,7 +891,8 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
-                useVotingUnits: true
+                useVotingUnits: true,
+                cannotBeRemoved: false
             });
             tiersAdded[i] = JB721Tier({
                 id: tiers.length + (i + 1),
@@ -895,6 +906,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 category: tierConfigsToAdd[i].category,
                 allowOwnerMint: tierConfigsToAdd[i].allowOwnerMint,
                 transfersPausable: tierConfigsToAdd[i].transfersPausable,
+                cannotBeRemoved: tierConfigsToAdd[i].cannotBeRemoved,
                 resolvedUri: ""
             });
         }
@@ -927,7 +939,8 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
-                useVotingUnits: true
+                useVotingUnits: true,
+                cannotBeRemoved: false
             });
             tiers[i] = JB721Tier({
                 id: i + 1,
@@ -941,6 +954,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 category: tierConfigs[i].category,
                 allowOwnerMint: tierConfigs[i].allowOwnerMint,
                 transfersPausable: tierConfigs[i].transfersPausable,
+                cannotBeRemoved: tierConfigs[i].cannotBeRemoved,
                 resolvedUri: ""
             });
         }
@@ -978,7 +992,8 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
-                useVotingUnits: true
+                useVotingUnits: true,
+                cannotBeRemoved: false
             });
             tiersAdded[i] = JB721Tier({
                 id: tiers.length + (i + 1),
@@ -992,6 +1007,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 category: tierConfigsToAdd[i].category,
                 allowOwnerMint: tierConfigsToAdd[i].allowOwnerMint,
                 transfersPausable: tierConfigsToAdd[i].transfersPausable,
+                cannotBeRemoved: tierConfigsToAdd[i].cannotBeRemoved,
                 resolvedUri: ""
             });
         }
@@ -1000,6 +1016,75 @@ contract Test_adjustTier_Unit is UnitTestSetup {
         vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.RESERVE_FREQUENCY_NOT_ALLOWED.selector));
         vm.prank(owner);
         hook.adjustTiers(tierConfigsToAdd, new uint256[](0));
+    }
+
+    function  test_adjustTiers_revertIfCannotRemoveTier() public {
+        uint256 initialNumberOfTiers = 2;
+        uint256 numberOfTiersToRemove = 1;
+        uint256[] memory tierIdsToRemove = new uint256[](numberOfTiersToRemove);
+        tierIdsToRemove[0] = 1;
+        // Initial tiers configs and data.
+        JB721TierConfig[] memory tierConfigs = new JB721TierConfig[](initialNumberOfTiers);
+        tierConfigs[0] = JB721TierConfig({
+            price: 10,
+            initialSupply: uint32(100),
+            votingUnits: uint16(0),
+            reserveFrequency: uint16(0),
+            reserveBeneficiary: reserveBeneficiary,
+            encodedIPFSUri: tokenUris[0],
+            category: uint24(100),
+            allowOwnerMint: false,
+            useReserveBeneficiaryAsDefault: false,
+            transfersPausable: false,
+            useVotingUnits: true,
+            cannotBeRemoved: true
+        });
+        tierConfigs[1] = JB721TierConfig({
+            price: 10,
+            initialSupply: uint32(100),
+            votingUnits: uint16(0),
+            reserveFrequency: uint16(0),
+            reserveBeneficiary: reserveBeneficiary,
+            encodedIPFSUri: tokenUris[0],
+            category: uint24(100),
+            allowOwnerMint: false,
+            useReserveBeneficiaryAsDefault: false,
+            transfersPausable: false,
+            useVotingUnits: true,
+            cannotBeRemoved: false
+        });
+        //  Deploy the hook and its store with the initial tiers.
+        JB721TiersHookStore store = new JB721TiersHookStore();
+        vm.etch(hook_i, address(hook).code);
+        JB721TiersHook hook = JB721TiersHook(hook_i);
+        hook.initialize(
+            projectId,
+            name,
+            symbol,
+            IJBRulesets(mockJBRulesets),
+            baseUri,
+            IJB721TokenUriResolver(mockTokenUriResolver),
+            contractUri,
+            JB721InitTiersConfig({
+                tiers: tierConfigs,
+                currency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
+                decimals: 18,
+                prices: IJBPrices(address(0))
+            }),
+            IJB721TiersHookStore(address(store)),
+            JB721TiersHookFlags({
+                preventOverspending: false,
+                noNewTiersWithReserves: false,
+                noNewTiersWithVotes: false,
+                noNewTiersWithOwnerMinting: true
+            })
+        );
+        hook.transferOwnership(owner);
+
+        // Expect the `adjustTiers` call to revert because cannot remove tier.
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.CANT_REMOVE_TIER.selector));
+        vm.prank(owner);
+        hook.adjustTiers(new JB721TierConfig[](0), tierIdsToRemove);
     }
 
     function test_adjustTiers_revertIfEmptyQuantity(uint256 initialNumberOfTiers, uint256 numberTiersToAdd) public {
@@ -1021,7 +1106,8 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
-                useVotingUnits: true
+                useVotingUnits: true,
+                cannotBeRemoved: false
             });
             tiers[i] = JB721Tier({
                 id: i + 1,
@@ -1035,6 +1121,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 category: tierConfigs[i].category,
                 allowOwnerMint: tierConfigs[i].allowOwnerMint,
                 transfersPausable: tierConfigs[i].transfersPausable,
+                cannotBeRemoved: tierConfigs[i].cannotBeRemoved,
                 resolvedUri: ""
             });
         }
@@ -1072,7 +1159,8 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
-                useVotingUnits: false
+                useVotingUnits: false,
+                cannotBeRemoved: false
             });
             tiersAdded[i] = JB721Tier({
                 id: tiers.length + (i + 1),
@@ -1086,6 +1174,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 category: tierConfigsToAdd[i].category,
                 allowOwnerMint: tierConfigsToAdd[i].allowOwnerMint,
                 transfersPausable: tierConfigsToAdd[i].transfersPausable,
+                cannotBeRemoved: tierConfigsToAdd[i].cannotBeRemoved,
                 resolvedUri: ""
             });
         }
@@ -1120,6 +1209,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
+                cannotBeRemoved: false,
                 useVotingUnits: true
             });
         }
@@ -1155,7 +1245,8 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
-                useVotingUnits: false 
+                useVotingUnits: false,
+                cannotBeRemoved: false 
             });
         }
 
@@ -1193,7 +1284,8 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
-                useVotingUnits: false  // <-- If false, voting power is based on tier price
+                useVotingUnits: false,  // <-- If false, voting power is based on tier price
+                cannotBeRemoved: false
             });
         }
 
@@ -1226,7 +1318,8 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
-                useVotingUnits: true 
+                useVotingUnits: true,
+                cannotBeRemoved: false
             });
         }
 
@@ -1264,7 +1357,8 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
-                useVotingUnits: true // <-- If false, voting power is based on tier price
+                useVotingUnits: true, // <-- If false, voting power is based on tier price
+                cannotBeRemoved: false
             });
         }
 
@@ -1328,7 +1422,8 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
-                useVotingUnits: false
+                useVotingUnits: false,
+                cannotBeRemoved: false
             });
             tiers[i] = JB721Tier({
                 id: i + 1,
@@ -1342,6 +1437,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 category: tierConfigs[i].category,
                 allowOwnerMint: tierConfigs[i].allowOwnerMint,
                 transfersPausable: tierConfigs[i].transfersPausable,
+                cannotBeRemoved: tierConfigs[i].cannotBeRemoved,
                 resolvedUri: ""
             });
         }

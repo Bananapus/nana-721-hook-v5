@@ -585,7 +585,8 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
-                useVotingUnits: false
+                useVotingUnits: false,
+                cannotBeRemoved: false
             });
         }
         tiersHookConfig = JBDeploy721TiersHookConfig({

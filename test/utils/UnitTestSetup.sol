@@ -140,6 +140,7 @@ contract UnitTestSetup is Test {
             allowOwnerMint: false,
             useReserveBeneficiaryAsDefault: false,
             transfersPausable: false,
+            cannotBeRemoved: false,
             useVotingUnits: true
         });
 
@@ -157,7 +158,8 @@ contract UnitTestSetup is Test {
                     allowOwnerMint: false,
                     useReserveBeneficiaryAsDefault: false,
                     transfersPausable: false,
-                    useVotingUnits: true
+                    useVotingUnits: true,
+                    cannotBeRemoved: false
                 })
             );
         }
@@ -480,7 +482,8 @@ contract UnitTestSetup is Test {
                 allowOwnerMint: tierConfig.allowOwnerMint,
                 useReserveBeneficiaryAsDefault: tierConfig.useReserveBeneficiaryAsDefault,
                 transfersPausable: tierConfig.transfersPausable,
-                useVotingUnits: tierConfig.useVotingUnits
+                useVotingUnits: tierConfig.useVotingUnits,
+                cannotBeRemoved: tierConfig.cannotBeRemoved
             });
 
             newTiers[i] = JB721Tier({
@@ -495,6 +498,7 @@ contract UnitTestSetup is Test {
                 category: tierConfigs[i].category,
                 allowOwnerMint: tierConfigs[i].allowOwnerMint,
                 transfersPausable: tierConfigs[i].transfersPausable,
+                cannotBeRemoved: tierConfigs[i].cannotBeRemoved,
                 resolvedUri: defaultTierConfig.encodedIPFSUri == bytes32(0)
                     ? ""
                     : string(abi.encodePacked("resolverURI", _generateTokenId(initialId + i + 1, 0)))
@@ -667,7 +671,8 @@ contract UnitTestSetup is Test {
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
-                useVotingUnits: true
+                useVotingUnits: true,
+                cannotBeRemoved: false
             });
         }
         tiersHookConfig = JBDeploy721TiersHookConfig({

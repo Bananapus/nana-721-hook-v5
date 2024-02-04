@@ -31,7 +31,7 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, true)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false)
                 })
             );
             hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
@@ -81,7 +81,7 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, true)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false)
                 })
             );
 
@@ -174,7 +174,7 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, true)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false)
                 })
             );
             hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
@@ -210,7 +210,7 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, true)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false)
                 })
             );
             hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
@@ -252,7 +252,7 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, true)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false)
                 })
             );
             hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);

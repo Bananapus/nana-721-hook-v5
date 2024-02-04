@@ -19,6 +19,7 @@ pragma solidity ^0.8.0;
 /// @custom:member transfersPausable A boolean indicating whether transfers for NFTs in tier can be paused.
 /// @custom:member useVotingUnits A boolean indicating whether the `votingUnits` should be used to calculate voting
 /// power. If `useVotingUnits` is false, voting power is based on the tier's price.
+/// @custom:member cannotBeRemoved If the tier cannot be removed once added.
 struct JB721TierConfig {
     uint104 price;
     uint32 initialSupply;
@@ -31,4 +32,5 @@ struct JB721TierConfig {
     bool useReserveBeneficiaryAsDefault;
     bool transfersPausable;
     bool useVotingUnits;
+    bool cannotBeRemoved;
 }
