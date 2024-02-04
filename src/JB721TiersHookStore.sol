@@ -313,7 +313,11 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             // Get a reference to the account's balance in this tier.
             balance = tierBalanceOf[hook][account][i];
 
-            if (balance != 0) storedTier = _storedTierOf[hook][i];
+            // If the account has no balance, return.
+            if (balance == 0) continue;
+
+            // Get the tier. 
+            storedTier = _storedTierOf[hook][i];
   
             // Parse the flags.
             (,, bool useVotingUnits,) = _unpackBools(storedTier.packedBools);

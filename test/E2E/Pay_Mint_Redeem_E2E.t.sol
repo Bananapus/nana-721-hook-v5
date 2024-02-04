@@ -644,7 +644,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         terminalConfigurations[0] = JBTerminalConfig({terminal: jbMultiTerminal, tokensToAccept: tokensToAccept});
 
         launchProjectConfig = JBLaunchProjectConfig({
-            projectMetadata: projectMetadata,
+            projectUri: projectUri,
             rulesetConfigurations: rulesetConfigurations,
             terminalConfigurations: terminalConfigurations,
             memo: ""

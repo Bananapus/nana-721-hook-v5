@@ -65,7 +65,7 @@ contract TestBaseWorkflow is Test {
     JBController internal jbController;
     JBTerminalStore internal jbTerminalStore;
     JBMultiTerminal internal jbMultiTerminal;
-    string internal projectMetadata;
+    string internal projectUri;
     IJBToken internal tokenV2;
 
     AccessJBLib internal accessJBLib;
@@ -129,7 +129,7 @@ contract TestBaseWorkflow is Test {
         );
         vm.label(address(jbMultiTerminal), "JBMultiTerminal");
 
-        projectMetadata = "myIPFSHash";
+        projectUri = "myIPFSHash";
 
         // ---- general setup ---- //
         vm.deal(beneficiary, 100 ether);

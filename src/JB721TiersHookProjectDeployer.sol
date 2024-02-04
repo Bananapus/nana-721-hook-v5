@@ -219,7 +219,7 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         // Launch the project.
         controller.launchProjectFor({
             owner: owner,
-            projectMetadata: launchProjectConfig.projectMetadata,
+            projectUri: launchProjectConfig.projectUri,
             rulesetConfigurations: rulesetConfigurations,
             terminalConfigurations: launchProjectConfig.terminalConfigurations,
             memo: launchProjectConfig.memo

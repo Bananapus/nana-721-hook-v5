@@ -653,7 +653,7 @@ contract UnitTestSetup is Test {
         view
         returns (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig)
     {
-        string memory projectMetadata;
+        string memory projectUri;
         JBPayDataHookRulesetConfig[] memory rulesetConfigurations;
         JBTerminalConfig[] memory terminalConfigurations;
         JBPayDataHookRulesetMetadata memory metadata;
@@ -698,7 +698,7 @@ contract UnitTestSetup is Test {
             })
         });
 
-        projectMetadata = "myIPFSHash";
+        projectUri = "myIPFSHash";
 
         metadata = JBPayDataHookRulesetMetadata({
             reservedRate: 5000, //50%
@@ -733,7 +733,7 @@ contract UnitTestSetup is Test {
             JBTerminalConfig({terminal: IJBTerminal(mockTerminalAddress), tokensToAccept: tokensToAccept});
 
         launchProjectConfig = JBLaunchProjectConfig({
-            projectMetadata: projectMetadata,
+            projectUri: projectUri,
             rulesetConfigurations: rulesetConfigurations,
             terminalConfigurations: terminalConfigurations,
             memo: rulesetMemo
