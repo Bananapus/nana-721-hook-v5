@@ -1,15 +1,15 @@
 pragma solidity 0.8.23;
 
-import {Script, stdJson} from "lib/forge-std/src/Script.sol";
-import {Strings} from "lib/openzeppelin-contracts/contracts/utils/Strings.sol";
-import {IJBAddressRegistry} from "lib/juice-address-registry/src/interfaces/IJBAddressRegistry.sol";
-import {IJBDirectory} from "lib/juice-contracts-v4/src/interfaces/IJBDirectory.sol";
-import {IJBPermissions} from "lib/juice-contracts-v4/src/interfaces/IJBPermissions.sol";
+import {Script, stdJson} from "forge-std/Script.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {IJBAddressRegistry} from "@bananapus/address-registry/src/interfaces/IJBAddressRegistry.sol";
+import {IJBDirectory} from "@bananapus/core/src/interfaces/IJBDirectory.sol";
+import {IJBPermissions} from "@bananapus/core/src/interfaces/IJBPermissions.sol";
 
-import {JB721TiersHookDeployer} from "src/JB721TiersHookDeployer.sol";
-import {JB721TiersHookProjectDeployer} from "src/JB721TiersHookProjectDeployer.sol";
-import {JB721TiersHookStore} from "src/JB721TiersHookStore.sol";
-import {JB721TiersHook} from "src/JB721TiersHook.sol";
+import {JB721TiersHookDeployer} from "../src/JB721TiersHookDeployer.sol";
+import {JB721TiersHookProjectDeployer} from "../src/JB721TiersHookProjectDeployer.sol";
+import {JB721TiersHookStore} from "../src/JB721TiersHookStore.sol";
+import {JB721TiersHook} from "../src/JB721TiersHook.sol";
 
 contract Deploy is Script {
     function run() public {
@@ -39,15 +39,15 @@ contract Deploy is Script {
         }
 
         address directoryAddress = _getDeploymentAddress(
-            string.concat("lib/juice-contracts-v4/broadcast/Deploy.s.sol/", chain, "/run-latest.json"), "JBDirectory"
+            string.concat("@bananapus/core/broadcast/Deploy.s.sol/", chain, "/run-latest.json"), "JBDirectory"
         );
 
         address permissionsAddress = _getDeploymentAddress(
-            string.concat("lib/juice-contracts-v4/broadcast/Deploy.s.sol/", chain, "/run-latest.json"), "JBPermissions"
+            string.concat("@bananapus/core/broadcast/Deploy.s.sol/", chain, "/run-latest.json"), "JBPermissions"
         );
 
         address addressRegistryAddress = _getDeploymentAddress(
-            string.concat("lib/juice-address-registry/broadcast/Deploy.s.sol/", chain, "/run-latest.json"),
+            string.concat("@bananapus/address-registry/broadcast/Deploy.s.sol/", chain, "/run-latest.json"),
             "JBAddressRegistry"
         );
 

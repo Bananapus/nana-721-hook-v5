@@ -316,9 +316,9 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             // If the account has no balance, return.
             if (balance == 0) continue;
 
-            // Get the tier. 
+            // Get the tier.
             storedTier = _storedTierOf[hook][i];
-  
+
             // Parse the flags.
             (,, bool useVotingUnits,) = _unpackBools(storedTier.packedBools);
 
@@ -580,7 +580,12 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
                 votingUnits: uint40(tierToAdd.votingUnits),
                 reserveFrequency: uint16(tierToAdd.reserveFrequency),
                 category: uint24(tierToAdd.category),
-                packedBools: _packBools(tierToAdd.allowOwnerMint, tierToAdd.transfersPausable, tierToAdd.useVotingUnits, tierToAdd.cannotBeRemoved)
+                packedBools: _packBools(
+                    tierToAdd.allowOwnerMint,
+                    tierToAdd.transfersPausable,
+                    tierToAdd.useVotingUnits,
+                    tierToAdd.cannotBeRemoved
+                    )
             });
 
             // If this is the first tier in a new category, store it as the first tier in that category.
@@ -763,7 +768,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             JBStored721Tier storage storedTier = _storedTierOf[msg.sender][tierId];
 
             // Parse the flags.
-            (,,,bool cannotBeRemoved) = _unpackBools(storedTier.packedBools);
+            (,,, bool cannotBeRemoved) = _unpackBools(storedTier.packedBools);
 
             // Make sure the tier can be removed.
             if (cannotBeRemoved) revert CANT_REMOVE_TIER();
@@ -954,7 +959,8 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Get a reference to the reserve beneficiary.
         address reserveBeneficiary = reserveBeneficiaryOf(hook, tierId);
 
-        (bool allowOwnerMint, bool transfersPausable, bool useVotingUnits, bool cannotBeRemoved) = _unpackBools(storedTier.packedBools);
+        (bool allowOwnerMint, bool transfersPausable, bool useVotingUnits, bool cannotBeRemoved) =
+            _unpackBools(storedTier.packedBools);
 
         return JB721Tier({
             id: tierId,

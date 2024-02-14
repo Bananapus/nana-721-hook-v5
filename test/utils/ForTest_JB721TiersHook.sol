@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import "src/interfaces/IJB721TiersHook.sol";
+import "../../src/interfaces/IJB721TiersHook.sol";
 
-import "src/JB721TiersHook.sol";
-import "src/JB721TiersHookStore.sol";
+import "../../src/JB721TiersHook.sol";
+import "../../src/JB721TiersHookStore.sol";
 
-import "src/structs/JBBitmapWord.sol";
+import "../../src/structs/JBBitmapWord.sol";
 
-import "lib/juice-contracts-v4/src/structs/JBRulesetMetadata.sol";
-import "lib/juice-contracts-v4/src/interfaces/IJBPermissioned.sol";
-import {MetadataResolverHelper} from "lib/juice-contracts-v4/test/helpers/MetadataResolverHelper.sol";
+import "@bananapus/core/src/structs/JBRulesetMetadata.sol";
+import "@bananapus/core/src/interfaces/IJBPermissioned.sol";
+import {MetadataResolverHelper} from "@bananapus/core/test/helpers/MetadataResolverHelper.sol";
 
-import "lib/juice-contracts-v4/src/libraries/JBConstants.sol";
+import "@bananapus/core/src/libraries/JBConstants.sol";
 
 import "./UnitTestSetup.sol"; // Only used to get the `PAY_HOOK_ID` and `REDEEM_HOOK_ID` constants.
 

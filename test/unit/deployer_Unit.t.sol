@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import "lib/juice-address-registry/src/JBAddressRegistry.sol";
-import "lib/juice-contracts-v4/src/interfaces/IJBController.sol";
-import "lib/juice-contracts-v4/src/interfaces/IJBRulesets.sol";
-import "lib/juice-contracts-v4/src/interfaces/IJBPrices.sol";
+import "@bananapus/address-registry/src/JBAddressRegistry.sol";
+import "@bananapus/core/src/interfaces/IJBController.sol";
+import "@bananapus/core/src/interfaces/IJBRulesets.sol";
+import "@bananapus/core/src/interfaces/IJBPrices.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-import "src/JB721TiersHookProjectDeployer.sol";
-import "src/JB721TiersHookStore.sol";
-import "src/interfaces/IJB721TiersHookProjectDeployer.sol";
-import "src/structs/JBLaunchProjectConfig.sol";
-import "src/structs/JB721InitTiersConfig.sol";
+import "../../src/JB721TiersHookProjectDeployer.sol";
+import "../../src/JB721TiersHookStore.sol";
+import "../../src/interfaces/IJB721TiersHookProjectDeployer.sol";
+import "../../src/structs/JBLaunchProjectConfig.sol";
+import "../../src/structs/JB721InitTiersConfig.sol";
 
 import "../utils/UnitTestSetup.sol";
 

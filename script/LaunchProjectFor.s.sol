@@ -3,8 +3,8 @@
  */
 pragma solidity 0.8.23;
 
-// import 'src/interfaces/IJB721TiersHookProjectDeployer.sol';
-// import 'src/JB721TiersHookStore.sol';
+// import '../src/interfaces/IJB721TiersHookProjectDeployer.sol';
+// import '../src/JB721TiersHookStore.sol';
 // import 'forge-std/Script.sol';
 
 // // Latest NFTProjectDeployer

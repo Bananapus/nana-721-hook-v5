@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {JBOwnable} from "lib/juice-ownable/src/JBOwnable.sol";
-import {JBPermissioned} from "lib/juice-contracts-v4/src/abstract/JBPermissioned.sol";
-import {IJBDirectory} from "lib/juice-contracts-v4/src/interfaces/IJBDirectory.sol";
-import {IJBController} from "lib/juice-contracts-v4/src/interfaces/IJBController.sol";
-import {IJBPermissions} from "lib/juice-contracts-v4/src/interfaces/IJBPermissions.sol";
-import {JBPermissionIds} from "lib/juice-contracts-v4/src/libraries/JBPermissionIds.sol";
-import {JBRulesetConfig} from "lib/juice-contracts-v4/src/structs/JBRulesetConfig.sol";
-import {JBRulesetMetadata} from "lib/juice-contracts-v4/src/structs/JBRulesetMetadata.sol";
+import {JBOwnable} from "@bananapus/ownable/src/JBOwnable.sol";
+import {JBPermissioned} from "@bananapus/core/src/abstract/JBPermissioned.sol";
+import {IJBDirectory} from "@bananapus/core/src/interfaces/IJBDirectory.sol";
+import {IJBController} from "@bananapus/core/src/interfaces/IJBController.sol";
+import {IJBPermissions} from "@bananapus/core/src/interfaces/IJBPermissions.sol";
+import {JBPermissionIds} from "@bananapus/core/src/libraries/JBPermissionIds.sol";
+import {JBRulesetConfig} from "@bananapus/core/src/structs/JBRulesetConfig.sol";
+import {JBRulesetMetadata} from "@bananapus/core/src/structs/JBRulesetMetadata.sol";
 
 import {IJB721TiersHookDeployer} from "./interfaces/IJB721TiersHookDeployer.sol";
 import {IJB721TiersHookProjectDeployer} from "./interfaces/IJB721TiersHookProjectDeployer.sol";

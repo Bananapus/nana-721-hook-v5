@@ -1,31 +1,31 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import "lib/forge-std/src/Test.sol";
+import "forge-std/Test.sol";
 import "../utils/ForTest_JB721TiersHook.sol";
 
-import "src/JB721TiersHookDeployer.sol";
-import "src/JB721TiersHook.sol";
-import "src/JB721TiersHookStore.sol";
+import "../../src/JB721TiersHookDeployer.sol";
+import "../../src/JB721TiersHook.sol";
+import "../../src/JB721TiersHookStore.sol";
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "lib/juice-contracts-v4/src/libraries/JBRulesetMetadataResolver.sol";
-import "lib/juice-contracts-v4/src/structs/JBTokenAmount.sol";
-import "lib/juice-contracts-v4/src/structs/JBAfterRedeemRecordedContext.sol";
-import "lib/juice-contracts-v4/src/structs/JBAfterPayRecordedContext.sol";
-import "lib/juice-contracts-v4/src/structs/JBAfterRedeemRecordedContext.sol";
-import "lib/juice-contracts-v4/src/structs/JBRedeemHookSpecification.sol";
-import "lib/juice-contracts-v4/src/structs/JBFundAccessLimitGroup.sol";
-import "lib/juice-contracts-v4/src/interfaces/terminal/IJBTerminal.sol";
-import "lib/juice-contracts-v4/src/interfaces/IJBRulesetApprovalHook.sol";
+import "@bananapus/core/src/libraries/JBRulesetMetadataResolver.sol";
+import "@bananapus/core/src/structs/JBTokenAmount.sol";
+import "@bananapus/core/src/structs/JBAfterRedeemRecordedContext.sol";
+import "@bananapus/core/src/structs/JBAfterPayRecordedContext.sol";
+import "@bananapus/core/src/structs/JBAfterRedeemRecordedContext.sol";
+import "@bananapus/core/src/structs/JBRedeemHookSpecification.sol";
+import "@bananapus/core/src/structs/JBFundAccessLimitGroup.sol";
+import "@bananapus/core/src/interfaces/terminal/IJBTerminal.sol";
+import "@bananapus/core/src/interfaces/IJBRulesetApprovalHook.sol";
 
-import "src/structs/JBLaunchProjectConfig.sol";
-import "src/structs/JBPayDataHookRulesetMetadata.sol";
+import "../../src/structs/JBLaunchProjectConfig.sol";
+import "../../src/structs/JBPayDataHookRulesetMetadata.sol";
 
-import "lib/juice-address-registry/src/JBAddressRegistry.sol";
+import "@bananapus/address-registry/src/JBAddressRegistry.sol";
 
-import "lib/juice-contracts-v4/src/libraries/JBCurrencyIds.sol";
-import "lib/juice-contracts-v4/src/libraries/JBConstants.sol";
+import "@bananapus/core/src/libraries/JBCurrencyIds.sol";
+import "@bananapus/core/src/libraries/JBConstants.sol";
 
 contract UnitTestSetup is Test {
     address beneficiary;
