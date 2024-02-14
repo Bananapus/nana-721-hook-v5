@@ -1,22 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {mulDiv} from "lib/prb-math/src/Common.sol";
-import {IERC165} from "lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
-import {IERC2981} from "lib/openzeppelin-contracts/contracts/interfaces/IERC2981.sol";
-import {IJBRulesetDataHook} from "lib/juice-contracts-v4/src/interfaces/IJBRulesetDataHook.sol";
-import {IJBDirectory} from "lib/juice-contracts-v4/src/interfaces/IJBDirectory.sol";
-import {IJBPayHook} from "lib/juice-contracts-v4/src/interfaces/IJBPayHook.sol";
-import {IJBRedeemHook} from "lib/juice-contracts-v4/src/interfaces/IJBRedeemHook.sol";
-import {IJBTerminal} from "lib/juice-contracts-v4/src/interfaces/terminal/IJBTerminal.sol";
-import {JBConstants} from "lib/juice-contracts-v4/src/libraries/JBConstants.sol";
-import {JBBeforePayRecordedContext} from "lib/juice-contracts-v4/src/structs/JBBeforePayRecordedContext.sol";
-import {JBAfterPayRecordedContext} from "lib/juice-contracts-v4/src/structs/JBAfterPayRecordedContext.sol";
-import {JBAfterRedeemRecordedContext} from "lib/juice-contracts-v4/src/structs/JBAfterRedeemRecordedContext.sol";
-import {JBBeforeRedeemRecordedContext} from "lib/juice-contracts-v4/src/structs/JBBeforeRedeemRecordedContext.sol";
-import {JBPayHookSpecification} from "lib/juice-contracts-v4/src/structs/JBPayHookSpecification.sol";
-import {JBRedeemHookSpecification} from "lib/juice-contracts-v4/src/structs/JBRedeemHookSpecification.sol";
-import {JBMetadataResolver} from "lib/juice-contracts-v4/src/libraries/JBMetadataResolver.sol";
+import {mulDiv} from "@prb/math/src/Common.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {IERC2981} from "@openzeppelin/contracts/interfaces/IERC2981.sol";
+import {IJBRulesetDataHook} from "@bananapus/core/src/interfaces/IJBRulesetDataHook.sol";
+import {IJBDirectory} from "@bananapus/core/src/interfaces/IJBDirectory.sol";
+import {IJBPayHook} from "@bananapus/core/src/interfaces/IJBPayHook.sol";
+import {IJBRedeemHook} from "@bananapus/core/src/interfaces/IJBRedeemHook.sol";
+import {IJBTerminal} from "@bananapus/core/src/interfaces/terminal/IJBTerminal.sol";
+import {JBConstants} from "@bananapus/core/src/libraries/JBConstants.sol";
+import {JBBeforePayRecordedContext} from "@bananapus/core/src/structs/JBBeforePayRecordedContext.sol";
+import {JBAfterPayRecordedContext} from "@bananapus/core/src/structs/JBAfterPayRecordedContext.sol";
+import {JBAfterRedeemRecordedContext} from "@bananapus/core/src/structs/JBAfterRedeemRecordedContext.sol";
+import {JBBeforeRedeemRecordedContext} from "@bananapus/core/src/structs/JBBeforeRedeemRecordedContext.sol";
+import {JBPayHookSpecification} from "@bananapus/core/src/structs/JBPayHookSpecification.sol";
+import {JBRedeemHookSpecification} from "@bananapus/core/src/structs/JBRedeemHookSpecification.sol";
+import {JBMetadataResolver} from "@bananapus/core/src/libraries/JBMetadataResolver.sol";
 
 import {ERC721} from "./ERC721.sol";
 import {IJB721Hook} from "../interfaces/IJB721Hook.sol";

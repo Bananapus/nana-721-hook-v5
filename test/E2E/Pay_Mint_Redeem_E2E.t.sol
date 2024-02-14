@@ -2,16 +2,16 @@
 pragma solidity 0.8.23;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "lib/juice-address-registry/src/JBAddressRegistry.sol";
+import "@bananapus/address-registry/src/JBAddressRegistry.sol";
 
-import "src/JB721TiersHook.sol";
-import "src/JB721TiersHookProjectDeployer.sol";
-import "src/JB721TiersHookDeployer.sol";
-import "src/JB721TiersHookStore.sol";
+import "../../src/JB721TiersHook.sol";
+import "../../src/JB721TiersHookProjectDeployer.sol";
+import "../../src/JB721TiersHookDeployer.sol";
+import "../../src/JB721TiersHookStore.sol";
 
 import "../utils/TestBaseWorkflow.sol";
-import "src/interfaces/IJB721TiersHook.sol";
-import {MetadataResolverHelper} from "lib/juice-contracts-v4/test/helpers/MetadataResolverHelper.sol";
+import "../../src/interfaces/IJB721TiersHook.sol";
+import {MetadataResolverHelper} from "@bananapus/core/test/helpers/MetadataResolverHelper.sol";
 
 contract Test_TiersHook_E2E is TestBaseWorkflow {
     using JBRulesetMetadataResolver for JBRuleset;

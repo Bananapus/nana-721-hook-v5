@@ -1,2 +1,0 @@
-lib/openzeppelin-contracts/=lib/openzeppelin-contracts/
-lib/juice-contracts-v4/=lib/juice-contracts-v4

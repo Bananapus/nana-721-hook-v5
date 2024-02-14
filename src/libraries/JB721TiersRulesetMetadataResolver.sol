@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {JB721TiersRulesetMetadata} from "./../structs/JB721TiersRulesetMetadata.sol";
+import {JB721TiersRulesetMetadata} from "../structs/JB721TiersRulesetMetadata.sol";
 
 /// @title JB721TiersRulesetMetadataResolver
 /// @notice Utility library to parse and store ruleset metadata associated for the tiered 721 hook.

@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 import {IJB721TokenUriResolver} from "./IJB721TokenUriResolver.sol";
-import {JB721TierConfig} from "./../structs/JB721TierConfig.sol";
-import {JB721Tier} from "./../structs/JB721Tier.sol";
-import {JB721TiersHookFlags} from "./../structs/JB721TiersHookFlags.sol";
+import {JB721TierConfig} from "../structs/JB721TierConfig.sol";
+import {JB721Tier} from "../structs/JB721Tier.sol";
+import {JB721TiersHookFlags} from "../structs/JB721TiersHookFlags.sol";
 
 interface IJB721TiersHookStore {
     event CleanTiers(address indexed hook, address caller);

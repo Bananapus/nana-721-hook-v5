@@ -1018,7 +1018,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
         hook.adjustTiers(tierConfigsToAdd, new uint256[](0));
     }
 
-    function  test_adjustTiers_revertIfCannotRemoveTier() public {
+    function test_adjustTiers_revertIfCannotRemoveTier() public {
         uint256 initialNumberOfTiers = 2;
         uint256 numberOfTiersToRemove = 1;
         uint256[] memory tierIdsToRemove = new uint256[](numberOfTiersToRemove);
@@ -1246,7 +1246,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: false,
-                cannotBeRemoved: false 
+                cannotBeRemoved: false
             });
         }
 
@@ -1284,7 +1284,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
-                useVotingUnits: false,  // <-- If false, voting power is based on tier price
+                useVotingUnits: false, // <-- If false, voting power is based on tier price
                 cannotBeRemoved: false
             });
         }

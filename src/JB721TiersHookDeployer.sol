@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Clones} from "lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
-import {IJBAddressRegistry} from "lib/juice-address-registry/src/interfaces/IJBAddressRegistry.sol";
-import {JBOwnable} from "lib/juice-ownable/src/JBOwnable.sol";
+import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+import {IJBAddressRegistry} from "@bananapus/address-registry/src/interfaces/IJBAddressRegistry.sol";
+import {JBOwnable} from "@bananapus/ownable/src/JBOwnable.sol";
 
 import {IJB721TiersHookDeployer} from "./interfaces/IJB721TiersHookDeployer.sol";
 import {IJB721TiersHook} from "./interfaces/IJB721TiersHook.sol";

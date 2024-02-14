@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import "lib/juice-contracts-v4/src/libraries/JBCurrencyIds.sol";
-import "lib/juice-contracts-v4/src/libraries/JBConstants.sol";
+import "@bananapus/core/src/libraries/JBCurrencyIds.sol";
+import "@bananapus/core/src/libraries/JBConstants.sol";
 
 contract AccessJBLib {
     function NATIVE() external pure returns (uint256) {

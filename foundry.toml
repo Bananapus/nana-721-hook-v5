@@ -9,6 +9,9 @@ block_timestamp = 1643802347
 runs = 4096
 fs_permissions = [{ access = "read", path = "lib/juice-contracts-v4/broadcast/Deploy.s.sol" }, { access = "read", path = "lib/juice-address-registry/broadcast/Deploy.s.sol" }] # Get the deployment addresses to base the hook on.
 
+[profile.ci_sizes]
+optimizer_runs = 200
+
 [invariant] 
 fail_on_revert = false
 

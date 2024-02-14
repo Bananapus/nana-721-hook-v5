@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {mulDiv} from "lib/prb-math/src/Common.sol";
-import {JBOwnable} from "lib/juice-ownable/src/JBOwnable.sol";
-import {JBOwnableOverrides} from "lib/juice-ownable/src/JBOwnableOverrides.sol";
-import {IJBPermissions} from "lib/juice-contracts-v4/src/interfaces/IJBPermissions.sol";
-import {IJBRulesets} from "lib/juice-contracts-v4/src/interfaces/IJBRulesets.sol";
-import {IJBPrices} from "lib/juice-contracts-v4/src/interfaces/IJBPrices.sol";
-import {IJBDirectory} from "lib/juice-contracts-v4/src/interfaces/IJBDirectory.sol";
-import {JBRulesetMetadataResolver} from "lib/juice-contracts-v4/src/libraries/JBRulesetMetadataResolver.sol";
-import {JBBeforeRedeemRecordedContext} from "lib/juice-contracts-v4/src/structs/JBBeforeRedeemRecordedContext.sol";
-import {JBAfterPayRecordedContext} from "lib/juice-contracts-v4/src/structs/JBAfterPayRecordedContext.sol";
-import {JBRuleset} from "lib/juice-contracts-v4/src/structs/JBRuleset.sol";
+import {mulDiv} from "@prb/math/src/Common.sol";
+import {JBOwnable} from "@bananapus/ownable/src/JBOwnable.sol";
+import {JBOwnableOverrides} from "@bananapus/ownable/src/JBOwnableOverrides.sol";
+import {IJBPermissions} from "@bananapus/core/src/interfaces/IJBPermissions.sol";
+import {IJBRulesets} from "@bananapus/core/src/interfaces/IJBRulesets.sol";
+import {IJBPrices} from "@bananapus/core/src/interfaces/IJBPrices.sol";
+import {IJBDirectory} from "@bananapus/core/src/interfaces/IJBDirectory.sol";
+import {JBRulesetMetadataResolver} from "@bananapus/core/src/libraries/JBRulesetMetadataResolver.sol";
+import {JBBeforeRedeemRecordedContext} from "@bananapus/core/src/structs/JBBeforeRedeemRecordedContext.sol";
+import {JBAfterPayRecordedContext} from "@bananapus/core/src/structs/JBAfterPayRecordedContext.sol";
+import {JBRuleset} from "@bananapus/core/src/structs/JBRuleset.sol";
 
 import {JB721Hook} from "./abstract/JB721Hook.sol";
 import {IJB721TiersHook} from "./interfaces/IJB721TiersHook.sol";
@@ -25,7 +25,7 @@ import {JB721Tier} from "./structs/JB721Tier.sol";
 import {JB721TiersHookFlags} from "./structs/JB721TiersHookFlags.sol";
 import {JB721InitTiersConfig} from "./structs/JB721InitTiersConfig.sol";
 import {JB721TiersMintReservesConfig} from "./structs/JB721TiersMintReservesConfig.sol";
-import {JBMetadataResolver} from "lib/juice-contracts-v4/src/libraries/JBMetadataResolver.sol";
+import {JBMetadataResolver} from "@bananapus/core/src/libraries/JBMetadataResolver.sol";
 
 /// @title JB721TiersHook
 /// @notice A Juicebox project can use this hook to sell tiered ERC-721 NFTs with different prices and metadata. When
