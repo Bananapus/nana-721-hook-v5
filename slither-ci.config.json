@@ -5,6 +5,6 @@
     "exclude_medium": false,
     "exclude_high": false,
     "disable_color": false,
-    "filter_paths": "(script/|test/|node_modules/)",
+    "filter_paths": "(test/|node_modules/)",
     "legacy_ast": false
 }
