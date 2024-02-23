@@ -39,15 +39,15 @@ contract Deploy is Script {
         }
 
         address directoryAddress = _getDeploymentAddress(
-            string.concat("@bananapus/core/broadcast/Deploy.s.sol/", chain, "/run-latest.json"), "JBDirectory"
+            string.concat("node_modules/@bananapus/core/broadcast/Deploy.s.sol/", chain, "/run-latest.json"), "JBDirectory"
         );
 
         address permissionsAddress = _getDeploymentAddress(
-            string.concat("@bananapus/core/broadcast/Deploy.s.sol/", chain, "/run-latest.json"), "JBPermissions"
+            string.concat("node_modules/@bananapus/core/broadcast/Deploy.s.sol/", chain, "/run-latest.json"), "JBPermissions"
         );
 
         address addressRegistryAddress = _getDeploymentAddress(
-            string.concat("@bananapus/address-registry/broadcast/Deploy.s.sol/", chain, "/run-latest.json"),
+            string.concat("node_modules/@bananapus/address-registry/broadcast/Deploy.s.sol/", chain, "/run-latest.json"),
             "JBAddressRegistry"
         );
 
