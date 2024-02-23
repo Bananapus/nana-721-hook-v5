@@ -30,7 +30,7 @@ import "@bananapus/core/src/structs/JBSplit.sol";
 import "@bananapus/core/src/interfaces/terminal/IJBTerminal.sol";
 import "@bananapus/core/src/interfaces/IJBToken.sol";
 
-import "@bananapus/core/src/libraries/JBPermissionIds.sol";
+import "@bananapus/permission-ids/src/JBPermissionIds.sol";
 import "@bananapus/core/src/libraries/JBRulesetMetadataResolver.sol";
 
 import {mulDiv} from "@prb/math/src/Common.sol";
