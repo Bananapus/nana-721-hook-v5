@@ -95,7 +95,12 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         view
         virtual
         override
-        returns (uint256 redemptionRate, uint256 redeemCount, uint256 totalSupply, JBRedeemHookSpecification[] memory hookSpecifications)
+        returns (
+            uint256 redemptionRate,
+            uint256 redeemCount,
+            uint256 totalSupply,
+            JBRedeemHookSpecification[] memory hookSpecifications
+        )
     {
         // Make sure (fungible) project tokens aren't also being redeemed.
         if (context.redeemCount > 0) revert UNEXPECTED_TOKEN_REDEEMED();

@@ -109,7 +109,7 @@ contract Test_redeem_Unit is UnitTestSetup {
             weight += (i + 1) * (i + 1) * 10;
         }
 
-        (redemptionRate,,,returnedHook) = hook.beforeRedeemRecordedWith(
+        (redemptionRate,,, returnedHook) = hook.beforeRedeemRecordedWith(
             JBBeforeRedeemRecordedContext({
                 terminal: address(0),
                 holder: beneficiary,
