@@ -48,7 +48,7 @@ contract Test_redeem_Unit is UnitTestSetup {
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
-        (uint256 reclaimAmount, JBRedeemHookSpecification[] memory returnedHook) = hook.beforeRedeemRecordedWith(
+        (uint256 redemptionRate,,, JBRedeemHookSpecification[] memory returnedHook) = hook.beforeRedeemRecordedWith(
             JBBeforeRedeemRecordedContext({
                 terminal: address(0),
                 holder: beneficiary,
@@ -56,10 +56,9 @@ contract Test_redeem_Unit is UnitTestSetup {
                 rulesetId: 0,
                 redeemCount: 0,
                 totalSupply: 0,
-                surplus: SURPLUS,
-                reclaimAmount: JBTokenAmount({
+                surplus: JBTokenAmount({
                     token: address(0),
-                    value: 0,
+                    value: SURPLUS,
                     decimals: 18,
                     currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
                 }),
@@ -69,15 +68,8 @@ contract Test_redeem_Unit is UnitTestSetup {
             })
         );
 
-        // Calculate what portion of the surplus should accessible (pro rata relative to weight of NFTs held).
-        uint256 base = mulDiv(SURPLUS, weight, totalWeight);
-        uint256 claimableSurplus = mulDiv(
-            base,
-            REDEMPTION_RATE + mulDiv(weight, MAX_RESERVED_RATE() - REDEMPTION_RATE, totalWeight),
-            MAX_RESERVED_RATE()
-        );
         // Check: does the reclaim amount match the expected value?
-        assertEq(reclaimAmount, claimableSurplus);
+        assertEq(redemptionRate, REDEMPTION_RATE);
         // Check: does the returned hook address match the expected value?
         assertEq(address(returnedHook[0].hook), address(hook));
     }
@@ -87,6 +79,7 @@ contract Test_redeem_Unit is UnitTestSetup {
         uint256 redemptionRate = 0;
         uint256 weight;
         uint256 totalWeight;
+        JBRedeemHookSpecification[] memory returnedHook;
 
         ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
@@ -116,7 +109,7 @@ contract Test_redeem_Unit is UnitTestSetup {
             weight += (i + 1) * (i + 1) * 10;
         }
 
-        (uint256 reclaimAmount, JBRedeemHookSpecification[] memory returnedHook) = hook.beforeRedeemRecordedWith(
+        (redemptionRate,,, returnedHook) = hook.beforeRedeemRecordedWith(
             JBBeforeRedeemRecordedContext({
                 terminal: address(0),
                 holder: beneficiary,
@@ -124,10 +117,9 @@ contract Test_redeem_Unit is UnitTestSetup {
                 rulesetId: 0,
                 redeemCount: 0,
                 totalSupply: 0,
-                surplus: surplus,
-                reclaimAmount: JBTokenAmount({
+                surplus: JBTokenAmount({
                     token: address(0),
-                    value: 0,
+                    value: surplus,
                     decimals: 18,
                     currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
                 }),
@@ -137,8 +129,8 @@ contract Test_redeem_Unit is UnitTestSetup {
             })
         );
 
-        // Check: is the reclaim amount zero?
-        assertEq(reclaimAmount, 0);
+        // Check: is the redemption rate zero?
+        assertEq(redemptionRate, 0);
         // Check: does the returned hook address match the expected value?
         assertEq(address(returnedHook[0].hook), address(hook));
     }
@@ -193,10 +185,9 @@ contract Test_redeem_Unit is UnitTestSetup {
             rulesetId: 0,
             redeemCount: 0,
             totalSupply: 0,
-            surplus: SURPLUS,
-            reclaimAmount: JBTokenAmount({
+            surplus: JBTokenAmount({
                 token: address(0),
-                value: 0,
+                value: SURPLUS,
                 decimals: 18,
                 currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
             }),
@@ -205,13 +196,11 @@ contract Test_redeem_Unit is UnitTestSetup {
             metadata: hookMetadata
         });
 
-        (uint256 reclaimAmount, JBRedeemHookSpecification[] memory returnedHook) =
+        (uint256 redemptionRate,,, JBRedeemHookSpecification[] memory returnedHook) =
             hook.beforeRedeemRecordedWith(beforeRedeemContext);
 
-        // Calculate what portion of the surplus should accessible (pro rata relative to weight of NFTs held).
-        uint256 base = mulDiv(SURPLUS, weight, totalWeight);
-        // Check: does the reclaim amount match the expected value?
-        assertEq(reclaimAmount, base);
+        // Check: does the redemption rate match the expected value?
+        assertEq(redemptionRate, JBConstants.MAX_REDEMPTION_RATE);
         // Check: does the returned hook address match the expected value?
         assertEq(address(returnedHook[0].hook), address(hook));
     }
@@ -230,10 +219,9 @@ contract Test_redeem_Unit is UnitTestSetup {
                 rulesetId: 0,
                 redeemCount: tokenCount,
                 totalSupply: 0,
-                surplus: 100,
-                reclaimAmount: JBTokenAmount({
+                surplus: JBTokenAmount({
                     token: address(0),
-                    value: 0,
+                    value: 100,
                     decimals: 18,
                     currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
                 }),

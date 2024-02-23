@@ -85,7 +85,9 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     /// @dev This function is used for NFT redemptions, and will only be called if the project's ruleset has
     /// `useDataHookForRedeem` set to `true`.
     /// @param context The redemption context passed to this contract by the `redeemTokensOf(...)` function.
-    /// @return reclaimAmount Amount to be reclaimed, overriding the terminal's logic.
+    /// @return redemptionRate The redemption rate influencing the reclaim amount.
+    /// @return redeemCount The amount of tokens that should be considered redeemed.
+    /// @return totalSupply The total amount of tokens that are considered to be existing.
     /// @return hookSpecifications The amount and data to send to redeem hooks (this contract) instead of returning to
     /// the beneficiary.
     function beforeRedeemRecordedWith(JBBeforeRedeemRecordedContext calldata context)
@@ -93,7 +95,12 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         view
         virtual
         override
-        returns (uint256 reclaimAmount, JBRedeemHookSpecification[] memory hookSpecifications)
+        returns (
+            uint256 redemptionRate,
+            uint256 redeemCount,
+            uint256 totalSupply,
+            JBRedeemHookSpecification[] memory hookSpecifications
+        )
     {
         // Make sure (fungible) project tokens aren't also being redeemed.
         if (context.redeemCount > 0) revert UNEXPECTED_TOKEN_REDEEMED();
@@ -113,32 +120,14 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         // Decode the metadata.
         if (metadataExists) decodedTokenIds = abi.decode(metadata, (uint256[]));
 
-        // Get a reference to the redemption weight of the provided tokens.
-        uint256 redemptionWeight = redemptionWeightOf(decodedTokenIds, context);
+        // Use the redemption weight of the provided 721s.
+        redeemCount = redemptionWeightOf(decodedTokenIds, context);
 
-        // Get a reference to the total redemption weight.
-        uint256 total = totalRedemptionWeight(context);
+        // Use the total redemption weight of the 721s.
+        totalSupply = totalRedemptionWeight(context);
 
-        // Get a reference to the linear proportion that the provided tokens constitute (out of the total redemption
-        // weight).
-        uint256 base = mulDiv(context.surplus, redemptionWeight, total);
-
-        // These conditions are all part of the same curve. Edge conditions are separated because fewer operation are
-        // necessary.
-        if (context.redemptionRate == JBConstants.MAX_REDEMPTION_RATE) {
-            return (base, hookSpecifications);
-        }
-
-        // Return the weighted surplus, and this contract as the redeem hook (so that the tokens can be burned).
-        return (
-            mulDiv(
-                base,
-                context.redemptionRate
-                    + mulDiv(redemptionWeight, JBConstants.MAX_REDEMPTION_RATE - context.redemptionRate, total),
-                JBConstants.MAX_REDEMPTION_RATE
-                ),
-            hookSpecifications
-        );
+        // Use the redemption rate from the context.
+        redemptionRate = context.redemptionRate;
     }
 
     //*********************************************************************//

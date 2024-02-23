@@ -12,12 +12,13 @@ import {JBRulesetMetadataResolver} from "@bananapus/core/src/libraries/JBRuleset
 import {JBBeforeRedeemRecordedContext} from "@bananapus/core/src/structs/JBBeforeRedeemRecordedContext.sol";
 import {JBAfterPayRecordedContext} from "@bananapus/core/src/structs/JBAfterPayRecordedContext.sol";
 import {JBRuleset} from "@bananapus/core/src/structs/JBRuleset.sol";
+import {JBMetadataResolver} from "@bananapus/core/src/libraries/JBMetadataResolver.sol";
+import {JBPermissionIds} from "@bananapus/permission-ids/src/JBPermissionIds.sol";
 
 import {JB721Hook} from "./abstract/JB721Hook.sol";
 import {IJB721TiersHook} from "./interfaces/IJB721TiersHook.sol";
 import {IJB721TokenUriResolver} from "./interfaces/IJB721TokenUriResolver.sol";
 import {IJB721TiersHookStore} from "./interfaces/IJB721TiersHookStore.sol";
-import {JB721PermissionIds} from "./libraries/JB721PermissionIds.sol";
 import {JBIpfsDecoder} from "./libraries/JBIpfsDecoder.sol";
 import {JB721TiersRulesetMetadataResolver} from "./libraries/JB721TiersRulesetMetadataResolver.sol";
 import {JB721TierConfig} from "./structs/JB721TierConfig.sol";
@@ -25,7 +26,6 @@ import {JB721Tier} from "./structs/JB721Tier.sol";
 import {JB721TiersHookFlags} from "./structs/JB721TiersHookFlags.sol";
 import {JB721InitTiersConfig} from "./structs/JB721InitTiersConfig.sol";
 import {JB721TiersMintReservesConfig} from "./structs/JB721TiersMintReservesConfig.sol";
-import {JBMetadataResolver} from "@bananapus/core/src/libraries/JBMetadataResolver.sol";
 
 /// @title JB721TiersHook
 /// @notice A Juicebox project can use this hook to sell tiered ERC-721 NFTs with different prices and metadata. When
@@ -297,7 +297,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         returns (uint256[] memory tokenIds)
     {
         // Enforce permissions.
-        _requirePermissionFrom({account: owner(), projectId: projectId, permissionId: JB721PermissionIds.MINT});
+        _requirePermissionFrom({account: owner(), projectId: projectId, permissionId: JBPermissionIds.MINT_721});
 
         // Record the mint. The token IDs returned correspond to the tiers passed in.
         (tokenIds,) = STORE.recordMint({
@@ -347,7 +347,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
     /// @param tierIdsToRemove The tiers to remove, as an array of tier IDs.
     function adjustTiers(JB721TierConfig[] calldata tiersToAdd, uint256[] calldata tierIdsToRemove) external override {
         // Enforce permissions.
-        _requirePermissionFrom({account: owner(), projectId: projectId, permissionId: JB721PermissionIds.ADJUST_TIERS});
+        _requirePermissionFrom({account: owner(), projectId: projectId, permissionId: JBPermissionIds.ADJUST_721_TIERS});
 
         // Get a reference to the number of tiers being added.
         uint256 numberOfTiersToAdd = tiersToAdd.length;
@@ -402,7 +402,7 @@ contract JB721TiersHook is JBOwnable, JB721Hook, IJB721TiersHook {
         _requirePermissionFrom({
             account: owner(),
             projectId: projectId,
-            permissionId: JB721PermissionIds.UPDATE_METADATA
+            permissionId: JBPermissionIds.UPDATE_721_METADATA
         });
 
         if (bytes(baseUri).length != 0) {
