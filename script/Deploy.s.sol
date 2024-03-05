@@ -46,11 +46,13 @@ contract Deploy is Script {
         }
 
         address directoryAddress = _getDeploymentAddress(
-            string.concat("node_modules/@bananapus/core/broadcast/Deploy.s.sol/", chain, "/run-latest.json"), "JBDirectory"
+            string.concat("node_modules/@bananapus/core/broadcast/Deploy.s.sol/", chain, "/run-latest.json"),
+            "JBDirectory"
         );
 
         address permissionsAddress = _getDeploymentAddress(
-            string.concat("node_modules/@bananapus/core/broadcast/Deploy.s.sol/", chain, "/run-latest.json"), "JBPermissions"
+            string.concat("node_modules/@bananapus/core/broadcast/Deploy.s.sol/", chain, "/run-latest.json"),
+            "JBPermissions"
         );
 
         address addressRegistryAddress = _getDeploymentAddress(
@@ -59,7 +61,8 @@ contract Deploy is Script {
         );
 
         vm.startBroadcast();
-        JB721TiersHook hook = new JB721TiersHook(IJBDirectory(directoryAddress), IJBPermissions(permissionsAddress), trustedForwarder);
+        JB721TiersHook hook =
+            new JB721TiersHook(IJBDirectory(directoryAddress), IJBPermissions(permissionsAddress), trustedForwarder);
         JB721TiersHookDeployer hookDeployer =
             new JB721TiersHookDeployer(hook, IJBAddressRegistry(addressRegistryAddress));
         new JB721TiersHookStore();
