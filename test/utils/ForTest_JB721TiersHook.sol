@@ -39,6 +39,7 @@ contract ForTest_JB721TiersHook is JB721TiersHook {
 
     uint256 constant SURPLUS = 10e18;
     uint256 constant REDEMPTION_RATE = JBConstants.MAX_RESERVED_RATE; // 40%
+    address _trustedForwarder = address(123_456);
 
     constructor(
         uint256 projectId,
@@ -54,7 +55,7 @@ contract ForTest_JB721TiersHook is JB721TiersHook {
         JB721TiersHookFlags memory flags
     )
         // The directory is also `IJBPermissioned`.
-        JB721TiersHook(directory, IJBPermissioned(address(directory)).PERMISSIONS())
+        JB721TiersHook(directory, IJBPermissioned(address(directory)).PERMISSIONS(), _trustedForwarder)
     {
         // Disable the safety check to not allow initializing the original contract
         CODE_ORIGIN = address(0);

@@ -51,6 +51,8 @@ contract UnitTestSetup is Test {
 
     uint256 constant REDEMPTION_RATE = 4000; // 40%
 
+    address constant trustedForwarder = address(123_456);
+
     JB721TierConfig defaultTierConfig;
 
     // To generate:
@@ -205,7 +207,7 @@ contract UnitTestSetup is Test {
             mockJBDirectory, abi.encodeWithSelector(IJBPermissioned.PERMISSIONS.selector), abi.encode(mockJBPermissions)
         );
 
-        hookOrigin = new JB721TiersHook(IJBDirectory(mockJBDirectory), IJBPermissions(mockJBPermissions));
+        hookOrigin = new JB721TiersHook(IJBDirectory(mockJBDirectory), IJBPermissions(mockJBPermissions), trustedForwarder);
         addressRegistry = new JBAddressRegistry();
         jbHookDeployer = new JB721TiersHookDeployer(hookOrigin, addressRegistry);
         store = new JB721TiersHookStore();

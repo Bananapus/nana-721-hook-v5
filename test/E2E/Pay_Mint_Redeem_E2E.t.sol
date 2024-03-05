@@ -17,6 +17,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
     using JBRulesetMetadataResolver for JBRuleset;
 
     address reserveBeneficiary = address(bytes20(keccak256("reserveBeneficiary")));
+    address trustedForwarder = address(123_456);
 
     JB721TiersHook hook;
 
@@ -54,7 +55,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
     function setUp() public override {
         super.setUp();
-        hook = new JB721TiersHook(jbDirectory, jbPermissions);
+        hook = new JB721TiersHook(jbDirectory, jbPermissions, trustedForwarder);
         addressRegistry = new JBAddressRegistry();
         JB721TiersHookDeployer hookDeployer = new JB721TiersHookDeployer(hook, addressRegistry);
         deployer =
