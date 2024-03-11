@@ -1,86 +1,58 @@
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Script, stdJson} from "forge-std/Script.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {IJBAddressRegistry} from "@bananapus/address-registry/src/interfaces/IJBAddressRegistry.sol";
-import {IJBDirectory} from "@bananapus/core/src/interfaces/IJBDirectory.sol";
-import {IJBPermissions} from "@bananapus/core/src/interfaces/IJBPermissions.sol";
+// import "../src/deployers/BPOptimismSuckerDeployer.sol";
+import "@bananapus/core/script/helpers/CoreDeploymentLib.sol";
 
+import {Sphinx} from "@sphinx-labs/contracts/SphinxPlugin.sol";
+import {Script} from "forge-std/Script.sol";
+
+import {JBAddressRegistry, IJBAddressRegistry} from "@bananapus/address-registry/src/JBAddressRegistry.sol";
 import {JB721TiersHookDeployer} from "../src/JB721TiersHookDeployer.sol";
 import {JB721TiersHookProjectDeployer} from "../src/JB721TiersHookProjectDeployer.sol";
 import {JB721TiersHookStore} from "../src/JB721TiersHookStore.sol";
 import {JB721TiersHook} from "../src/JB721TiersHook.sol";
 
-contract Deploy is Script {
-    function run() public {
-        uint256 chainId = block.chainid;
-        string memory chain;
+contract DeployScript is Script, Sphinx {
+    /// @notice tracks the deployment of the core contracts for the chain we are deploying to.
+    CoreDeployment core;
+    /// @notice tracks the addressed of the deployers that will get pre-approved.
+    address[] PRE_APPROVED_DEPLOYERS;
 
-        // Ethereum Mainnet
-        if (chainId == 1) {
-            chain = "1";
-            // Ethereum Sepolia
-        } else if (chainId == 11_155_111) {
-            chain = "11155111";
-            // Optimism Mainnet
-        } else if (chainId == 420) {
-            chain = "420";
-            // Optimism Sepolia
-        } else if (chainId == 11_155_420) {
-            chain = "11155420";
-            // Polygon Mainnet
-        } else if (chainId == 137) {
-            chain = "137";
-            // Polygon Mumbai
-        } else if (chainId == 80_001) {
-            chain = "80001";
-        } else {
-            revert("Invalid RPC / no juice contracts deployed on this network");
-        }
+    /// @notice the salts that are used to deploy the contracts.
+    bytes32 ADDRESS_REGISTRY_SALT = "JBAddressRegistry";
+    bytes32 HOOK_SALT = "JB721TiersHook";
+    bytes32 HOOK_DEPLOYER_SALT = "JB721TiersHookDeployer";
+    bytes32 HOOK_STORE_SALT = "JB721TiersHookStore";
+    bytes32 PROJECT_DEPLOYER_SALT = "JB721TiersHookProjectDeployer";
 
-        address directoryAddress = _getDeploymentAddress(
-            string.concat("node_modules/@bananapus/core/broadcast/Deploy.s.sol/", chain, "/run-latest.json"), "JBDirectory"
-        );
-
-        address permissionsAddress = _getDeploymentAddress(
-            string.concat("node_modules/@bananapus/core/broadcast/Deploy.s.sol/", chain, "/run-latest.json"), "JBPermissions"
-        );
-
-        address addressRegistryAddress = _getDeploymentAddress(
-            string.concat("node_modules/@bananapus/address-registry/broadcast/Deploy.s.sol/", chain, "/run-latest.json"),
-            "JBAddressRegistry"
-        );
-
-        vm.startBroadcast();
-        JB721TiersHook hook = new JB721TiersHook(IJBDirectory(directoryAddress), IJBPermissions(permissionsAddress));
-        JB721TiersHookDeployer hookDeployer =
-            new JB721TiersHookDeployer(hook, IJBAddressRegistry(addressRegistryAddress));
-        new JB721TiersHookStore();
-        new JB721TiersHookProjectDeployer(
-            IJBDirectory(directoryAddress), IJBPermissions(permissionsAddress), hookDeployer
-        );
-        vm.stopBroadcast();
+    function configureSphinx() public override {
+        // TODO: Update to contain JB Emergency Developers
+        sphinxConfig.owners = [0x26416423d530b1931A2a7a6b7D435Fac65eED27d];
+        sphinxConfig.orgId = "cltepuu9u0003j58rjtbd0hvu";
+        sphinxConfig.projectName = "nana-721-hook";
+        sphinxConfig.threshold = 1;
+        sphinxConfig.mainnets = ["ethereum", "optimism", "polygon"];
+        sphinxConfig.testnets = ["ethereum_sepolia", "optimism_sepolia", "polygon_mumbai"];
+        sphinxConfig.saltNonce = 3;
     }
 
-    /// @notice Get the address of a contract that was deployed by the Deploy script.
-    /// @dev Reverts if the contract was not found.
-    /// @param path The path to the deployment file.
-    /// @param contractName The name of the contract to get the address of.
-    /// @return The address of the contract.
-    function _getDeploymentAddress(string memory path, string memory contractName) internal view returns (address) {
-        string memory deploymentJson = vm.readFile(path);
-        uint256 nOfTransactions = stdJson.readStringArray(deploymentJson, ".transactions").length;
+    function run() public {
+        // Get the deployment addresses for the nana CORE for this chain.
+        // We want to do this outside of the `sphinx` modifier.
+        core = CoreDeploymentLib.getDeployment(
+            vm.envOr("NANA_CORE_DEPLOYMENT_PATH", string("node_modules/@bananapus/core/deployments/"))
+        );
+        // Perform the deployment transactions.
+        deploy();
+    }
 
-        for (uint256 i = 0; i < nOfTransactions; i++) {
-            string memory currentKey = string.concat(".transactions", "[", Strings.toString(i), "]");
-            string memory currentContractName =
-                stdJson.readString(deploymentJson, string.concat(currentKey, ".contractName"));
-
-            if (keccak256(abi.encodePacked(currentContractName)) == keccak256(abi.encodePacked(contractName))) {
-                return stdJson.readAddress(deploymentJson, string.concat(currentKey, ".contractAddress"));
-            }
-        }
-
-        revert(string.concat("Could not find contract with name '", contractName, "' in deployment file '", path, "'"));
+    function deploy() public sphinx {
+        // TODO: For now we also deploy the `JBAddressRegistry` here, we probably want to move this to its repository.
+        JBAddressRegistry _registry = new JBAddressRegistry{salt: ADDRESS_REGISTRY_SALT}();
+        JB721TiersHook hook = new JB721TiersHook{salt: HOOK_SALT}(core.directory, core.permissions);
+        JB721TiersHookDeployer hookDeployer = new JB721TiersHookDeployer{salt: HOOK_DEPLOYER_SALT}(hook, _registry);
+        new JB721TiersHookStore{salt: HOOK_STORE_SALT}();
+        new JB721TiersHookProjectDeployer{salt: PROJECT_DEPLOYER_SALT}(core.directory, core.permissions, hookDeployer);
     }
 }
