@@ -50,13 +50,15 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
     ];
 
     JB721TiersHookProjectDeployer deployer;
+    JB721TiersHookStore store;
     JBAddressRegistry addressRegistry;
 
     function setUp() public override {
         super.setUp();
         hook = new JB721TiersHook(jbDirectory, jbPermissions);
         addressRegistry = new JBAddressRegistry();
-        JB721TiersHookDeployer hookDeployer = new JB721TiersHookDeployer(hook, addressRegistry);
+        store = new JB721TiersHookStore();
+        JB721TiersHookDeployer hookDeployer = new JB721TiersHookDeployer(hook, store, addressRegistry);
         deployer =
             new JB721TiersHookProjectDeployer(IJBDirectory(jbDirectory), IJBPermissions(jbPermissions), hookDeployer);
 
@@ -603,7 +605,6 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
                 prices: IJBPrices(address(0))
             }),
             reserveBeneficiary: reserveBeneficiary,
-            store: new JB721TiersHookStore(),
             flags: JB721TiersHookFlags({
                 preventOverspending: false,
                 noNewTiersWithReserves: false,

@@ -51,8 +51,11 @@ contract DeployScript is Script, Sphinx {
         // TODO: For now we also deploy the `JBAddressRegistry` here, we probably want to move this to its repository.
         JBAddressRegistry _registry = new JBAddressRegistry{salt: ADDRESS_REGISTRY_SALT}();
         JB721TiersHook hook = new JB721TiersHook{salt: HOOK_SALT}(core.directory, core.permissions);
-        JB721TiersHookDeployer hookDeployer = new JB721TiersHookDeployer{salt: HOOK_DEPLOYER_SALT}(hook, _registry);
-        new JB721TiersHookStore{salt: HOOK_STORE_SALT}();
+        JB721TiersHookDeployer hookDeployer = new JB721TiersHookDeployer{salt: HOOK_DEPLOYER_SALT}(
+            hook,
+            new JB721TiersHookStore{salt: HOOK_STORE_SALT}(),
+            _registry
+        );
         new JB721TiersHookProjectDeployer{salt: PROJECT_DEPLOYER_SALT}(core.directory, core.permissions, hookDeployer);
     }
 }
