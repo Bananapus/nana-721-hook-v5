@@ -6,14 +6,14 @@ import {Vm} from "forge-std/Vm.sol";
 
 import {SphinxConstants, NetworkInfo} from "@sphinx-labs/contracts/SphinxConstants.sol";
 
-import {JB721TiersHookDeployer} from "../../src/JB721TiersHookDeployer.sol";
-import {JB721TiersHookProjectDeployer} from "../../src/JB721TiersHookProjectDeployer.sol";
-import {JB721TiersHookStore} from "../../src/JB721TiersHookStore.sol";
+import {IJB721TiersHookDeployer} from "../../src/interfaces/IJB721TiersHookDeployer.sol";
+import {IJB721TiersHookProjectDeployer} from "../../src/interfaces/IJB721TiersHookProjectDeployer.sol";
+import {IJB721TiersHookStore} from "../../src/interfaces/IJB721TiersHookStore.sol";
 
 struct Hook721Deployment {
-    JB721TiersHookDeployer hook_deployer;
-    JB721TiersHookProjectDeployer project_deployer;
-    JB721TiersHookStore store;
+    IJB721TiersHookDeployer hook_deployer;
+    IJB721TiersHookProjectDeployer project_deployer;
+    IJB721TiersHookStore store;
 }
 
 library Hook721DeploymentLib{
@@ -40,21 +40,21 @@ library Hook721DeploymentLib{
     }
 
     function getDeployment(string memory path, string memory network_name) internal view returns (Hook721Deployment memory deployment)  {
-        deployment.hook_deployer = JB721TiersHookDeployer(_getDeploymentAddress(
+        deployment.hook_deployer = IJB721TiersHookDeployer(_getDeploymentAddress(
             path,
             "nana-core",
             network_name,
             "JB721TiersHookDeployer"
         ));
 
-        deployment.project_deployer = JB721TiersHookProjectDeployer(_getDeploymentAddress(
+        deployment.project_deployer = IJB721TiersHookProjectDeployer(_getDeploymentAddress(
             path,
             "nana-core",
             network_name,
             "JB721TiersHookProjectDeployer"
         ));
 
-        deployment.store = JB721TiersHookStore(_getDeploymentAddress(
+        deployment.store = IJB721TiersHookStore(_getDeploymentAddress(
             path,
             "nana-core",
             network_name,
