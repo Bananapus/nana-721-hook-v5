@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-// import "../src/deployers/BPOptimismSuckerDeployer.sol";
 import "@bananapus/core/script/helpers/CoreDeploymentLib.sol";
 
 import {Sphinx} from "@sphinx-labs/contracts/SphinxPlugin.sol";
 import {Script} from "forge-std/Script.sol";
 
-import {JBAddressRegistry, IJBAddressRegistry} from "@bananapus/address-registry/src/JBAddressRegistry.sol";
+import {JBAddressRegistry} from "@bananapus/address-registry/src/JBAddressRegistry.sol";
 import {JB721TiersHookDeployer} from "../src/JB721TiersHookDeployer.sol";
 import {JB721TiersHookProjectDeployer} from "../src/JB721TiersHookProjectDeployer.sol";
 import {JB721TiersHookStore} from "../src/JB721TiersHookStore.sol";
@@ -16,8 +15,6 @@ import {JB721TiersHook} from "../src/JB721TiersHook.sol";
 contract DeployScript is Script, Sphinx {
     /// @notice tracks the deployment of the core contracts for the chain we are deploying to.
     CoreDeployment core;
-    /// @notice tracks the addressed of the deployers that will get pre-approved.
-    address[] PRE_APPROVED_DEPLOYERS;
 
     /// @notice the salts that are used to deploy the contracts.
     bytes32 ADDRESS_REGISTRY_SALT = "JBAddressRegistry";
