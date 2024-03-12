@@ -42,21 +42,21 @@ library Hook721DeploymentLib{
     function getDeployment(string memory path, string memory network_name) internal view returns (Hook721Deployment memory deployment)  {
         deployment.hook_deployer = IJB721TiersHookDeployer(_getDeploymentAddress(
             path,
-            "nana-core",
+            "nana-721-hook",
             network_name,
             "JB721TiersHookDeployer"
         ));
 
         deployment.project_deployer = IJB721TiersHookProjectDeployer(_getDeploymentAddress(
             path,
-            "nana-core",
+            "nana-721-hook",
             network_name,
             "JB721TiersHookProjectDeployer"
         ));
 
         deployment.store = IJB721TiersHookStore(_getDeploymentAddress(
             path,
-            "nana-core",
+            "nana-721-hook",
             network_name,
             "JB721TiersHookStore"
         ));
