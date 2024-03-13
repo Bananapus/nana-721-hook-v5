@@ -210,7 +210,7 @@ contract UnitTestSetup is Test {
         hookOrigin =
             new JB721TiersHook(IJBDirectory(mockJBDirectory), IJBPermissions(mockJBPermissions), trustedForwarder);
         addressRegistry = new JBAddressRegistry();
-        jbHookDeployer = new JB721TiersHookDeployer(hookOrigin, addressRegistry);
+        jbHookDeployer = new JB721TiersHookDeployer(hookOrigin, addressRegistry, trustedForwarder);
         store = new JB721TiersHookStore();
         JBDeploy721TiersHookConfig memory hookConfig = JBDeploy721TiersHookConfig(
             name,

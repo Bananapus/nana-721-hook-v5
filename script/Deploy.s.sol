@@ -64,7 +64,7 @@ contract Deploy is Script {
         JB721TiersHook hook =
             new JB721TiersHook(IJBDirectory(directoryAddress), IJBPermissions(permissionsAddress), trustedForwarder);
         JB721TiersHookDeployer hookDeployer =
-            new JB721TiersHookDeployer(hook, IJBAddressRegistry(addressRegistryAddress));
+            new JB721TiersHookDeployer(hook, IJBAddressRegistry(addressRegistryAddress), trustedForwarder);
         new JB721TiersHookStore();
         new JB721TiersHookProjectDeployer(
             IJBDirectory(directoryAddress), IJBPermissions(permissionsAddress), hookDeployer

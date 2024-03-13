@@ -282,7 +282,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         ) store.recordFlags(flags);
 
         // Transfer ownership to the initializer.
-        _transferOwnership(msg.sender);
+        _transferOwnership(_msgSender());
     }
 
     //*********************************************************************//
@@ -324,7 +324,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             // Mint the NFT.
             _mint(beneficiary, tokenId);
 
-            emit Mint(tokenId, tierIds[i], beneficiary, 0, msg.sender);
+            emit Mint(tokenId, tierIds[i], beneficiary, 0, _msgSender());
         }
     }
 
@@ -475,7 +475,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             // Mint the NFT.
             _mint(reserveBeneficiary, tokenId);
 
-            emit MintReservedNft(tokenId, tierId, reserveBeneficiary, msg.sender);
+            emit MintReservedNft(tokenId, tierId, reserveBeneficiary, _msgSender());
         }
     }
 
@@ -577,9 +577,9 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
 
                 // Emit the change in NFT credits.
                 if (newPayCredits > payCredits) {
-                    emit AddPayCredits(newPayCredits - payCredits, newPayCredits, context.beneficiary, msg.sender);
+                    emit AddPayCredits(newPayCredits - payCredits, newPayCredits, context.beneficiary, _msgSender());
                 } else if (payCredits > newPayCredits) {
-                    emit UsePayCredits(payCredits - newPayCredits, newPayCredits, context.beneficiary, msg.sender);
+                    emit UsePayCredits(payCredits - newPayCredits, newPayCredits, context.beneficiary, _msgSender());
                 }
 
                 // Store the new NFT credits for the beneficiary.
@@ -588,7 +588,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             // Otherwise, reset their NFT credits.
         } else if (payCredits != unusedPayCredits) {
             // Emit the change in NFT credits.
-            emit UsePayCredits(payCredits - unusedPayCredits, unusedPayCredits, context.beneficiary, msg.sender);
+            emit UsePayCredits(payCredits - unusedPayCredits, unusedPayCredits, context.beneficiary, _msgSender());
 
             // Store the new NFT credits.
             payCreditsOf[context.beneficiary] = unusedPayCredits;
@@ -641,7 +641,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             // Mint the NFT.
             _mint(beneficiary, tokenId);
 
-            emit Mint(tokenId, mintTierIds[i], beneficiary, amount, msg.sender);
+            emit Mint(tokenId, mintTierIds[i], beneficiary, amount, _msgSender());
         }
     }
 

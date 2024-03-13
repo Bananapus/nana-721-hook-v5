@@ -57,7 +57,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         super.setUp();
         hook = new JB721TiersHook(jbDirectory, jbPermissions, trustedForwarder);
         addressRegistry = new JBAddressRegistry();
-        JB721TiersHookDeployer hookDeployer = new JB721TiersHookDeployer(hook, addressRegistry);
+        JB721TiersHookDeployer hookDeployer = new JB721TiersHookDeployer(hook, addressRegistry, trustedForwarder);
         deployer =
             new JB721TiersHookProjectDeployer(IJBDirectory(jbDirectory), IJBPermissions(jbPermissions), hookDeployer);
 
