@@ -8,11 +8,12 @@ import {JBOwnable} from "@bananapus/ownable/src/JBOwnable.sol";
 import {IJB721TiersHookDeployer} from "./interfaces/IJB721TiersHookDeployer.sol";
 import {IJB721TiersHook} from "./interfaces/IJB721TiersHook.sol";
 import {JBDeploy721TiersHookConfig} from "./structs/JBDeploy721TiersHookConfig.sol";
+import {ERC2771Context} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import {JB721TiersHook} from "./JB721TiersHook.sol";
 
 /// @title JB721TiersHookDeployer
 /// @notice Deploys a `JB721TiersHook`.
-contract JB721TiersHookDeployer is IJB721TiersHookDeployer {
+contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
     //*********************************************************************//
     // ----------------------- internal properties ----------------------- //
     //*********************************************************************//
@@ -36,7 +37,13 @@ contract JB721TiersHookDeployer is IJB721TiersHookDeployer {
 
     /// @param hook Reference copy of a hook.
     /// @param addressRegistry A registry which stores references to contracts and their deployers.
-    constructor(JB721TiersHook hook, IJBAddressRegistry addressRegistry) {
+    constructor(
+        JB721TiersHook hook,
+        IJBAddressRegistry addressRegistry,
+        address trustedForwarder
+    )
+        ERC2771Context(trustedForwarder)
+    {
         HOOK = hook;
         ADDRESS_REGISTRY = addressRegistry;
     }
@@ -74,7 +81,7 @@ contract JB721TiersHookDeployer is IJB721TiersHookDeployer {
         });
 
         // Transfer the hook's ownership to the address that called this function.
-        JBOwnable(address(newHook)).transferOwnership(msg.sender);
+        JBOwnable(address(newHook)).transferOwnership(_msgSender());
 
         // Add the hook to the address registry. This contract's nonce starts at 1.
         ADDRESS_REGISTRY.registerAddress(address(this), ++_nonce);

@@ -14,36 +14,45 @@ import {JB721TiersHook} from "../src/JB721TiersHook.sol";
 contract Deploy is Script {
     function run() public {
         uint256 chainId = block.chainid;
+        address trustedForwarder;
         string memory chain;
 
         // Ethereum Mainnet
         if (chainId == 1) {
             chain = "1";
+            trustedForwarder = 0xB2b5841DBeF766d4b521221732F9B618fCf34A87;
             // Ethereum Sepolia
         } else if (chainId == 11_155_111) {
             chain = "11155111";
+            trustedForwarder = 0xB2b5841DBeF766d4b521221732F9B618fCf34A87;
             // Optimism Mainnet
         } else if (chainId == 420) {
             chain = "420";
+            trustedForwarder = 0xB2b5841DBeF766d4b521221732F9B618fCf34A87;
             // Optimism Sepolia
         } else if (chainId == 11_155_420) {
             chain = "11155420";
+            trustedForwarder = 0xB2b5841DBeF766d4b521221732F9B618fCf34A87;
             // Polygon Mainnet
         } else if (chainId == 137) {
             chain = "137";
+            trustedForwarder = 0xB2b5841DBeF766d4b521221732F9B618fCf34A87;
             // Polygon Mumbai
         } else if (chainId == 80_001) {
             chain = "80001";
+            trustedForwarder = 0xB2b5841DBeF766d4b521221732F9B618fCf34A87;
         } else {
             revert("Invalid RPC / no juice contracts deployed on this network");
         }
 
         address directoryAddress = _getDeploymentAddress(
-            string.concat("node_modules/@bananapus/core/broadcast/Deploy.s.sol/", chain, "/run-latest.json"), "JBDirectory"
+            string.concat("node_modules/@bananapus/core/broadcast/Deploy.s.sol/", chain, "/run-latest.json"),
+            "JBDirectory"
         );
 
         address permissionsAddress = _getDeploymentAddress(
-            string.concat("node_modules/@bananapus/core/broadcast/Deploy.s.sol/", chain, "/run-latest.json"), "JBPermissions"
+            string.concat("node_modules/@bananapus/core/broadcast/Deploy.s.sol/", chain, "/run-latest.json"),
+            "JBPermissions"
         );
 
         address addressRegistryAddress = _getDeploymentAddress(
@@ -52,9 +61,10 @@ contract Deploy is Script {
         );
 
         vm.startBroadcast();
-        JB721TiersHook hook = new JB721TiersHook(IJBDirectory(directoryAddress), IJBPermissions(permissionsAddress));
+        JB721TiersHook hook =
+            new JB721TiersHook(IJBDirectory(directoryAddress), IJBPermissions(permissionsAddress), trustedForwarder);
         JB721TiersHookDeployer hookDeployer =
-            new JB721TiersHookDeployer(hook, IJBAddressRegistry(addressRegistryAddress));
+            new JB721TiersHookDeployer(hook, IJBAddressRegistry(addressRegistryAddress), trustedForwarder);
         new JB721TiersHookStore();
         new JB721TiersHookProjectDeployer(
             IJBDirectory(directoryAddress), IJBPermissions(permissionsAddress), hookDeployer
