@@ -37,7 +37,13 @@ contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
 
     /// @param hook Reference copy of a hook.
     /// @param addressRegistry A registry which stores references to contracts and their deployers.
-    constructor(JB721TiersHook hook, IJBAddressRegistry addressRegistry, address trustedForwarder) ERC2771Context(trustedForwarder) {
+    constructor(
+        JB721TiersHook hook,
+        IJBAddressRegistry addressRegistry,
+        address trustedForwarder
+    )
+        ERC2771Context(trustedForwarder)
+    {
         HOOK = hook;
         ADDRESS_REGISTRY = addressRegistry;
     }
