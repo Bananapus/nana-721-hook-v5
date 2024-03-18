@@ -58,7 +58,6 @@ contract ForTest_JB721TiersHook is JB721TiersHook {
         JB721TiersHook(directory, IJBPermissioned(address(directory)).PERMISSIONS(), _trustedForwarder)
     {
         // Disable the safety check to not allow initializing the original contract
-        CODE_ORIGIN = address(0);
         JB721TiersHook.initialize(
             projectId,
             name,

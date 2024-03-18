@@ -44,15 +44,6 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     error TIER_TRANSFERS_PAUSED();
 
     //*********************************************************************//
-    // --------------- public immutable stored properties ---------------- //
-    //*********************************************************************//
-
-    /// @notice The address of the original `JB721TiersHook`.
-    /// @dev Used in `initialize(...)` to check if this is the original `JB721TiersHook`, and to revert initialization
-    /// if it is.
-    address public immutable override CODE_ORIGIN;
-
-    //*********************************************************************//
     // --------------------- internal stored properties ------------------ //
     //*********************************************************************//
 
@@ -211,7 +202,6 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         JB721Hook(directory)
         ERC2771Context(trustedForwarder)
     {
-        CODE_ORIGIN = address(this);
     }
 
     /// @notice Initializes a cloned copy of the original `JB721Hook` contract.
