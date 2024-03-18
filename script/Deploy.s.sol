@@ -44,15 +44,111 @@ contract DeployScript is Script, Sphinx {
         deploy();
     }
 
+    /// @notice each contract here will be deployed it if needs to be (re)deployed. 
+    /// It will deploy if the contracts bytecode changes or if any constructor arguments change. 
+    /// Since all the contract dependencies are passed in using the constructor args, 
+    // this makes it so that if any dependency contract (address) changes the contract will be redeployed.
     function deploy() public sphinx {
         // TODO: For now we also deploy the `JBAddressRegistry` here, we probably want to move this to its repository.
-        JBAddressRegistry _registry = new JBAddressRegistry{salt: ADDRESS_REGISTRY_SALT}();
-        JB721TiersHook hook = new JB721TiersHook{salt: HOOK_SALT}(core.directory, core.permissions);
-        JB721TiersHookDeployer hookDeployer = new JB721TiersHookDeployer{salt: HOOK_DEPLOYER_SALT}(
-            hook,
-            new JB721TiersHookStore{salt: HOOK_STORE_SALT}(),
-            _registry
-        );
-        new JB721TiersHookProjectDeployer{salt: PROJECT_DEPLOYER_SALT}(core.directory, core.permissions, hookDeployer);
+        JBAddressRegistry registry;
+        {
+            // Perform the check for the registry.
+            (address _registry, bool _registryIsDeployed) = _isDeployed(
+                ADDRESS_REGISTRY_SALT,
+                type(JBAddressRegistry).creationCode,
+                ""
+            );
+
+            // Deploy it if it has not been deployed yet.
+            registry = !_registryIsDeployed ?
+            new JBAddressRegistry{salt: ADDRESS_REGISTRY_SALT}() :
+            JBAddressRegistry(_registry);
+        }
+                
+        JB721TiersHook hook;
+        {
+            // Perform the check for the registry.
+            (address _hook, bool _hookIsDeployed) = _isDeployed(
+                HOOK_SALT,
+                type(JB721TiersHook).creationCode,
+                abi.encode(core.directory, core.permissions)
+            );
+
+            // Deploy it if it has not been deployed yet.
+            hook = !_hookIsDeployed ?
+            new JB721TiersHook{salt: HOOK_SALT}(core.directory, core.permissions) :
+            JB721TiersHook(_hook);
+        }
+        
+        JB721TiersHookStore store;
+        {
+            // Perform the check for the store.
+            (address _store, bool _storeIsDeployed) = _isDeployed(
+                HOOK_STORE_SALT,
+                type(JB721TiersHookStore).creationCode,
+                ""
+            );
+
+            // Deploy it if it has not been deployed yet.
+            store = !_storeIsDeployed ?
+            new JB721TiersHookStore{salt: HOOK_STORE_SALT}():
+            JB721TiersHookStore(_store);
+        }
+        
+        JB721TiersHookDeployer hookDeployer;
+        {
+            // Perform the check for the registry.
+            (address _hookDeployer, bool _hookDeployerIsDeployed) = _isDeployed(
+                HOOK_DEPLOYER_SALT,
+                type(JB721TiersHookDeployer).creationCode,
+                abi.encode(
+                    hook,
+                    store,
+                    registry
+                )
+            );
+
+            hookDeployer = !_hookDeployerIsDeployed ?
+            new JB721TiersHookDeployer{salt: HOOK_DEPLOYER_SALT}(hook, store, registry):
+            JB721TiersHookDeployer(_hookDeployer);
+        }
+        
+        JB721TiersHookProjectDeployer projectDeployer;
+        {
+            // Perform the check for the registry.
+            (address _projectDeployer, bool _projectDeployerIsdeployed) = _isDeployed(
+                PROJECT_DEPLOYER_SALT,
+                type(JB721TiersHookProjectDeployer).creationCode,
+                abi.encode(
+                    core.directory,
+                    core.permissions,
+                    hookDeployer
+                )
+            );
+
+            projectDeployer = !_projectDeployerIsdeployed ? 
+             new JB721TiersHookProjectDeployer{salt: PROJECT_DEPLOYER_SALT}(core.directory, core.permissions, hookDeployer) :
+             JB721TiersHookProjectDeployer(_projectDeployer);
+        }
+    }
+
+    function _isDeployed(
+        bytes32 salt,
+        bytes memory creationCode,
+        bytes memory arguments
+    )
+        internal
+        view
+        returns (address, bool)
+    {
+        address _deployedTo = vm.computeCreate2Address({
+            salt: salt,
+            initCodeHash: keccak256(abi.encodePacked(creationCode, arguments)),
+            // Arachnid/deterministic-deployment-proxy address.
+            deployer: address(0x4e59b44847b379578588920cA78FbF26c0B4956C)
+        });
+
+        // Return if code is already present at this address.
+        return (_deployedTo, address(_deployedTo).code.length != 0);
     }
 }
