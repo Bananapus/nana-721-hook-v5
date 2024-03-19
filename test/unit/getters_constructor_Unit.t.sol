@@ -28,7 +28,6 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
             contractUri,
             JB721InitTiersConfig({tiers: tiers, currency: currency, decimals: decimals, prices: IJBPrices(prices)}),
             address(0),
-            new JB721TiersHookStore(),
             JB721TiersHookFlags({
                 preventOverspending: false,
                 noNewTiersWithReserves: true,

@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import {IJBRulesets} from "@bananapus/core/src/interfaces/IJBRulesets.sol";
 import {IJB721TokenUriResolver} from "../interfaces/IJB721TokenUriResolver.sol";
-import {IJB721TiersHookStore} from "../interfaces/IJB721TiersHookStore.sol";
 import {JB721InitTiersConfig} from "./JB721InitTiersConfig.sol";
 import {JB721TiersHookFlags} from "./JB721TiersHookFlags.sol";
 
@@ -26,6 +25,5 @@ struct JBDeploy721TiersHookConfig {
     string contractUri;
     JB721InitTiersConfig tiersConfig;
     address reserveBeneficiary;
-    IJB721TiersHookStore store;
     JB721TiersHookFlags flags;
 }

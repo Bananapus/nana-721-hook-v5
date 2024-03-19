@@ -1,6 +1,6 @@
 {
   "name": "@bananapus/721-hook",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -9,17 +9,17 @@
   "scripts": {
     "test": "forge test",
     "coverage:integration": "forge coverage --match-path \"./src/*.sol\" --report lcov --report summary",
-    "deploy:ethereum-mainnet": "source .env && forge script Deploy --chain-id 1 --rpc-url $RPC_ETHEREUM_MAINNET --broadcast --verify --etherscan-api-key $ETHERSCAN_API_KEY --interactives 1 --sender $SENDER_ETHEREUM_MAINNET -vvv",
-    "deploy:ethereum-sepolia": "source .env && forge script Deploy --chain-id 11155111 --rpc-url $RPC_ETHEREUM_SEPOLIA --broadcast --verify --etherscan-api-key $ETHERSCAN_API_KEY --interactives 1 --sender $SENDER_ETHEREUM_SEPOLIA -vvv",
-    "deploy:optimism-mainnet": "source .env && forge script Deploy --chain-id 420 --rpc-url $RPC_OPTIMISM_MAINNET --broadcast --verify --etherscan-api-key $OPTIMISTIC_ETHERSCAN_API_KEY --interactives 1 --sender $SENDER_OPTIMISM_MAINNET -vvv",
-    "deploy:optimism-sepolia": "source .env && forge script Deploy --chain-id 11155420 --rpc-url $RPC_OPTIMISM_SEPOLIA --broadcast --verify --etherscan-api-key $OPTIMISTIC_ETHERSCAN_API_KEY --interactives 1 --sender $SENDER_OPTIMISM_SEPOLIA -vvv"
+    "deploy:mainnets": "source ./.env && npx sphinx propose ./script/Deploy.s.sol --networks mainnets",
+    "deploy:testnets": "source ./.env && npx sphinx propose ./script/Deploy.s.sol --networks testnets",
+    "artifacts":  "source ./.env && npx sphinx artifacts --org-id 'cltepuu9u0003j58rjtbd0hvu' --project-name 'nana-721-hook'"
   },
   "dependencies": {
     "@bananapus/address-registry": "^0.0.3",
-    "@bananapus/core": "^0.0.6",
+    "@bananapus/core": "^0.0.7",
     "@bananapus/ownable": "^0.0.4",
     "@bananapus/permission-ids": "^0.0.2",
     "@openzeppelin/contracts": "^5.0.1",
-    "@prb/math": "^4.0.2"
+    "@prb/math": "^4.0.2",
+    "@sphinx-labs/plugins": "^0.30.4"
   }
 }
