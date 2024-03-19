@@ -212,7 +212,6 @@ contract UnitTestSetup is Test {
         addressRegistry = new JBAddressRegistry();
         store = new JB721TiersHookStore();
         jbHookDeployer = new JB721TiersHookDeployer(hookOrigin, store, addressRegistry, trustedForwarder);
-        jbHookDeployer = new JB721TiersHookDeployer(hookOrigin, store, addressRegistry);
         JBDeploy721TiersHookConfig memory hookConfig = JBDeploy721TiersHookConfig(
             name,
             symbol,

@@ -16,6 +16,9 @@ contract DeployScript is Script, Sphinx {
     /// @notice tracks the deployment of the core contracts for the chain we are deploying to.
     CoreDeployment core;
 
+    /// @notice The address that is allowed to forward calls to the terminal and controller on a users behalf.
+    address private constant TRUSTED_FORWARDER = 0xB2b5841DBeF766d4b521221732F9B618fCf34A87;
+
     /// @notice the salts that are used to deploy the contracts.
     bytes32 ADDRESS_REGISTRY_SALT = "JBAddressRegistry";
     bytes32 HOOK_SALT = "JB721TiersHook";
@@ -70,12 +73,12 @@ contract DeployScript is Script, Sphinx {
             (address _hook, bool _hookIsDeployed) = _isDeployed(
                 HOOK_SALT,
                 type(JB721TiersHook).creationCode,
-                abi.encode(core.directory, core.permissions)
+                abi.encode(core.directory, core.permissions, TRUSTED_FORWARDER)
             );
 
             // Deploy it if it has not been deployed yet.
             hook = !_hookIsDeployed ?
-            new JB721TiersHook{salt: HOOK_SALT}(core.directory, core.permissions) :
+            new JB721TiersHook{salt: HOOK_SALT}(core.directory, core.permissions, TRUSTED_FORWARDER) :
             JB721TiersHook(_hook);
         }
         
@@ -103,12 +106,13 @@ contract DeployScript is Script, Sphinx {
                 abi.encode(
                     hook,
                     store,
-                    registry
+                    registry,
+                    TRUSTED_FORWARDER
                 )
             );
 
             hookDeployer = !_hookDeployerIsDeployed ?
-            new JB721TiersHookDeployer{salt: HOOK_DEPLOYER_SALT}(hook, store, registry):
+            new JB721TiersHookDeployer{salt: HOOK_DEPLOYER_SALT}(hook, store, registry, TRUSTED_FORWARDER):
             JB721TiersHookDeployer(_hookDeployer);
         }
         
