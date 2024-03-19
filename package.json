@@ -16,7 +16,7 @@
   "dependencies": {
     "@bananapus/address-registry": "^0.0.3",
     "@bananapus/core": "github:Bananapus/nana-core#feat/sphinx",
-    "@bananapus/ownable": "^0.0.3",
+    "@bananapus/ownable": "^0.0.4",
     "@bananapus/permission-ids": "^0.0.2",
     "@openzeppelin/contracts": "^5.0.1",
     "@prb/math": "^4.0.2",

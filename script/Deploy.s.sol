@@ -58,7 +58,6 @@ contract DeployScript is Script, Sphinx {
                 type(JBAddressRegistry).creationCode,
                 ""
             );
-
             // Deploy it if it has not been deployed yet.
             registry = !_registryIsDeployed ?
             new JBAddressRegistry{salt: ADDRESS_REGISTRY_SALT}() :
