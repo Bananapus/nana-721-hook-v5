@@ -27,7 +27,7 @@ import "@bananapus/core/src/structs/JBBeforePayRecordedContext.sol";
 import "@bananapus/core/src/structs/JBBeforeRedeemRecordedContext.sol";
 import "@bananapus/core/src/structs/JBSplit.sol";
 
-import "@bananapus/core/src/interfaces/terminal/IJBTerminal.sol";
+import "@bananapus/core/src/interfaces/IJBTerminal.sol";
 import "@bananapus/core/src/interfaces/IJBToken.sol";
 
 import "@bananapus/permission-ids/src/JBPermissionIds.sol";
@@ -80,7 +80,7 @@ contract TestBaseWorkflow is Test {
         jbPermissions = new JBPermissions();
         vm.label(address(jbPermissions), "JBPermissions");
 
-        jbProjects = new JBProjects(projectOwner);
+        jbProjects = new JBProjects(projectOwner, address(0));
         vm.label(address(jbProjects), "JBProjects");
 
         jbPrices = new JBPrices(jbPermissions, jbProjects, projectOwner);
@@ -98,7 +98,7 @@ contract TestBaseWorkflow is Test {
         jbFeelessAddresses = new JBFeelessAddresses(address(69));
         vm.label(address(jbFeelessAddresses), "JBFeelessAddresses");
 
-        jbTokens = new JBTokens(jbDirectory);
+        jbTokens = new JBTokens(jbDirectory, new JBERC20());
         vm.label(address(jbTokens), "JBTokens");
 
         jbSplits = new JBSplits(jbDirectory);

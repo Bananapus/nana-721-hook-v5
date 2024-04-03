@@ -16,7 +16,7 @@ import "@bananapus/core/src/structs/JBAfterPayRecordedContext.sol";
 import "@bananapus/core/src/structs/JBAfterRedeemRecordedContext.sol";
 import "@bananapus/core/src/structs/JBRedeemHookSpecification.sol";
 import "@bananapus/core/src/structs/JBFundAccessLimitGroup.sol";
-import "@bananapus/core/src/interfaces/terminal/IJBTerminal.sol";
+import "@bananapus/core/src/interfaces/IJBTerminal.sol";
 import "@bananapus/core/src/interfaces/IJBRulesetApprovalHook.sol";
 
 import "../../src/structs/JBLaunchProjectConfig.sol";
