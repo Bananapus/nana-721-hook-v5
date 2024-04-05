@@ -485,8 +485,7 @@ contract JB721TiersHook is JB721Hook, JBOwnable, ERC2771Context, IJB721TiersHook
 
     /// @notice Process a payment, minting NFTs and updating credits as necessary.
     /// @param context Payment context provided by the terminal after it has recorded the payment in the terminal store.
-    /// @return metadata Metadata to forward down the hook chain.
-    function _processPayment(JBAfterPayRecordedContext calldata context) internal virtual override returns (bytes memory) {
+    function _processPayment(JBAfterPayRecordedContext calldata context) internal virtual override {
         // Normalize the payment value based on the pricing context.
         uint256 value;
 
@@ -513,7 +512,7 @@ contract JB721TiersHook is JB721Hook, JBOwnable, ERC2771Context, IJB721TiersHook
                         })
                     );
                 } else {
-                    return context.payerMetadata;
+                    return;
                 }
             }
         }
@@ -559,8 +558,6 @@ contract JB721TiersHook is JB721Hook, JBOwnable, ERC2771Context, IJB721TiersHook
                 uint256[] memory tokenIds;
                 (tokenIds, leftoverAmount) =
                     _mintAll({amount: leftoverAmount, mintTierIds: tierIdsToMint, beneficiary: context.beneficiary});
-                // Shift metadataId one bit to store result to a new ID.
-               context.payerMetadata = JBMetadataResolver.addToMetadata(context.payerMetadata, METADATA_OUTPUT_ID, abi.encodePacked(tokenIds)); 
             }
         } else if (!STORE.flagsOf(address(this)).preventOverspending) {
             allowOverspending = true;
@@ -595,7 +592,7 @@ contract JB721TiersHook is JB721Hook, JBOwnable, ERC2771Context, IJB721TiersHook
             payCreditsOf[context.beneficiary] = unusedPayCredits;
         }
 
-        return context.payerMetadata;
+        return;
     }
 
     /// @notice A function which gets called after NFTs have been redeemed and recorded by the terminal.
