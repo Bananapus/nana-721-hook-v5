@@ -70,7 +70,7 @@ contract DeployScript is Script, Sphinx {
             (address _hook, bool _hookIsDeployed) = _isDeployed(
                 HOOK_SALT,
                 type(JB721TiersHook).creationCode,
-                abi.encode(core.directory, core.permissions, TRUSTED_FORWARDER)
+                abi.encode(core.directory, core.permissions, TRUSTED_FORWARDER) // TODO get the address of the hookDeployer that is deployed later in this script.
             );
 
             // Deploy it if it has not been deployed yet.
