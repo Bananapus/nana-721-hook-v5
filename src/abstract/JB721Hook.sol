@@ -208,7 +208,8 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     /// `IJBPayHook`.
     /// @dev Reverts if the calling contract is not one of the project's terminals.
     /// @param context The payment context passed in by the terminal.
-    function afterPayRecordedWith(JBAfterPayRecordedContext calldata context) external payable virtual override {
+    /// @return metadata Metadata to forward down the hook chain.
+    function afterPayRecordedWith(JBAfterPayRecordedContext calldata context) external payable virtual override returns (bytes memory) {
         uint256 _projectId = projectId;
 
         // Make sure the caller is a terminal of the project, and that the call is being made on behalf of an
@@ -219,7 +220,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         ) revert INVALID_PAY();
 
         // Process the payment.
-        _processPayment(context);
+        return _processPayment(context);
     }
 
     /// @notice Burns the specified NFTs upon token holder redemption, reclaiming funds from the project's balance for

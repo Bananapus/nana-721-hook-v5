@@ -485,7 +485,8 @@ contract JB721TiersHook is JB721Hook, JBOwnable, ERC2771Context, IJB721TiersHook
 
     /// @notice Process a payment, minting NFTs and updating credits as necessary.
     /// @param context Payment context provided by the terminal after it has recorded the payment in the terminal store.
-    function _processPayment(JBAfterPayRecordedContext calldata context) internal virtual override {
+    /// @return metadata Metadata to forward down the hook chain.
+    function _processPayment(JBAfterPayRecordedContext calldata context) internal virtual override returns (bytes memory) {
         // Normalize the payment value based on the pricing context.
         uint256 value;
 
@@ -512,7 +513,7 @@ contract JB721TiersHook is JB721Hook, JBOwnable, ERC2771Context, IJB721TiersHook
                         })
                     );
                 } else {
-                    return;
+                    return context.payerMetadata;
                 }
             }
         }
@@ -559,7 +560,7 @@ contract JB721TiersHook is JB721Hook, JBOwnable, ERC2771Context, IJB721TiersHook
                 (tokenIds, leftoverAmount) =
                     _mintAll({amount: leftoverAmount, mintTierIds: tierIdsToMint, beneficiary: context.beneficiary});
                 // Shift metadataId one bit to store result to a new ID.
-               metadataBeingReturned = JBMetadataResolver.addToMetadata(metadata, METADATA_OUTPUT_ID, abi.encodePacked(tokenIds)); 
+               context.payerMetadata = JBMetadataResolver.addToMetadata(context.payerMetadata, METADATA_OUTPUT_ID, abi.encodePacked(tokenIds)); 
             }
         } else if (!STORE.flagsOf(address(this)).preventOverspending) {
             allowOverspending = true;
@@ -593,6 +594,8 @@ contract JB721TiersHook is JB721Hook, JBOwnable, ERC2771Context, IJB721TiersHook
             // Store the new NFT credits.
             payCreditsOf[context.beneficiary] = unusedPayCredits;
         }
+
+        return context.payerMetadata;
     }
 
     /// @notice A function which gets called after NFTs have been redeemed and recorded by the terminal.
