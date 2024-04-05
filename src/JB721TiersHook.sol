@@ -34,7 +34,7 @@ import {JB721TiersMintReservesConfig} from "./structs/JB721TiersMintReservesConf
 /// the project is paid, the hook may mint NFTs to the payer, depending on the hook's setup, the amount paid, and
 /// information specified by the payer. The project's owner can enable NFT redemptions through this hook, allowing
 /// holders to burn their NFTs to reclaim funds from the project (in proportion to the NFT's price).
-contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook {
+contract JB721TiersHook is JB721Hook, JBOwnable, ERC2771Context, IJB721TiersHook {
     //*********************************************************************//
     // --------------------------- custom errors ------------------------- //
     //*********************************************************************//
@@ -538,11 +538,8 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         // allowed. Defaults to false.
         bool allowOverspending;
 
-        // The metadata ID is the first 4 bytes of this contract's address.
-        bytes4 metadataId = bytes4(bytes20(address(this)));
-
         // Resolve the metadata.
-        (bool found, bytes memory metadata) = JBMetadataResolver.getDataFor(metadataId, context.payerMetadata);
+        (bool found, bytes memory metadata) = JBMetadataResolver.getDataFor(METADATA_INPUT_ID, context.payerMetadata);
 
         if (found) {
             // Keep a reference to the IDs of the tier be to minted.
@@ -558,8 +555,11 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
 
             // Mint NFTs from the tiers as specified.
             if (tierIdsToMint.length != 0) {
-                leftoverAmount =
+                uint256[] memory tokenIds;
+                (tokenIds, leftoverAmount) =
                     _mintAll({amount: leftoverAmount, mintTierIds: tierIdsToMint, beneficiary: context.beneficiary});
+                // Shift metadataId one bit to store result to a new ID.
+               metadataBeingReturned = JBMetadataResolver.addToMetadata(metadata, METADATA_OUTPUT_ID, abi.encodePacked(tokenIds)); 
             }
         } else if (!STORE.flagsOf(address(this)).preventOverspending) {
             allowOverspending = true;
@@ -608,6 +608,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     /// this amount.
     /// @param mintTierIds An array of NFT tier IDs to be minted.
     /// @param beneficiary The address receiving the newly minted NFTs.
+    /// @return tokenIds The IDs of the tokens minted.
     /// @return leftoverAmount The `amount` leftover after minting.
     function _mintAll(
         uint256 amount,
@@ -615,7 +616,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         address beneficiary
     )
         internal
-        returns (uint256 leftoverAmount)
+        returns (uint256[] memory tokenIds, uint256 leftoverAmount)
     {
         // Keep a reference to the NFT token IDs.
         uint256[] memory tokenIds;
@@ -633,6 +634,9 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         // Keep a reference to the token ID being iterated on.
         uint256 tokenId;
 
+        // Initialize the array of returned mint IDs.
+        tokenIds = new uint256[](mintsLength);
+
         // Loop through each token ID and mint the corresponding NFT.
         for (uint256 i; i < mintsLength; i++) {
             // Get a reference to the token ID being iterated on.
@@ -640,6 +644,9 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
 
             // Mint the NFT.
             _mint(beneficiary, tokenId);
+
+            // Return the token ID.
+            tokenIds[i] = tokenId;
 
             emit Mint(tokenId, mintTierIds[i], beneficiary, amount, _msgSender());
         }
