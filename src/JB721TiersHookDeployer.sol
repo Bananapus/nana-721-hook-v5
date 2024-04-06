@@ -8,6 +8,7 @@ import {JBOwnable} from "@bananapus/ownable/src/JBOwnable.sol";
 import {IJB721TiersHookDeployer} from "./interfaces/IJB721TiersHookDeployer.sol";
 import {IJB721TiersHook} from "./interfaces/IJB721TiersHook.sol";
 import {JBDeploy721TiersHookConfig} from "./structs/JBDeploy721TiersHookConfig.sol";
+import {IJB721TiersHookStore} from "./interfaces/IJB721TiersHookStore.sol";
 import {ERC2771Context} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import {JB721TiersHook} from "./JB721TiersHook.sol";
 
@@ -28,6 +29,9 @@ contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
     /// @notice A 721 tiers hook.
     JB721TiersHook public immutable HOOK;
 
+    /// @notice The contract that stores and manages data for this contract's NFTs.
+    IJB721TiersHookStore public immutable STORE;
+
     /// @notice A registry which stores references to contracts and their deployers.
     IJBAddressRegistry public immutable ADDRESS_REGISTRY;
 
@@ -39,12 +43,14 @@ contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
     /// @param addressRegistry A registry which stores references to contracts and their deployers.
     constructor(
         JB721TiersHook hook,
+        IJB721TiersHookStore store,
         IJBAddressRegistry addressRegistry,
         address trustedForwarder
     )
         ERC2771Context(trustedForwarder)
     {
         HOOK = hook;
+        STORE = store;
         ADDRESS_REGISTRY = addressRegistry;
     }
 
@@ -76,7 +82,7 @@ contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
             tokenUriResolver: deployTiersHookConfig.tokenUriResolver,
             contractUri: deployTiersHookConfig.contractUri,
             tiersConfig: deployTiersHookConfig.tiersConfig,
-            store: deployTiersHookConfig.store,
+            store: STORE,
             flags: deployTiersHookConfig.flags
         });
 
