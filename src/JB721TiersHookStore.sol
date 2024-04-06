@@ -585,7 +585,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
                     tierToAdd.transfersPausable,
                     tierToAdd.useVotingUnits,
                     tierToAdd.cannotBeRemoved
-                    )
+                )
             });
 
             // If this is the first tier in a new category, store it as the first tier in that category.

@@ -201,8 +201,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         JBOwnable(directory.PROJECTS(), permissions, msg.sender, uint88(0))
         JB721Hook(directory)
         ERC2771Context(trustedForwarder)
-    {
-    }
+    {}
 
     /// @notice Initializes a cloned copy of the original `JB721Hook` contract.
     /// @param projectId The ID of the project this this hook is associated with.
@@ -394,11 +393,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         override
     {
         // Enforce permissions.
-        _requirePermissionFrom({
-            account: owner(),
-            projectId: projectId,
-            permissionId: JBPermissionIds.SET_721_METADATA
-        });
+        _requirePermissionFrom({account: owner(), projectId: projectId, permissionId: JBPermissionIds.SET_721_METADATA});
 
         if (bytes(baseUri).length != 0) {
             // Store the new base URI.
