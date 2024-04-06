@@ -197,7 +197,7 @@ contract UnitTestSetup is Test {
                             dataHook: address(0),
                             metadata: 0x00
                         })
-                        )
+                    )
                 })
             )
         );

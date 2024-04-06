@@ -43,8 +43,6 @@ interface IJB721TiersHook is IJB721Hook {
         uint256 indexed amount, uint256 indexed newTotalCredits, address indexed account, address caller
     );
 
-    function CODE_ORIGIN() external view returns (address);
-
     function STORE() external view returns (IJB721TiersHookStore);
 
     function RULESETS() external view returns (IJBRulesets);
