@@ -404,11 +404,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         override
     {
         // Enforce permissions.
-        _requirePermissionFrom({
-            account: owner(),
-            projectId: projectId,
-            permissionId: JBPermissionIds.SET_721_METADATA
-        });
+        _requirePermissionFrom({account: owner(), projectId: projectId, permissionId: JBPermissionIds.SET_721_METADATA});
 
         if (bytes(baseUri).length != 0) {
             // Store the new base URI.
