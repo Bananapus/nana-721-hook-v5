@@ -55,7 +55,7 @@ contract ForTest_JB721TiersHook is JB721TiersHook {
         JB721TiersHookFlags memory flags
     )
         // The directory is also `IJBPermissioned`.
-        JB721TiersHook(directory, IJBPermissioned(address(directory)).PERMISSIONS(), _trustedForwarder)
+        JB721TiersHook(directory, bytes4(0x123456), IJBPermissioned(address(directory)).PERMISSIONS(), _trustedForwarder) // TODO change to deployer address.
     {
         // Disable the safety check to not allow initializing the original contract
         JB721TiersHook.initialize(

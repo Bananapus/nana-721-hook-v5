@@ -75,7 +75,7 @@ contract DeployScript is Script, Sphinx {
 
             // Deploy it if it has not been deployed yet.
             hook = !_hookIsDeployed
-                ? new JB721TiersHook{salt: HOOK_SALT}(core.directory, core.permissions, TRUSTED_FORWARDER)
+                ? new JB721TiersHook{salt: HOOK_SALT}(core.directory, bytes4(0x123456), core.permissions, TRUSTED_FORWARDER) // TODO change to deployer address metadataid.
                 : JB721TiersHook(_hook);
         }
 

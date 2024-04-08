@@ -191,15 +191,17 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     //*********************************************************************//
 
     /// @param directory A directory of terminals and controllers for projects.
+    /// @param metadataId The ID used when parsing metadata.
     /// @param permissions A contract storing permissions.
     /// @param trustedForwarder The trusted forwarder for the ERC2771Context.
     constructor(
         IJBDirectory directory,
+        bytes4 metadataId,
         IJBPermissions permissions,
         address trustedForwarder
     )
         JBOwnable(directory.PROJECTS(), permissions, msg.sender, uint88(0))
-        JB721Hook(directory)
+        JB721Hook(directory, metadataId)
         ERC2771Context(trustedForwarder)
     {}
 
@@ -523,11 +525,8 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         // allowed. Defaults to false.
         bool allowOverspending;
 
-        // The metadata ID is the first 4 bytes of this contract's address.
-        bytes4 metadataId = bytes4(bytes20(address(this)));
-
         // Resolve the metadata.
-        (bool found, bytes memory metadata) = JBMetadataResolver.getDataFor(metadataId, context.payerMetadata);
+        (bool found, bytes memory metadata) = JBMetadataResolver.getDataFor(METADATA_ID, context.payerMetadata);
 
         if (found) {
             // Keep a reference to the IDs of the tier be to minted.
