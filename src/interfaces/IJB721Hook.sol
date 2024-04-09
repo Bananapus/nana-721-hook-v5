@@ -8,5 +8,5 @@ interface IJB721Hook {
 
     function DIRECTORY() external view returns (IJBDirectory);
 
-    function METADATA_ID_TARGET() external view returns (bytes4);
+    function METADATA_ID_TARGET() external view returns (address);
 }

@@ -44,7 +44,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     IJBDirectory public immutable override DIRECTORY;
 
     /// @notice The ID used when parsing metadata.
-    bytes4 public immutable override METADATA_ID_TARGET;
+    address public immutable override METADATA_ID_TARGET;
 
     //*********************************************************************//
     // -------------------- public stored properties --------------------- //

@@ -97,7 +97,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = JBMetadataResolver.getId("pay", hook);
+        ids[0] = JBMetadataResolver.getId("pay", address(hook));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -179,7 +179,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = JBMetadataResolver.getId("pay", hook);
+        ids[0] = JBMetadataResolver.getId("pay", address(hook));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -298,7 +298,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = JBMetadataResolver.getId("pay", hook);
+        ids[0] = JBMetadataResolver.getId("pay", address(hook));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -380,7 +380,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
             // Pass the hook ID.
             ids = new bytes4[](1);
-            ids[0] = metadataHelper.getId("pay", hook);
+            ids[0] = metadataHelper.getId("pay", address(hook));
 
             // Generate the metadata.
             hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -410,7 +410,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
             data[0] = abi.encode(redemptionId);
 
             // Pass the hook ID.
-            ids[0] = metadataHelper.getId("redeem", hook);
+            ids[0] = metadataHelper.getId("redeem", address(hook));
 
             // Generate the metadata.
             hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -477,7 +477,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = metadataHelper.getId("pay", hook);
+        ids[0] = metadataHelper.getId("pay", address(hook));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -513,7 +513,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         data[0] = abi.encode(redemptionId);
 
         // Pass the hook ID.
-        ids[0] = metadataHelper.getId("redeem", hook);
+        ids[0] = metadataHelper.getId("redeem", address(hook));
 
         // Generate the metadata.
         hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -541,7 +541,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         data[0] = abi.encode(true, rawMetadata);
 
         // Pass the hook ID.
-        ids[0] = metadataHelper.getId("pay", hook);
+        ids[0] = metadataHelper.getId("pay", address(hook));
 
         // Generate the metadata.
         hookMetadata = metadataHelper.createMetadata(ids, data);
