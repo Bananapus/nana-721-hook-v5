@@ -56,7 +56,8 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
     function setUp() public override {
         super.setUp();
-        hook = new JB721TiersHook(jbDirectory, bytes4(0x123456), jbPermissions, trustedForwarder); // TODO change to deployer address.
+        hook = new JB721TiersHook(jbDirectory, bytes4(0x123456), jbPermissions, trustedForwarder); // TODO change to
+            // deployer address.
         addressRegistry = new JBAddressRegistry();
         store = new JB721TiersHookStore();
         JB721TiersHookDeployer hookDeployer = new JB721TiersHookDeployer(hook, store, addressRegistry, trustedForwarder);

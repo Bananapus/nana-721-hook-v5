@@ -64,6 +64,16 @@ contract DeployScript is Script, Sphinx {
                 : JBAddressRegistry(_registry);
         }
 
+        JB721TiersHookStore store;
+        {
+            // Perform the check for the store.
+            (address _store, bool _storeIsDeployed) =
+                _isDeployed(HOOK_STORE_SALT, type(JB721TiersHookStore).creationCode, "");
+
+            // Deploy it if it has not been deployed yet.
+            store = !_storeIsDeployed ? new JB721TiersHookStore{salt: HOOK_STORE_SALT}() : JB721TiersHookStore(_store);
+        }
+
         JB721TiersHook hook;
         {
             // Perform the check for the registry.
@@ -75,18 +85,21 @@ contract DeployScript is Script, Sphinx {
 
             // Deploy it if it has not been deployed yet.
             hook = !_hookIsDeployed
-                ? new JB721TiersHook{salt: HOOK_SALT}(core.directory, bytes4(0x123456), core.permissions, TRUSTED_FORWARDER) // TODO change to deployer address metadataid.
+                ? new JB721TiersHook{salt: HOOK_SALT}(
+                    core.directory,
+                    vm.computeCreate2Address(
+                        HOOK_DEPLOYER_SALT,
+                        abi.encodePacked(
+                            keccak256(
+                                type(JB721TiersHookDeployer).creationCode,
+                                abi.encode(hook, store, registry, TRUSTED_FORWARDER)
+                            )
+                        ),
+                        core.permissions,
+                        TRUSTED_FORWARDER
+                    )
+                )
                 : JB721TiersHook(_hook);
-        }
-
-        JB721TiersHookStore store;
-        {
-            // Perform the check for the store.
-            (address _store, bool _storeIsDeployed) =
-                _isDeployed(HOOK_STORE_SALT, type(JB721TiersHookStore).creationCode, "");
-
-            // Deploy it if it has not been deployed yet.
-            store = !_storeIsDeployed ? new JB721TiersHookStore{salt: HOOK_STORE_SALT}() : JB721TiersHookStore(_store);
         }
 
         JB721TiersHookDeployer hookDeployer;

@@ -207,8 +207,9 @@ contract UnitTestSetup is Test {
             mockJBDirectory, abi.encodeWithSelector(IJBPermissioned.PERMISSIONS.selector), abi.encode(mockJBPermissions)
         );
 
-        hookOrigin =
-            new JB721TiersHook(IJBDirectory(mockJBDirectory), bytes4(0x123456), IJBPermissions(mockJBPermissions), trustedForwarder); // TODO change to deployer address.
+        hookOrigin = new JB721TiersHook(
+            IJBDirectory(mockJBDirectory), bytes4(0x123456), IJBPermissions(mockJBPermissions), trustedForwarder
+        ); // TODO change to deployer address.
         addressRegistry = new JBAddressRegistry();
         store = new JB721TiersHookStore();
         jbHookDeployer = new JB721TiersHookDeployer(hookOrigin, store, addressRegistry, trustedForwarder);
