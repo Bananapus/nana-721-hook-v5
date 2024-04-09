@@ -64,16 +64,6 @@ contract DeployScript is Script, Sphinx {
                 : JBAddressRegistry(_registry);
         }
 
-        JB721TiersHookStore store;
-        {
-            // Perform the check for the store.
-            (address _store, bool _storeIsDeployed) =
-                _isDeployed(HOOK_STORE_SALT, type(JB721TiersHookStore).creationCode, "");
-
-            // Deploy it if it has not been deployed yet.
-            store = !_storeIsDeployed ? new JB721TiersHookStore{salt: HOOK_STORE_SALT}() : JB721TiersHookStore(_store);
-        }
-
         JB721TiersHook hook;
         {
             // Perform the check for the registry.
@@ -88,6 +78,17 @@ contract DeployScript is Script, Sphinx {
                 ? new JB721TiersHook{salt: HOOK_SALT}(core.directory, core.permissions, TRUSTED_FORWARDER)
                 : JB721TiersHook(_hook);
         }
+
+        JB721TiersHookStore store;
+        {
+            // Perform the check for the store.
+            (address _store, bool _storeIsDeployed) =
+                _isDeployed(HOOK_STORE_SALT, type(JB721TiersHookStore).creationCode, "");
+
+            // Deploy it if it has not been deployed yet.
+            store = !_storeIsDeployed ? new JB721TiersHookStore{salt: HOOK_STORE_SALT}() : JB721TiersHookStore(_store);
+        }
+
 
         JB721TiersHookDeployer hookDeployer;
         {
