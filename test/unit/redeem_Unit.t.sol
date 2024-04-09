@@ -44,7 +44,7 @@ contract Test_redeem_Unit is UnitTestSetup {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = bytes4(bytes20(address(hook)));
+        ids[0] = metadataHelper.getId("redeem", address(hookOrigin));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -173,7 +173,7 @@ contract Test_redeem_Unit is UnitTestSetup {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = bytes4(bytes20(address(hook)));
+        ids[0] = metadataHelper.getId("redeem", address(hookOrigin));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -261,7 +261,7 @@ contract Test_redeem_Unit is UnitTestSetup {
 
             // Pass the hook ID.
             ids = new bytes4[](1);
-            ids[0] = bytes4(bytes20(address(hook)));
+            ids[0] = metadataHelper.getId("pay", address(hook));
 
             // Generate the metadata.
             hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -297,7 +297,7 @@ contract Test_redeem_Unit is UnitTestSetup {
 
         // Pass the hook ID.
         ids = new bytes4[](1);
-        ids[0] = bytes4(bytes20(address(hook)));
+        ids[0] = metadataHelper.getId("redeem", address(hook));
 
         // Generate the metadata.
         hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -436,7 +436,7 @@ contract Test_redeem_Unit is UnitTestSetup {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = bytes4(bytes20(address(hook)));
+        ids[0] = metadataHelper.getId("redeem", address(hook));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);

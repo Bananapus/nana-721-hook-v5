@@ -523,11 +523,9 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         // allowed. Defaults to false.
         bool allowOverspending;
 
-        // The metadata ID is the first 4 bytes of this contract's address.
-        bytes4 metadataId = bytes4(bytes20(address(this)));
-
         // Resolve the metadata.
-        (bool found, bytes memory metadata) = JBMetadataResolver.getDataFor(metadataId, context.payerMetadata);
+        (bool found, bytes memory metadata) =
+            JBMetadataResolver.getDataFor(JBMetadataResolver.getId("pay", METADATA_ID_TARGET), context.payerMetadata);
 
         if (found) {
             // Keep a reference to the IDs of the tier be to minted.

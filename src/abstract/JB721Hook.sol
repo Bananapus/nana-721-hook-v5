@@ -43,6 +43,9 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     /// @notice The directory of terminals and controllers for projects.
     IJBDirectory public immutable override DIRECTORY;
 
+    /// @notice The ID used when parsing metadata.
+    address public immutable override METADATA_ID_TARGET;
+
     //*********************************************************************//
     // -------------------- public stored properties --------------------- //
     //*********************************************************************//
@@ -105,11 +108,9 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         // Make sure (fungible) project tokens aren't also being redeemed.
         if (context.redeemCount > 0) revert UNEXPECTED_TOKEN_REDEEMED();
 
-        // The metadata ID is the first 4 bytes of this contract's address.
-        bytes4 metadataId = bytes4(bytes20(address(this)));
-
         // Fetch the redeem hook metadata using the corresponding metadata ID.
-        (bool metadataExists, bytes memory metadata) = JBMetadataResolver.getDataFor(metadataId, context.metadata);
+        (bool metadataExists, bytes memory metadata) =
+            JBMetadataResolver.getDataFor(JBMetadataResolver.getId("redeem", METADATA_ID_TARGET), context.metadata);
 
         // Use this contract as the only redeem hook.
         hookSpecifications = new JBRedeemHookSpecification[](1);
@@ -182,6 +183,9 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     /// @param directory A directory of terminals and controllers for projects.
     constructor(IJBDirectory directory) {
         DIRECTORY = directory;
+        // Store the address of the original hook deploy. Clones will each use the address of the instance they're based
+        // on.
+        METADATA_ID_TARGET = address(this);
     }
 
     /// @notice Initializes the contract by associating it with a project and adding ERC721 details.
@@ -227,12 +231,10 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
                 || context.projectId != projectId
         ) revert INVALID_REDEEM();
 
-        // The metadata ID is the first 4 bytes of this contract's address.
-        bytes4 metadataId = bytes4(bytes20(address(this)));
-
         // Fetch the redeem hook metadata using the corresponding metadata ID.
-        (bool metadataExists, bytes memory metadata) =
-            JBMetadataResolver.getDataFor(metadataId, context.redeemerMetadata);
+        (bool metadataExists, bytes memory metadata) = JBMetadataResolver.getDataFor(
+            JBMetadataResolver.getId("redeem", METADATA_ID_TARGET), context.redeemerMetadata
+        );
 
         uint256[] memory decodedTokenIds;
 

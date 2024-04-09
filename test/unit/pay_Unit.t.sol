@@ -40,7 +40,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = bytes4(bytes20(address(hook)));
+        ids[0] = metadataHelper.getId("pay", address(hook));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -177,7 +177,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = bytes4(bytes20(address(hook)));
+        ids[0] = metadataHelper.getId("pay", address(hookOrigin));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -270,7 +270,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = bytes4(bytes20(address(hook)));
+        ids[0] = metadataHelper.getId("pay", address(hookOrigin));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -326,7 +326,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = bytes4(bytes20(address(hook)));
+        ids[0] = metadataHelper.getId("pay", address(hookOrigin));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -441,7 +441,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = bytes4(bytes20(address(hook)));
+        ids[0] = metadataHelper.getId("pay", address(hookOrigin));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -541,7 +541,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = bytes4(bytes20(address(hook)));
+        ids[0] = metadataHelper.getId("pay", address(hookOrigin));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -595,7 +595,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = bytes4(bytes20(address(hook)));
+        ids[0] = metadataHelper.getId("pay", address(hookOrigin));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -656,7 +656,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = bytes4(bytes20(address(hook)));
+        ids[0] = metadataHelper.getId("pay", address(hookOrigin));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -718,7 +718,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = bytes4(bytes20(address(hook)));
+        ids[0] = metadataHelper.getId("pay", address(hookOrigin));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -776,7 +776,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
 
             // Pass the hook ID.
             bytes4[] memory ids = new bytes4[](1);
-            ids[0] = bytes4(bytes20(address(hook)));
+            ids[0] = metadataHelper.getId("pay", address(hookOrigin));
 
             // Generate the metadata.
             bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -907,7 +907,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = bytes4(bytes20(address(hook)));
+        ids[0] = metadataHelper.getId("pay", address(hookOrigin));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -1000,7 +1000,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = bytes4(bytes20(address(hook)));
+        ids[0] = metadataHelper.getId("pay", address(hookOrigin));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -1145,7 +1145,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = bytes4(bytes20(address(hook)));
+        ids[0] = metadataHelper.getId("pay", address(hookOrigin));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -1206,7 +1206,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = bytes4(bytes20(address(hook)));
+        ids[0] = metadataHelper.getId("pay", address(hookOrigin));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -1267,7 +1267,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
             data[0] = abi.encode(true, rawMetadata);
 
             // Pass the hook ID.
-            ids[0] = bytes4(bytes20(address(hook)));
+            ids[0] = metadataHelper.getId("pay", address(hook));
 
             // Generate the metadata.
             hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -1300,7 +1300,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
         data[0] = abi.encode(tokenToRedeem);
 
         // Pass the hook ID.
-        ids[0] = bytes4(bytes20(address(hook)));
+        ids[0] = metadataHelper.getId("pay", address(hookOrigin));
 
         // Generate the metadata.
         hookMetadata = metadataHelper.createMetadata(ids, data);
