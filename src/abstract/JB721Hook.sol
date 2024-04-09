@@ -183,6 +183,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     /// @param directory A directory of terminals and controllers for projects.
     constructor(IJBDirectory directory) {
         DIRECTORY = directory;
+        // Store the address of the original hook deploy. Clones will each use the address of the instance they're based on.
         METADATA_ID_TARGET = address(this);
     }
 
