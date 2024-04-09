@@ -89,7 +89,6 @@ contract DeployScript is Script, Sphinx {
             store = !_storeIsDeployed ? new JB721TiersHookStore{salt: HOOK_STORE_SALT}() : JB721TiersHookStore(_store);
         }
 
-
         JB721TiersHookDeployer hookDeployer;
         {
             // Perform the check for the registry.
