@@ -56,10 +56,9 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
     function setUp() public override {
         super.setUp();
-        hook = new JB721TiersHook(jbDirectory, bytes4(0x123456), jbPermissions, trustedForwarder); // TODO change to
-            // deployer address.
         addressRegistry = new JBAddressRegistry();
         store = new JB721TiersHookStore();
+        hook = new JB721TiersHook(jbDirectory, jbPermissions, trustedForwarder);
         JB721TiersHookDeployer hookDeployer = new JB721TiersHookDeployer(hook, store, addressRegistry, trustedForwarder);
         deployer =
             new JB721TiersHookProjectDeployer(IJBDirectory(jbDirectory), IJBPermissions(jbPermissions), hookDeployer);
@@ -98,7 +97,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = bytes4(bytes20(address(deployer)));
+        ids[0] = JBMetadataResolver.getId("pay", hook);
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -180,7 +179,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = bytes4(bytes20(address(deployer)));
+        ids[0] = JBMetadataResolver.getId("pay", hook);
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -299,7 +298,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = bytes4(bytes20(address(deployer)));
+        ids[0] = JBMetadataResolver.getId("pay", hook);
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -381,7 +380,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
             // Pass the hook ID.
             ids = new bytes4[](1);
-            ids[0] = bytes4(bytes20(address(deployer)));
+            ids[0] = metadataHelper.getId("pay", hook);
 
             // Generate the metadata.
             hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -411,7 +410,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
             data[0] = abi.encode(redemptionId);
 
             // Pass the hook ID.
-            ids[0] = bytes4(bytes20(address(deployer)));
+            ids[0] = metadataHelper.getId("redeem", hook);
 
             // Generate the metadata.
             hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -478,7 +477,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = bytes4(bytes20(address(deployer)));
+        ids[0] = metadataHelper.getId("pay", hook);
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -514,7 +513,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         data[0] = abi.encode(redemptionId);
 
         // Pass the hook ID.
-        ids[0] = bytes4(bytes20(address(deployer)));
+        ids[0] = metadataHelper.getId("redeem", hook);
 
         // Generate the metadata.
         hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -542,7 +541,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         data[0] = abi.encode(true, rawMetadata);
 
         // Pass the hook ID.
-        ids[0] = bytes4(bytes20(address(deployer)));
+        ids[0] = metadataHelper.getId("pay", hook);
 
         // Generate the metadata.
         hookMetadata = metadataHelper.createMetadata(ids, data);

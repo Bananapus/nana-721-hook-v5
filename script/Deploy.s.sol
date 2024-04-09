@@ -85,20 +85,7 @@ contract DeployScript is Script, Sphinx {
 
             // Deploy it if it has not been deployed yet.
             hook = !_hookIsDeployed
-                ? new JB721TiersHook{salt: HOOK_SALT}(
-                    core.directory,
-                    vm.computeCreate2Address(
-                        HOOK_DEPLOYER_SALT,
-                        abi.encodePacked(
-                            keccak256(
-                                type(JB721TiersHookDeployer).creationCode,
-                                abi.encode(hook, store, registry, TRUSTED_FORWARDER)
-                            )
-                        ),
-                        core.permissions,
-                        TRUSTED_FORWARDER
-                    )
-                )
+                ? new JB721TiersHook{salt: HOOK_SALT}(core.directory, core.permissions, TRUSTED_FORWARDER)
                 : JB721TiersHook(_hook);
         }
 

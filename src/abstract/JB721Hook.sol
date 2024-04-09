@@ -44,7 +44,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     IJBDirectory public immutable override DIRECTORY;
 
     /// @notice The ID used when parsing metadata.
-    bytes4 public immutable override METADATA_ID;
+    bytes4 public immutable override METADATA_ID_TARGET;
 
     //*********************************************************************//
     // -------------------- public stored properties --------------------- //
@@ -109,7 +109,8 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         if (context.redeemCount > 0) revert UNEXPECTED_TOKEN_REDEEMED();
 
         // Fetch the redeem hook metadata using the corresponding metadata ID.
-        (bool metadataExists, bytes memory metadata) = JBMetadataResolver.getDataFor(METADATA_ID, context.metadata);
+        (bool metadataExists, bytes memory metadata) =
+            JBMetadataResolver.getDataFor(JBMetadataResolver.getId("redeem", METADATA_ID_TARGET), context.metadata);
 
         // Use this contract as the only redeem hook.
         hookSpecifications = new JBRedeemHookSpecification[](1);
@@ -180,10 +181,9 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     //*********************************************************************//
 
     /// @param directory A directory of terminals and controllers for projects.
-    /// @param metadataId The ID used when parsing metadata.
-    constructor(IJBDirectory directory, bytes4 metadataId) {
+    constructor(IJBDirectory directory) {
         DIRECTORY = directory;
-        METADATA_ID = metadataId;
+        METADATA_ID_TARGET = address(this);
     }
 
     /// @notice Initializes the contract by associating it with a project and adding ERC721 details.
@@ -230,8 +230,9 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         ) revert INVALID_REDEEM();
 
         // Fetch the redeem hook metadata using the corresponding metadata ID.
-        (bool metadataExists, bytes memory metadata) =
-            JBMetadataResolver.getDataFor(METADATA_ID, context.redeemerMetadata);
+        (bool metadataExists, bytes memory metadata) = JBMetadataResolver.getDataFor(
+            JBMetadataResolver.getId("redeem", METADATA_ID_TARGET), context.redeemerMetadata
+        );
 
         uint256[] memory decodedTokenIds;
 
