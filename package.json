@@ -1,6 +1,6 @@
 {
   "name": "@bananapus/721-hook",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -23,6 +23,6 @@
     "@bananapus/permission-ids": "^0.0.5",
     "@openzeppelin/contracts": "^5.0.2",
     "@prb/math": "^4.0.2",
-    "@sphinx-labs/plugins": "^0.31.6"
+    "@sphinx-labs/plugins": "^0.31.7"
   }
 }
