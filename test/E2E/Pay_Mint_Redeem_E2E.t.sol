@@ -573,6 +573,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
     // Creates a `launchProjectFor(...)` payload.
     function createData()
         internal
+        view
         returns (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig)
     {
         JB721TierConfig[] memory tierConfigs = new JB721TierConfig[](10);

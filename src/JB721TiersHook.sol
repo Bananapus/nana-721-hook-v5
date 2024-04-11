@@ -291,7 +291,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         returns (uint256[] memory tokenIds)
     {
         // Enforce permissions.
-        _requirePermissionFrom({account: owner(), projectId: projectId, permissionId: JBPermissionIds.MINT_721});
+        _requirePermissionFrom({account: owner(), projectId: PROJECT_ID, permissionId: JBPermissionIds.MINT_721});
 
         // Record the mint. The token IDs returned correspond to the tiers passed in.
         (tokenIds,) = STORE.recordMint({
@@ -341,7 +341,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     /// @param tierIdsToRemove The tiers to remove, as an array of tier IDs.
     function adjustTiers(JB721TierConfig[] calldata tiersToAdd, uint256[] calldata tierIdsToRemove) external override {
         // Enforce permissions.
-        _requirePermissionFrom({account: owner(), projectId: projectId, permissionId: JBPermissionIds.ADJUST_721_TIERS});
+        _requirePermissionFrom({account: owner(), projectId: PROJECT_ID, permissionId: JBPermissionIds.ADJUST_721_TIERS});
 
         // Get a reference to the number of tiers being added.
         uint256 numberOfTiersToAdd = tiersToAdd.length;
@@ -393,7 +393,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         override
     {
         // Enforce permissions.
-        _requirePermissionFrom({account: owner(), projectId: projectId, permissionId: JBPermissionIds.SET_721_METADATA});
+        _requirePermissionFrom({account: owner(), projectId: PROJECT_ID, permissionId: JBPermissionIds.SET_721_METADATA});
 
         if (bytes(baseUri).length != 0) {
             // Store the new base URI.
@@ -433,7 +433,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     /// @param count The number of reserved NFTs to mint.
     function mintPendingReservesFor(uint256 tierId, uint256 count) public override {
         // Get a reference to the project's current ruleset.
-        JBRuleset memory ruleset = RULESETS.currentOf(projectId);
+        JBRuleset memory ruleset = RULESETS.currentOf(PROJECT_ID);
 
         // Pending reserve mints must not be paused.
         if (JB721TiersRulesetMetadataResolver.mintPendingReservesPaused((JBRulesetMetadataResolver.metadata(ruleset))))
@@ -490,7 +490,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
                         context.amount.value,
                         10 ** pricingDecimals,
                         prices.pricePerUnitOf({
-                            projectId: projectId,
+                            projectId: PROJECT_ID,
                             pricingCurrency: context.amount.currency,
                             unitCurrency: pricingCurrency,
                             decimals: context.amount.decimals
@@ -646,7 +646,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             // If transfers are pausable, check if they're paused.
             if (tier.transfersPausable) {
                 // Get a reference to the project's current ruleset.
-                JBRuleset memory ruleset = RULESETS.currentOf(projectId);
+                JBRuleset memory ruleset = RULESETS.currentOf(PROJECT_ID);
 
                 // If transfers are paused and the NFT isn't being transferred to the zero address, revert.
                 if (

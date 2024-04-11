@@ -51,7 +51,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     //*********************************************************************//
 
     /// @notice The ID of the project that this contract is associated with.
-    uint256 public override projectId;
+    uint256 public override PROJECT_ID;
 
     //*********************************************************************//
     // ------------------------- external views -------------------------- //
@@ -189,12 +189,12 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     }
 
     /// @notice Initializes the contract by associating it with a project and adding ERC721 details.
-    /// @param _projectId The ID of the project that this contract is associated with.
+    /// @param projectId The ID of the project that this contract is associated with.
     /// @param name The name of the NFT collection.
     /// @param symbol The symbol representing the NFT collection.
-    function _initialize(uint256 _projectId, string memory name, string memory symbol) internal {
+    function _initialize(uint256 projectId, string memory name, string memory symbol) internal {
         ERC721._initialize(name, symbol);
-        projectId = _projectId;
+        PROJECT_ID = projectId;
     }
 
     //*********************************************************************//
@@ -206,13 +206,13 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     /// @dev Reverts if the calling contract is not one of the project's terminals.
     /// @param context The payment context passed in by the terminal.
     function afterPayRecordedWith(JBAfterPayRecordedContext calldata context) external payable virtual override {
-        uint256 _projectId = projectId;
+        uint256 projectId = PROJECT_ID;
 
         // Make sure the caller is a terminal of the project, and that the call is being made on behalf of an
         // interaction with the correct project.
         if (
-            msg.value != 0 || !DIRECTORY.isTerminalOf(_projectId, IJBTerminal(msg.sender))
-                || context.projectId != _projectId
+            msg.value != 0 || !DIRECTORY.isTerminalOf(projectId, IJBTerminal(msg.sender))
+                || context.projectId != projectId
         ) revert INVALID_PAY();
 
         // Process the payment.
@@ -224,6 +224,9 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     /// @dev Reverts if the calling contract is not one of the project's terminals.
     /// @param context The redemption context passed in by the terminal.
     function afterRedeemRecordedWith(JBAfterRedeemRecordedContext calldata context) external payable virtual override {
+        // Keep a reference to the project ID.
+        uint256 projectId = PROJECT_ID;
+
         // Make sure the caller is a terminal of the project, and that the call is being made on behalf of an
         // interaction with the correct project.
         if (
