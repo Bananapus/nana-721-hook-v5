@@ -447,7 +447,7 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
         (, JB721Tier[] memory tiers) = _createTiers(defaultTierConfig, numberOfTiers);
 
         // Check: do the hook's parameters match the expected values?
-        assertEq(hook.projectId(), projectId);
+        assertEq(hook.PROJECT_ID(), projectId);
         assertEq(address(hook.DIRECTORY()), mockJBDirectory);
         assertEq(hook.name(), name);
         assertEq(hook.symbol(), symbol);
