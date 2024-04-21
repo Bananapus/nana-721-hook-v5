@@ -1,0 +1,196 @@
+{
+	"_format": "sphinx-sol-ct-artifact-1",
+	"merkleRoot": "0x4e729de0820df73ab4e21fd6be94272162dd7081f65565002decdd5bdf706b8e",
+	"contractName": "JBAddressRegistry",
+	"address": "0x989566Bf9fF4CffA55a98ADa7dc3E58b2a0a19c6",
+	"abi": [
+		{
+			"type": "constructor",
+			"inputs": [],
+			"stateMutability": "nonpayable"
+		},
+		{
+			"type": "function",
+			"name": "deployerOf",
+			"inputs": [
+				{
+					"name": "addr",
+					"type": "address",
+					"internalType": "address"
+				}
+			],
+			"outputs": [
+				{
+					"name": "deployer",
+					"type": "address",
+					"internalType": "address"
+				}
+			],
+			"stateMutability": "view"
+		},
+		{
+			"type": "function",
+			"name": "registerAddress",
+			"inputs": [
+				{
+					"name": "deployer",
+					"type": "address",
+					"internalType": "address"
+				},
+				{
+					"name": "nonce",
+					"type": "uint256",
+					"internalType": "uint256"
+				}
+			],
+			"outputs": [],
+			"stateMutability": "nonpayable"
+		},
+		{
+			"type": "function",
+			"name": "registerAddress",
+			"inputs": [
+				{
+					"name": "deployer",
+					"type": "address",
+					"internalType": "address"
+				},
+				{
+					"name": "salt",
+					"type": "bytes32",
+					"internalType": "bytes32"
+				},
+				{
+					"name": "bytecode",
+					"type": "bytes",
+					"internalType": "bytes"
+				}
+			],
+			"outputs": [],
+			"stateMutability": "nonpayable"
+		},
+		{
+			"type": "event",
+			"name": "AddressRegistered",
+			"inputs": [
+				{
+					"name": "addr",
+					"type": "address",
+					"indexed": true,
+					"internalType": "address"
+				},
+				{
+					"name": "deployer",
+					"type": "address",
+					"indexed": true,
+					"internalType": "address"
+				}
+			],
+			"anonymous": false
+		}
+	],
+	"solcInputHash": "3b832b35596f091503c2f3699465baed",
+	"receipt": {
+		"blockHash": "0xda2384d6d24b4a1f68ac8ef570621c14636504ff5b2dc5efc5741ea0cb538068",
+		"blockNumber": 36135256,
+		"contractAddress": null,
+		"cumulativeGasUsed": "791111",
+		"from": "0xC034550B542b83BA1De312b21d1C94a9a52B1595",
+		"gasPrice": "720630000",
+		"gasUsed": "522209",
+		"hash": "0x95903bad80ddc8f0a9ac6cdabc9cc123c14d7929d9ff0683b3a68d6439718c90",
+		"index": 2,
+		"logs": [
+			{
+				"address": "0xB5E96127D417b1B3ef8438496a38A143167209c7",
+				"blockHash": "0xda2384d6d24b4a1f68ac8ef570621c14636504ff5b2dc5efc5741ea0cb538068",
+				"blockNumber": 36135256,
+				"data": "0x0000000000000000000000000000000000000000000000000000000000000000",
+				"index": 10,
+				"topics": [
+					"0x572f161235911da04685a68c06adf558fc7e4a36909dca394650e0adc19cc93d",
+					"0x000000000000000000000000c034550b542b83ba1de312b21d1c94a9a52b1595",
+					"0x000000000000000000000000582b73e9f9ec9fa3ff32b83cfd7e2810a63bbcdb",
+					"0xd10e45e891b44cb79db07a55d9458efdf1e0abc2c0970fde36d93a5a77d6cdd9"
+				],
+				"transactionHash": "0x95903bad80ddc8f0a9ac6cdabc9cc123c14d7929d9ff0683b3a68d6439718c90",
+				"transactionIndex": 2
+			},
+			{
+				"address": "0x89BeB14760384C532b587eE00bB42EE307f17e47",
+				"blockHash": "0xda2384d6d24b4a1f68ac8ef570621c14636504ff5b2dc5efc5741ea0cb538068",
+				"blockNumber": 36135256,
+				"data": "0x",
+				"index": 11,
+				"topics": [
+					"0x6895c13664aa4f67288b25d7a21d7aaa34916e355fb9b6fae0a139a9085becb8",
+					"0x000000000000000000000000582b73e9f9ec9fa3ff32b83cfd7e2810a63bbcdb"
+				],
+				"transactionHash": "0x95903bad80ddc8f0a9ac6cdabc9cc123c14d7929d9ff0683b3a68d6439718c90",
+				"transactionIndex": 2
+			},
+			{
+				"address": "0x582b73e9F9EC9fa3fF32b83CFD7E2810a63BBCdB",
+				"blockHash": "0xda2384d6d24b4a1f68ac8ef570621c14636504ff5b2dc5efc5741ea0cb538068",
+				"blockNumber": 36135256,
+				"data": "0x0000000000000000000000000000000000000000000000000000000000000001",
+				"index": 12,
+				"topics": [
+					"0xa65fb05c5808f5f389d72edeaf719ce38f4cc55c1f69ca3cbfb31c21501caa07",
+					"0x4e729de0820df73ab4e21fd6be94272162dd7081f65565002decdd5bdf706b8e"
+				],
+				"transactionHash": "0x95903bad80ddc8f0a9ac6cdabc9cc123c14d7929d9ff0683b3a68d6439718c90",
+				"transactionIndex": 2
+			}
+		],
+		"logsBloom": "0x000000000800100000400000000a0000000000000008000000000000004000000000000000000000000000000040000100000000000000000000001000000000000000000000200000000000000000000104000000000000000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000100000000000000000000000400400000000000000000004000000018000000000000000000020200000008020000000000000004000000000000000000000000800008000000000004000000000000000000000000000000000000000000000000008000000200000000000000000000000000000000",
+		"status": 1,
+		"to": "0xB5E96127D417b1B3ef8438496a38A143167209c7"
+	},
+	"metadata": "{\"compiler\":{\"version\":\"0.8.23+commit.f704f362\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\",\"indexed\":true},{\"internalType\":\"address\",\"name\":\"deployer\",\"type\":\"address\",\"indexed\":true}],\"type\":\"event\",\"name\":\"AddressRegistered\",\"anonymous\":false},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"name\":\"deployerOf\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"deployer\",\"type\":\"address\"}]},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"deployer\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"registerAddress\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"deployer\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"salt\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"bytecode\",\"type\":\"bytes\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\",\"name\":\"registerAddress\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"registerAddress(address,bytes32,bytes)\":{\"details\":\"The contract must be deployed using `create2`.The `create2` salt is determined by the deployer's logic. The deployment bytecode can be retrieved offchain (from the deployment transaction) or onchain (with `abi.encodePacked(type(deployedContract).creationCode, abi.encode(constructorArguments))`).\",\"params\":{\"bytecode\":\"The contract's deployment bytecode, including the constructor arguments.\",\"deployer\":\"The address of the contract's deployer.\",\"salt\":\"The `create2` salt used to deploy the contract.\"}},\"registerAddress(address,uint256)\":{\"details\":\"The contract must be deployed using `create`.\",\"params\":{\"deployer\":\"The address of the contract's deployer.\",\"nonce\":\"The nonce used to deploy the contract.\"}}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"deployerOf(address)\":{\"notice\":\"Returns the deployer of a given contract which has been registered.\"},\"registerAddress(address,bytes32,bytes)\":{\"notice\":\"Register a deployed contract's address.\"},\"registerAddress(address,uint256)\":{\"notice\":\"Register a deployed contract's address.\"}},\"version\":1}},\"settings\":{\"remappings\":[\"@bananapus/=node_modules/@bananapus/\",\"@chainlink/=node_modules/@chainlink/\",\"@eth-optimism/=node_modules/@eth-optimism/\",\"@openzeppelin/=node_modules/@openzeppelin/\",\"@prb/=node_modules/@prb/\",\"@scroll-tech/=node_modules/@scroll-tech/\",\"@sphinx-labs/contracts/=node_modules/@sphinx-labs/contracts/contracts/foundry/\",\"@uniswap/=node_modules/@uniswap/\",\"ds-test/=lib/forge-std/lib/ds-test/src/\",\"forge-std/=lib/forge-std/src/\",\"hardhat/=node_modules/hardhat/\",\"solmate/=node_modules/solmate/\",\"sphinx/=lib/sphinx/packages/contracts/contracts/forge-std/src/\"],\"optimizer\":{\"enabled\":true,\"runs\":1000},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"compilationTarget\":{\"node_modules/@bananapus/address-registry/src/JBAddressRegistry.sol\":\"JBAddressRegistry\"},\"evmVersion\":\"paris\",\"libraries\":{}},\"sources\":{\"node_modules/@bananapus/address-registry/src/JBAddressRegistry.sol\":{\"keccak256\":\"0x292dd2dd2620d9e47ef6b2584b9453c38d3677807e0df015ed2f8126d684c6f8\",\"urls\":[\"bzz-raw://b2f9b020e8874c89d22eb1f41f7316aad1c0af97dd2aad2281b92c8a18564964\",\"dweb:/ipfs/QmTWjT7CiKnPfGyZ3xNs3zLWLaYodT2uqPsGgAMDbMitX6\"],\"license\":\"MIT\"},\"node_modules/@bananapus/address-registry/src/interfaces/IJBAddressRegistry.sol\":{\"keccak256\":\"0x33ab082cbb870d8ff950f56db686911b39d090432bc8c09a6b3434aedcb58936\",\"urls\":[\"bzz-raw://cd98fcdc58cf9af46571656b44ff0dc5d94c9a1c6e5c8eb07b1153bfd1bc4206\",\"dweb:/ipfs/Qmcm36zeucynBTTj7q3BVLmZF9CG3X7cGKDPdo9JchVYa9\"],\"license\":\"MIT\"}},\"version\":1}",
+	"args": [],
+	"bytecode": "0x608060405234801561001057600080fd5b5061070d806100206000396000f3fe608060405234801561001057600080fd5b50600436106100415760003560e01c8063416dc73214610046578063b94417ab146100a5578063da3c8b0a146100ba575b600080fd5b61007c6100543660046105f4565b60006020819052908152604090205473ffffffffffffffffffffffffffffffffffffffff1681565b60405173ffffffffffffffffffffffffffffffffffffffff909116815260200160405180910390f35b6100b86100b3366004610616565b6100cd565b005b6100b86100c8366004610640565b6100ea565b60006100d98383610193565b90506100e5818461054f565b505050565b600060ff60f81b858585856040516101039291906106c7565b604051908190038120610167949392916020017fff0000000000000000000000000000000000000000000000000000000000000094909416845260609290921b6bffffffffffffffffffffffff191660018401526015830152603582015260550190565b6040516020818303038152906040528051906020012060001c905061018c818661054f565b5050505050565b600060608260000361020f57604051606b60f91b6020820152602560fa1b60218201526bffffffffffffffffffffffff19606086901b1660228201527f800000000000000000000000000000000000000000000000000000000000000060368201526037015b604051602081830303815290604052905061053b565b607f831161027b57604051606b60f91b6020820152602560fa1b60218201526bffffffffffffffffffffffff19606086901b16602282015260f884901b7fff000000000000000000000000000000000000000000000000000000000000001660368201526037016101f9565b60ff8311610329576040517fd7000000000000000000000000000000000000000000000000000000000000006020820152602560fa1b60218201526bffffffffffffffffffffffff19606086901b1660228201527f8100000000000000000000000000000000000000000000000000000000000000603682015260f884901b7fff000000000000000000000000000000000000000000000000000000000000001660378201526038016101f9565b61ffff83116103d8576040517fd8000000000000000000000000000000000000000000000000000000000000006020820152602560fa1b60218201526bffffffffffffffffffffffff19606086901b1660228201527f820000000000000000000000000000000000000000000000000000000000000060368201527fffff00000000000000000000000000000000000000000000000000000000000060f085901b1660378201526039016101f9565b62ffffff8311610488576040517fd9000000000000000000000000000000000000000000000000000000000000006020820152602560fa1b60218201526bffffffffffffffffffffffff19606086901b1660228201527f830000000000000000000000000000000000000000000000000000000000000060368201527fffffff000000000000000000000000000000000000000000000000000000000060e885901b166037820152603a016101f9565b6040517fda000000000000000000000000000000000000000000000000000000000000006020820152602560fa1b60218201526bffffffffffffffffffffffff19606086901b1660228201527f840000000000000000000000000000000000000000000000000000000000000060368201527fffffffff0000000000000000000000000000000000000000000000000000000060e085901b166037820152603b0160405160208183030381529060405290505b805160209091012060008190529392505050565b73ffffffffffffffffffffffffffffffffffffffff82811660008181526020819052604080822080547fffffffffffffffffffffffff0000000000000000000000000000000000000000169486169485179055517f72b627b4904fa8a0160a923aa5b142eb19f6e56dc75017884162206f8886df099190a35050565b803573ffffffffffffffffffffffffffffffffffffffff811681146105ef57600080fd5b919050565b60006020828403121561060657600080fd5b61060f826105cb565b9392505050565b6000806040838503121561062957600080fd5b610632836105cb565b946020939093013593505050565b6000806000806060858703121561065657600080fd5b61065f856105cb565b935060208501359250604085013567ffffffffffffffff8082111561068357600080fd5b818701915087601f83011261069757600080fd5b8135818111156106a657600080fd5b8860208285010111156106b857600080fd5b95989497505060200194505050565b818382376000910190815291905056fea264697066735822122023d605b9de74e023bd734a20c5dfbd57cc7527a2af97679e9653a8a49b269f5864736f6c63430008170033",
+	"deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100415760003560e01c8063416dc73214610046578063b94417ab146100a5578063da3c8b0a146100ba575b600080fd5b61007c6100543660046105f4565b60006020819052908152604090205473ffffffffffffffffffffffffffffffffffffffff1681565b60405173ffffffffffffffffffffffffffffffffffffffff909116815260200160405180910390f35b6100b86100b3366004610616565b6100cd565b005b6100b86100c8366004610640565b6100ea565b60006100d98383610193565b90506100e5818461054f565b505050565b600060ff60f81b858585856040516101039291906106c7565b604051908190038120610167949392916020017fff0000000000000000000000000000000000000000000000000000000000000094909416845260609290921b6bffffffffffffffffffffffff191660018401526015830152603582015260550190565b6040516020818303038152906040528051906020012060001c905061018c818661054f565b5050505050565b600060608260000361020f57604051606b60f91b6020820152602560fa1b60218201526bffffffffffffffffffffffff19606086901b1660228201527f800000000000000000000000000000000000000000000000000000000000000060368201526037015b604051602081830303815290604052905061053b565b607f831161027b57604051606b60f91b6020820152602560fa1b60218201526bffffffffffffffffffffffff19606086901b16602282015260f884901b7fff000000000000000000000000000000000000000000000000000000000000001660368201526037016101f9565b60ff8311610329576040517fd7000000000000000000000000000000000000000000000000000000000000006020820152602560fa1b60218201526bffffffffffffffffffffffff19606086901b1660228201527f8100000000000000000000000000000000000000000000000000000000000000603682015260f884901b7fff000000000000000000000000000000000000000000000000000000000000001660378201526038016101f9565b61ffff83116103d8576040517fd8000000000000000000000000000000000000000000000000000000000000006020820152602560fa1b60218201526bffffffffffffffffffffffff19606086901b1660228201527f820000000000000000000000000000000000000000000000000000000000000060368201527fffff00000000000000000000000000000000000000000000000000000000000060f085901b1660378201526039016101f9565b62ffffff8311610488576040517fd9000000000000000000000000000000000000000000000000000000000000006020820152602560fa1b60218201526bffffffffffffffffffffffff19606086901b1660228201527f830000000000000000000000000000000000000000000000000000000000000060368201527fffffff000000000000000000000000000000000000000000000000000000000060e885901b166037820152603a016101f9565b6040517fda000000000000000000000000000000000000000000000000000000000000006020820152602560fa1b60218201526bffffffffffffffffffffffff19606086901b1660228201527f840000000000000000000000000000000000000000000000000000000000000060368201527fffffffff0000000000000000000000000000000000000000000000000000000060e085901b166037820152603b0160405160208183030381529060405290505b805160209091012060008190529392505050565b73ffffffffffffffffffffffffffffffffffffffff82811660008181526020819052604080822080547fffffffffffffffffffffffff0000000000000000000000000000000000000000169486169485179055517f72b627b4904fa8a0160a923aa5b142eb19f6e56dc75017884162206f8886df099190a35050565b803573ffffffffffffffffffffffffffffffffffffffff811681146105ef57600080fd5b919050565b60006020828403121561060657600080fd5b61060f826105cb565b9392505050565b6000806040838503121561062957600080fd5b610632836105cb565b946020939093013593505050565b6000806000806060858703121561065657600080fd5b61065f856105cb565b935060208501359250604085013567ffffffffffffffff8082111561068357600080fd5b818701915087601f83011261069757600080fd5b8135818111156106a657600080fd5b8860208285010111156106b857600080fd5b95989497505060200194505050565b818382376000910190815291905056fea264697066735822122023d605b9de74e023bd734a20c5dfbd57cc7527a2af97679e9653a8a49b269f5864736f6c63430008170033",
+	"devdoc": {
+		"kind": "dev",
+		"methods": {
+			"registerAddress(address,bytes32,bytes)": {
+				"details": "The contract must be deployed using `create2`.The `create2` salt is determined by the deployer's logic. The deployment bytecode can be retrieved offchain (from the deployment transaction) or onchain (with `abi.encodePacked(type(deployedContract).creationCode, abi.encode(constructorArguments))`).",
+				"params": {
+					"bytecode": "The contract's deployment bytecode, including the constructor arguments.",
+					"deployer": "The address of the contract's deployer.",
+					"salt": "The `create2` salt used to deploy the contract."
+				}
+			},
+			"registerAddress(address,uint256)": {
+				"details": "The contract must be deployed using `create`.",
+				"params": {
+					"deployer": "The address of the contract's deployer.",
+					"nonce": "The nonce used to deploy the contract."
+				}
+			}
+		},
+		"version": 1
+	},
+	"userdoc": {
+		"kind": "user",
+		"methods": {
+			"deployerOf(address)": {
+				"notice": "Returns the deployer of a given contract which has been registered."
+			},
+			"registerAddress(address,bytes32,bytes)": {
+				"notice": "Register a deployed contract's address."
+			},
+			"registerAddress(address,uint256)": {
+				"notice": "Register a deployed contract's address."
+			}
+		},
+		"version": 1
+	},
+	"gitCommit": "bbe3e586edd7f6ffc20748bc04e03363a779a864",
+	"sourceName": "node_modules/@bananapus/address-registry/src/JBAddressRegistry.sol",
+	"chainId": "421614",
+	"linkReferences": {},
+	"deployedLinkReferences": {},
+	"history": []
+}
