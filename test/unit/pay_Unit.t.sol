@@ -1117,6 +1117,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                             pausePay: false,
                             pauseCreditTransfers: false,
                             allowOwnerMinting: true,
+                            allowSetCustomToken: false,
                             allowTerminalMigration: false,
                             allowSetTerminals: false,
                             allowControllerMigration: false,
