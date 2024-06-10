@@ -20,7 +20,8 @@ import {JBLaunchProjectConfig} from "./structs/JBLaunchProjectConfig.sol";
 import {JBPayDataHookRulesetConfig} from "./structs/JBPayDataHookRulesetConfig.sol";
 
 /// @title JB721TiersHookProjectDeployer
-/// @notice Deploys a project and a 721 tiers hook for it.
+/// @notice Deploys a project and a 721 tiers hook for it. Can be used to queue rulesets for the project if given
+/// `JBPermissionIds.QUEUE_RULESETS`.
 contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProjectDeployer {
     //*********************************************************************//
     // --------------- public immutable stored properties ---------------- //

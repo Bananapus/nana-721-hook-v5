@@ -13,7 +13,7 @@ import {ERC2771Context} from "@openzeppelin/contracts/metatx/ERC2771Context.sol"
 import {JB721TiersHook} from "./JB721TiersHook.sol";
 
 /// @title JB721TiersHookDeployer
-/// @notice Deploys a `JB721TiersHook`.
+/// @notice Deploys a `JB721TiersHook` for an existing project.
 contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
     //*********************************************************************//
     // ----------------------- internal properties ----------------------- //

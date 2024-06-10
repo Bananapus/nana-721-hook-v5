@@ -11,7 +11,7 @@ import {JBStored721Tier} from "./structs/JBStored721Tier.sol";
 import {JB721TiersHookFlags} from "./structs/JB721TiersHookFlags.sol";
 
 /// @title JB721TiersHookStore
-/// @notice This contract stores and manages data for an `IJB721TiersHook`'s NFTs.
+/// @notice This contract stores and manages data for many `IJB721TiersHook`s and their NFTs.
 contract JB721TiersHookStore is IJB721TiersHookStore {
     using JBBitmap for mapping(uint256 => uint256);
     using JBBitmap for JBBitmapWord;
