@@ -95,7 +95,6 @@ pragma solidity 0.8.23;
 //       pauseBurn: false,
 //       allowMinting: true,
 //       allowTerminalMigration: false,
-//       allowControllerMigration: false,
 //       holdFees: false,
 //       preferClaimedTokenOverride: false,
 //       useTotalOverflowForRedemptions: false,
