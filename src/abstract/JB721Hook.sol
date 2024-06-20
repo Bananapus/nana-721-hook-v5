@@ -89,6 +89,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     /// @dev This function is used for NFT redemptions, and will only be called if the project's ruleset has
     /// `useDataHookForRedeem` set to `true`.
     /// @param context The redemption context passed to this contract by the `redeemTokensOf(...)` function.
+    /// @return redemptionRate The redemption rate influencing the reclaim amount.
     /// @return reclaimAmount The amount of tokens that should be reclaimed.
     /// @return hookSpecifications The amount and data to send to redeem hooks (this contract) instead of returning to
     /// the beneficiary.
@@ -98,6 +99,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         virtual
         override
         returns (
+            uint256 redemptionRate,
             uint256 reclaimAmount,
             JBRedeemHookSpecification[] memory hookSpecifications
         )
@@ -118,11 +120,15 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         // Decode the metadata.
         if (metadataExists) decodedTokenIds = abi.decode(metadata, (uint256[]));
 
-        return JBRedemptionFormula.reclaimableSurplusFrom({
+        // Keep the redemption rate.
+        redemptionRate = context.redemptionRate();
+
+        // Calculate the reclaimed amount. 
+        reclaimAmount = JBRedemptionFormula.reclaimableSurplusFrom({
             surplus: context.surplus.value,
             tokenCount: redemptionWeightOf(decodedTokenIds, context),
             totalSupply: totalRedemptionWeight(context),
-            redemptionRate: context.redemptionWeight
+            redemptionRate: redemptionRate
         });
     }
 
