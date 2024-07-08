@@ -149,6 +149,8 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                             allowTerminalMigration: false,
                             allowSetTerminals: false,
                             allowSetController: false,
+                            allowAddAccountingContext: false,
+                            allowAddPriceFeed: false,
                             ownerMustSendPayouts: false,
                             holdFees: false,
                             useTotalSurplusForRedemptions: false,

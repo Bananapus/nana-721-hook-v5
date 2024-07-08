@@ -18,13 +18,13 @@
   },
   "dependencies": {
     "@bananapus/address-registry": "^0.0.4",
-    "@bananapus/core": "^0.0.18",
+    "@bananapus/core": "^0.0.20",
     "@bananapus/ownable": "^0.0.6",
-    "@bananapus/permission-ids": "^0.0.9",
+    "@bananapus/permission-ids": "^0.0.10",
     "@openzeppelin/contracts": "^5.0.2",
     "@prb/math": "^4.0.2"
   },
   "devDependencies": {
-    "@sphinx-labs/plugins": "^0.32.2"
+    "@sphinx-labs/plugins": "^0.33.0"
   }
 }

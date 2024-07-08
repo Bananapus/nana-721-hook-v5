@@ -15,6 +15,10 @@ pragma solidity ^0.8.0;
 /// ruleset.
 /// @custom:member allowSetTerminals A flag indicating if a project's terminals can be added or removed.
 /// @custom:member allowSetController A flag indicating if a project's controller can be changed.
+/// @custom:member allowAddAccountingContext A flag indicating if a project can add new accounting contexts for its
+/// terminals to use.
+/// @custom:member allowAddPriceFeed A flag indicating if a project can add new price feeds to calculate exchange rates
+/// between its tokens.
 /// @custom:member holdFees A flag indicating if fees should be held during this ruleset.
 /// @custom:member useTotalSurplusForRedemptions A flag indicating if redemptions should use the project's balance held
 /// in all terminals instead of the project's local terminal balance from which the redemption is being fulfilled.
@@ -31,6 +35,8 @@ struct JBPayDataHookRulesetMetadata {
     bool allowTerminalMigration;
     bool allowSetTerminals;
     bool allowSetController;
+    bool allowAddAccountingContext;
+    bool allowAddPriceFeed;
     bool ownerMustSendPayouts;
     bool holdFees;
     bool useTotalSurplusForRedemptions;

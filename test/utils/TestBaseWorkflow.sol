@@ -83,11 +83,11 @@ contract TestBaseWorkflow is Test {
         jbProjects = new JBProjects(projectOwner, address(0));
         vm.label(address(jbProjects), "JBProjects");
 
-        jbPrices = new JBPrices(jbPermissions, jbProjects, projectOwner);
-        vm.label(address(jbPrices), "JBPrices");
-
         jbDirectory = new JBDirectory(jbPermissions, jbProjects, projectOwner);
         vm.label(address(jbDirectory), "JBDirectory");
+
+        jbPrices = new JBPrices(jbPermissions, jbProjects, jbDirectory, projectOwner);
+        vm.label(address(jbPrices), "JBPrices");
 
         jbRulesets = new JBRulesets(jbDirectory);
         vm.label(address(jbRulesets), "JBRulesets");
@@ -105,7 +105,7 @@ contract TestBaseWorkflow is Test {
         vm.label(address(jbSplits), "JBSplits");
 
         jbController = new JBController(
-            jbPermissions, jbProjects, jbDirectory, jbRulesets, jbTokens, jbSplits, jbFundAccessLimits, address(0)
+            jbPermissions, jbProjects, jbDirectory, jbRulesets, jbTokens, jbSplits, jbFundAccessLimits, jbPrices, address(0)
         );
         vm.label(address(jbController), "JBController");
 
@@ -120,7 +120,6 @@ contract TestBaseWorkflow is Test {
         jbMultiTerminal = new JBMultiTerminal(
             jbPermissions,
             jbProjects,
-            jbDirectory,
             jbSplits,
             jbTerminalStore,
             jbFeelessAddresses,

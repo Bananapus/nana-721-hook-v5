@@ -626,6 +626,8 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
             allowSetTerminals: false,
             allowSetController: false,
             ownerMustSendPayouts: false,
+            allowAddAccountingContext: false,
+            allowAddPriceFeed: false,
             holdFees: false,
             useTotalSurplusForRedemptions: false,
             useDataHookForRedeem: true,
@@ -642,9 +644,13 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         rulesetConfigurations[0].metadata = metadata;
 
         JBTerminalConfig[] memory terminalConfigurations = new JBTerminalConfig[](1);
-        address[] memory tokensToAccept = new address[](1);
-        tokensToAccept[0] = JBConstants.NATIVE_TOKEN;
-        terminalConfigurations[0] = JBTerminalConfig({terminal: jbMultiTerminal, tokensToAccept: tokensToAccept});
+        JBAccountingContext[] memory accountingContextsToAccept = new JBAccountingContext[](1);
+        accountingContextsToAccept[0] = JBAccountingContext({
+            token: JBConstants.NATIVE_TOKEN,
+            currency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
+            decimals: 18
+        });
+        terminalConfigurations[0] = JBTerminalConfig({terminal: jbMultiTerminal, accountingContextsToAccept: accountingContextsToAccept});
 
         launchProjectConfig = JBLaunchProjectConfig({
             projectUri: projectUri,

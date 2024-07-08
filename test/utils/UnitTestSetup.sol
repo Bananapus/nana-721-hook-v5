@@ -10,6 +10,7 @@ import "../../src/JB721TiersHookStore.sol";
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@bananapus/core/src/libraries/JBRulesetMetadataResolver.sol";
+import "@bananapus/core/src/structs/JBAccountingContext.sol";
 import "@bananapus/core/src/structs/JBTokenAmount.sol";
 import "@bananapus/core/src/structs/JBAfterRedeemRecordedContext.sol";
 import "@bananapus/core/src/structs/JBAfterPayRecordedContext.sol";
@@ -190,6 +191,8 @@ contract UnitTestSetup is Test {
                             allowTerminalMigration: false,
                             allowSetTerminals: false,
                             allowSetController: false,
+                            allowAddAccountingContext: false,
+                            allowAddPriceFeed: false,
                             ownerMustSendPayouts: false,
                             holdFees: false,
                             useTotalSurplusForRedemptions: false,
@@ -713,6 +716,8 @@ contract UnitTestSetup is Test {
             allowSetTerminals: false,
             allowSetController: false,
             ownerMustSendPayouts: false,
+            allowAddAccountingContext: false,
+            allowAddPriceFeed: false,
             holdFees: false,
             useTotalSurplusForRedemptions: false,
             useDataHookForRedeem: false,
@@ -729,10 +734,16 @@ contract UnitTestSetup is Test {
         rulesetConfigurations[0].fundAccessLimitGroups = fundAccessLimitGroups;
 
         terminalConfigurations = new JBTerminalConfig[](1);
-        address[] memory tokensToAccept = new address[](1);
-        tokensToAccept[0] = JBConstants.NATIVE_TOKEN;
-        terminalConfigurations[0] =
-            JBTerminalConfig({terminal: IJBTerminal(mockTerminalAddress), tokensToAccept: tokensToAccept});
+        JBAccountingContext[] memory accountingContextsToAccept = new JBAccountingContext[](1);
+        accountingContextsToAccept[0] = JBAccountingContext({
+            currency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
+            decimals: 18,
+            token: JBConstants.NATIVE_TOKEN
+        });
+        terminalConfigurations[0] = JBTerminalConfig({
+            terminal: IJBTerminal(mockTerminalAddress),
+            accountingContextsToAccept: accountingContextsToAccept
+        });
 
         launchProjectConfig = JBLaunchProjectConfig({
             projectUri: projectUri,
