@@ -105,7 +105,15 @@ contract TestBaseWorkflow is Test {
         vm.label(address(jbSplits), "JBSplits");
 
         jbController = new JBController(
-            jbPermissions, jbProjects, jbDirectory, jbRulesets, jbTokens, jbSplits, jbFundAccessLimits, jbPrices, address(0)
+            jbPermissions,
+            jbProjects,
+            jbDirectory,
+            jbRulesets,
+            jbTokens,
+            jbSplits,
+            jbFundAccessLimits,
+            jbPrices,
+            address(0)
         );
         vm.label(address(jbController), "JBController");
 
@@ -118,13 +126,7 @@ contract TestBaseWorkflow is Test {
         accessJBLib = new AccessJBLib();
 
         jbMultiTerminal = new JBMultiTerminal(
-            jbPermissions,
-            jbProjects,
-            jbSplits,
-            jbTerminalStore,
-            jbFeelessAddresses,
-            IPermit2(address(0)),
-            address(0)
+            jbPermissions, jbProjects, jbSplits, jbTerminalStore, jbFeelessAddresses, IPermit2(address(0)), address(0)
         );
         vm.label(address(jbMultiTerminal), "JBMultiTerminal");
 
