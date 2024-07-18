@@ -596,7 +596,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             }
 
             // Set the reserve beneficiary if needed.
-            if (tierToAdd.reserveBeneficiary != address(0)) {
+            if (tierToAdd.reserveBeneficiary != address(0) && tierToAdd.reserveFrequency != 0) {
                 if (tierToAdd.useReserveBeneficiaryAsDefault) {
                     if (defaultReserveBeneficiaryOf[msg.sender] != tierToAdd.reserveBeneficiary) {
                         defaultReserveBeneficiaryOf[msg.sender] = tierToAdd.reserveBeneficiary;
