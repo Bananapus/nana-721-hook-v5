@@ -273,8 +273,18 @@ contract Test_redeem_Unit is UnitTestSetup {
                 payer: beneficiary,
                 projectId: projectId,
                 rulesetId: 0,
-                amount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 10, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))),
-                forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0
+                amount: JBTokenAmount({
+                    token: JBConstants.NATIVE_TOKEN,
+                    value: 10,
+                    decimals: 18,
+                    currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
+                }),
+                forwardedAmount: JBTokenAmount({
+                    token: JBConstants.NATIVE_TOKEN,
+                    value: 0,
+                    decimals: 18,
+                    currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
+                }), // 0
                 // Forward to the hook.
                 weight: 10 ** 18,
                 projectTokenCount: 0,

@@ -32,10 +32,10 @@ import {JBPayDataHookRulesetMetadata} from "./JBPayDataHookRulesetMetadata.sol";
 /// number of decimals as the corresponding terminal. The `payoutLimit` and `surplusAllowance` parameters must fit in
 /// a `uint232`.
 struct JBPayDataHookRulesetConfig {
-    uint256 mustStartAtOrAfter;
-    uint256 duration;
-    uint256 weight;
-    uint256 decayRate;
+    uint48 mustStartAtOrAfter;
+    uint32 duration;
+    uint112 weight;
+    uint32 decayRate;
     IJBRulesetApprovalHook approvalHook;
     JBPayDataHookRulesetMetadata metadata;
     JBSplitGroup[] splitGroups;

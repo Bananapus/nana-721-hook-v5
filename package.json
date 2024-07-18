@@ -1,6 +1,6 @@
 {
   "name": "@bananapus/721-hook",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@bananapus/address-registry": "^0.0.4",
-    "@bananapus/core": "^0.0.20",
+    "@bananapus/core": "^0.0.21",
     "@bananapus/ownable": "^0.0.6",
     "@bananapus/permission-ids": "^0.0.10",
     "@openzeppelin/contracts": "^5.0.2",

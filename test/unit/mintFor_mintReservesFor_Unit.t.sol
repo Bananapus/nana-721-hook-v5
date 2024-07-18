@@ -130,9 +130,9 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
             abi.encode(
                 JBRuleset({
                     cycleNumber: 1,
-                    id: block.timestamp,
+                    id: uint48(block.timestamp),
                     basedOnId: 0,
-                    start: block.timestamp,
+                    start: uint48(block.timestamp),
                     duration: 600,
                     weight: 10e18,
                     decayRate: 0,
@@ -157,7 +157,7 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                             useDataHookForPay: true,
                             useDataHookForRedeem: true,
                             dataHook: address(0),
-                            metadata: 2 // == 010_2
+                            metadata: 8 // the first 2 bits are discarded, so this is 010.
                         })
                     )
                 })

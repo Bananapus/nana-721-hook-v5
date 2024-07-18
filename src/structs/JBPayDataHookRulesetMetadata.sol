@@ -26,9 +26,9 @@ pragma solidity ^0.8.0;
 /// this ruleset.
 /// @custom:member metadata Metadata of the metadata, up to uint8 in size.
 struct JBPayDataHookRulesetMetadata {
-    uint256 reservedRate;
-    uint256 redemptionRate;
-    uint256 baseCurrency;
+    uint16 reservedRate;
+    uint16 redemptionRate;
+    uint32 baseCurrency;
     bool pausePay;
     bool pauseCreditTransfers;
     bool allowOwnerMinting;
@@ -41,5 +41,5 @@ struct JBPayDataHookRulesetMetadata {
     bool holdFees;
     bool useTotalSurplusForRedemptions;
     bool useDataHookForRedeem;
-    uint256 metadata;
+    uint16 metadata;
 }

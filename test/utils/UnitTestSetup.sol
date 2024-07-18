@@ -172,9 +172,9 @@ contract UnitTestSetup is Test {
             abi.encode(
                 JBRuleset({
                     cycleNumber: 1,
-                    id: block.timestamp,
+                    id: uint48(block.timestamp),
                     basedOnId: 0,
-                    start: block.timestamp,
+                    start: uint48(block.timestamp),
                     duration: 600,
                     weight: 10e18,
                     decayRate: 0,
@@ -270,10 +270,6 @@ contract UnitTestSetup is Test {
 
     function SPLITS_TOTAL_PERCENT() internal pure returns (uint256) {
         return JBConstants.SPLITS_TOTAL_PERCENT;
-    }
-
-    function MAX_FEE_DISCOUNT() internal pure returns (uint256) {
-        return JBConstants.MAX_FEE_DISCOUNT;
     }
 
     // *------------------*

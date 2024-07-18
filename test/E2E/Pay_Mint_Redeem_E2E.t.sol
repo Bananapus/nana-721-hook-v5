@@ -650,7 +650,8 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
             currency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
             decimals: 18
         });
-        terminalConfigurations[0] = JBTerminalConfig({terminal: jbMultiTerminal, accountingContextsToAccept: accountingContextsToAccept});
+        terminalConfigurations[0] =
+            JBTerminalConfig({terminal: jbMultiTerminal, accountingContextsToAccept: accountingContextsToAccept});
 
         launchProjectConfig = JBLaunchProjectConfig({
             projectUri: projectUri,
