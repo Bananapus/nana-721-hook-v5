@@ -489,7 +489,7 @@ contract UnitTestSetup is Test {
             });
 
             newTiers[i] = JB721Tier({
-                id: initialId + i + 1,
+                id: uint32(initialId + i + 1),
                 price: tierConfigs[i].price,
                 remainingSupply: tierConfigs[i].initialSupply,
                 initialSupply: tierConfigs[i].initialSupply,

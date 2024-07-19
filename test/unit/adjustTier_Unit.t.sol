@@ -549,7 +549,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 cannotBeRemoved: false
             });
             tiers[i] = JB721Tier({
-                id: i + 1,
+                id: uint32(i + 1),
                 price: tierConfigs[i].price,
                 remainingSupply: tierConfigs[i].initialSupply,
                 initialSupply: tierConfigs[i].initialSupply,
@@ -668,7 +668,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 cannotBeRemoved: false
             });
             tiers[i] = JB721Tier({
-                id: i + 1,
+                id: uint32(i + 1),
                 price: tierConfigs[i].price,
                 remainingSupply: tierConfigs[i].initialSupply,
                 initialSupply: tierConfigs[i].initialSupply,
@@ -733,7 +733,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                     cannotBeRemoved: false
                 });
                 tiersRemaining[arrayIndex] = JB721Tier({
-                    id: i + 1,
+                    id: uint32(i + 1),
                     price: tierConfigsRemaining[arrayIndex].price,
                     remainingSupply: tierConfigsRemaining[arrayIndex].initialSupply,
                     initialSupply: tierConfigsRemaining[arrayIndex].initialSupply,
@@ -775,7 +775,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 cannotBeRemoved: false
             });
             tiersAdded[i] = JB721Tier({
-                id: tiers.length + (i + 1),
+                id: uint32(tiers.length + (i + 1)),
                 price: tierConfigsToAdd[i].price,
                 remainingSupply: tierConfigsToAdd[i].initialSupply,
                 initialSupply: tierConfigsToAdd[i].initialSupply,
@@ -842,7 +842,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 cannotBeRemoved: false
             });
             tiers[i] = JB721Tier({
-                id: i + 1,
+                id: uint32(i + 1),
                 price: tierConfigs[i].price,
                 remainingSupply: tierConfigs[i].initialSupply,
                 initialSupply: tierConfigs[i].initialSupply,
@@ -895,7 +895,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 cannotBeRemoved: false
             });
             tiersAdded[i] = JB721Tier({
-                id: tiers.length + (i + 1),
+                id: uint32(tiers.length + (i + 1)),
                 price: tierConfigsToAdd[i].price,
                 remainingSupply: tierConfigsToAdd[i].initialSupply,
                 initialSupply: tierConfigsToAdd[i].initialSupply,
@@ -943,7 +943,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 cannotBeRemoved: false
             });
             tiers[i] = JB721Tier({
-                id: i + 1,
+                id: uint32(i + 1),
                 price: tierConfigs[i].price,
                 remainingSupply: tierConfigs[i].initialSupply,
                 initialSupply: tierConfigs[i].initialSupply,
@@ -996,7 +996,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 cannotBeRemoved: false
             });
             tiersAdded[i] = JB721Tier({
-                id: tiers.length + (i + 1),
+                id: uint32(tiers.length + (i + 1)),
                 price: tierConfigsToAdd[i].price,
                 remainingSupply: tierConfigsToAdd[i].initialSupply,
                 initialSupply: tierConfigsToAdd[i].initialSupply,
@@ -1110,7 +1110,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 cannotBeRemoved: false
             });
             tiers[i] = JB721Tier({
-                id: i + 1,
+                id: uint32(i + 1),
                 price: tierConfigs[i].price,
                 remainingSupply: tierConfigs[i].initialSupply,
                 initialSupply: tierConfigs[i].initialSupply,
@@ -1163,7 +1163,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 cannotBeRemoved: false
             });
             tiersAdded[i] = JB721Tier({
-                id: tiers.length + (i + 1),
+                id: uint32(tiers.length + (i + 1)),
                 price: tierConfigsToAdd[i].price,
                 remainingSupply: tierConfigsToAdd[i].initialSupply,
                 initialSupply: tierConfigsToAdd[i].initialSupply,
@@ -1426,7 +1426,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 cannotBeRemoved: false
             });
             tiers[i] = JB721Tier({
-                id: i + 1,
+                id: uint32(i + 1),
                 price: tierConfigs[i].price,
                 remainingSupply: tierConfigs[i].initialSupply,
                 initialSupply: tierConfigs[i].initialSupply,

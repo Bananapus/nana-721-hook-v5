@@ -110,7 +110,7 @@ contract ForTest_JB721TiersHookStore is JB721TiersHookStore, IJB721TiersHookStor
 
             // Add the tier to the array being returned.
             tiers[numberOfIncludedTiers++] = JB721Tier({
-                id: currentSortIndex,
+                id: uint32(currentSortIndex),
                 price: storedTier.price,
                 remainingSupply: storedTier.remainingSupply,
                 initialSupply: storedTier.initialSupply,

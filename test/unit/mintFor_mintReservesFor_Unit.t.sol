@@ -96,7 +96,7 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
         // Iterate through the tiers, calculating how many reserve NFTs should be mintable.
         for (uint256 tier = 1; tier <= numberOfTiers; tier++) {
             uint256 mintable = hook.test_store().numberOfPendingReservesFor(address(hook), tier);
-            reservesToMint[tier - 1] = JB721TiersMintReservesConfig({tierId: tier, count: mintable});
+            reservesToMint[tier - 1] = JB721TiersMintReservesConfig({tierId: uint32(tier), count: uint16(mintable)});
             totalMintable += mintable;
             for (uint256 token = 1; token <= mintable; token++) {
                 uint256 tokenNonce = totalMinted + token; // Avoid stack too deep

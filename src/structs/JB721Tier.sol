@@ -19,15 +19,15 @@ pragma solidity ^0.8.0;
 /// @custom:member resolvedUri A resolved token URI for NFTs in this tier. Only available if the NFT this tier belongs
 /// to has a resolver.
 struct JB721Tier {
-    uint256 id;
-    uint256 price;
-    uint256 remainingSupply;
-    uint256 initialSupply;
-    uint256 votingUnits;
-    uint256 reserveFrequency;
+    uint32 id;
+    uint104 price;
+    uint40 remainingSupply;
+    uint40 initialSupply;
+    uint104 votingUnits;
+    uint16 reserveFrequency;
     address reserveBeneficiary;
     bytes32 encodedIPFSUri;
-    uint256 category;
+    uint24 category;
     bool allowOwnerMint;
     bool transfersPausable;
     bool cannotBeRemoved;
