@@ -963,7 +963,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             _unpackBools(storedTier.packedBools);
 
         return JB721Tier({
-            id: tierId,
+            id: uint32(tierId),
             price: storedTier.price,
             remainingSupply: storedTier.remainingSupply,
             initialSupply: storedTier.initialSupply,

@@ -8,7 +8,7 @@ import {JBPayDataHookRulesetConfig} from "./JBPayDataHookRulesetConfig.sol";
 /// @custom:member terminalConfigurations The terminal configurations to add for the project.
 /// @custom:member memo A memo to pass along to the emitted event.
 struct JBQueueRulesetsConfig {
-    uint256 projectId;
+    uint56 projectId;
     JBPayDataHookRulesetConfig[] rulesetConfigurations;
     string memo;
 }
