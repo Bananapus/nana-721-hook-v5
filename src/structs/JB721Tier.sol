@@ -21,8 +21,8 @@ pragma solidity ^0.8.0;
 struct JB721Tier {
     uint32 id;
     uint104 price;
-    uint40 remainingSupply;
-    uint40 initialSupply;
+    uint32 remainingSupply;
+    uint32 initialSupply;
     uint104 votingUnits;
     uint16 reserveFrequency;
     address reserveBeneficiary;
