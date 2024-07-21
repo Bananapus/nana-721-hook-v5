@@ -454,7 +454,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
     }
 
     // - Mint 5 NFTs from a tier.
-    // - Check the remaining supply within that NFT's tier. (highest tier == 10, reserved rate is maximum -> 5)
+    // - Check the remaining supply within that NFT's tier. (highest tier == 10, reserved percent is maximum -> 5)
     // - Burn all of the corresponding token from that tier
     function testRedeemAll() external {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
@@ -616,7 +616,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         });
 
         JBPayDataHookRulesetMetadata memory metadata = JBPayDataHookRulesetMetadata({
-            reservedRate: 5000, //50%
+            reservedPercent: 5000, //50%
             redemptionRate: 5000, //50%
             baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
             pausePay: false,
@@ -639,7 +639,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         rulesetConfigurations[0].mustStartAtOrAfter = 0;
         rulesetConfigurations[0].duration = 14;
         rulesetConfigurations[0].weight = 1000 * 10 ** 18;
-        rulesetConfigurations[0].decayRate = 450_000_000;
+        rulesetConfigurations[0].decayPercent = 450_000_000;
         rulesetConfigurations[0].approvalHook = IJBRulesetApprovalHook(address(0));
         rulesetConfigurations[0].metadata = metadata;
 

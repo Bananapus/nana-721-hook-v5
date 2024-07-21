@@ -1277,11 +1277,11 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                     start: uint48(block.timestamp),
                     duration: 600,
                     weight: 10e18,
-                    decayRate: 0,
+                    decayPercent: 0,
                     approvalHook: IJBRulesetApprovalHook(address(0)),
                     metadata: JBRulesetMetadataResolver.packRulesetMetadata(
                         JBRulesetMetadata({
-                            reservedRate: 5000, //50%
+                            reservedPercent: 5000, //50%
                             redemptionRate: 5000, //50%
                             baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
                             pausePay: false,

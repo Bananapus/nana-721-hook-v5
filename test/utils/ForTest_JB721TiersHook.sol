@@ -38,7 +38,7 @@ contract ForTest_JB721TiersHook is JB721TiersHook {
     MetadataResolverHelper metadataHelper;
 
     uint256 constant SURPLUS = 10e18;
-    uint256 constant REDEMPTION_RATE = JBConstants.MAX_RESERVED_RATE; // 40%
+    uint256 constant REDEMPTION_RATE = JBConstants.MAX_RESERVED_PERCENT; // 40%
     address _trustedForwarder = address(123_456);
 
     constructor(

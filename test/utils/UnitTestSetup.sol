@@ -177,11 +177,11 @@ contract UnitTestSetup is Test {
                     start: uint48(block.timestamp),
                     duration: 600,
                     weight: 10e18,
-                    decayRate: 0,
+                    decayPercent: 0,
                     approvalHook: IJBRulesetApprovalHook(address(0)),
                     metadata: JBRulesetMetadataResolver.packRulesetMetadata(
                         JBRulesetMetadata({
-                            reservedRate: 5000, //50%
+                            reservedPercent: 5000, //50%
                             redemptionRate: 5000, //50%
                             baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
                             pausePay: false,
@@ -256,16 +256,16 @@ contract UnitTestSetup is Test {
         return JBConstants.MAX_FEE;
     }
 
-    function MAX_RESERVED_RATE() internal pure returns (uint256) {
-        return JBConstants.MAX_RESERVED_RATE;
+    function MAX_RESERVED_PERCENT() internal pure returns (uint256) {
+        return JBConstants.MAX_RESERVED_PERCENT;
     }
 
     function MAX_REDEMPTION_RATE() internal pure returns (uint256) {
         return JBConstants.MAX_REDEMPTION_RATE;
     }
 
-    function MAX_DECAY_RATE() internal pure returns (uint256) {
-        return JBConstants.MAX_DECAY_RATE;
+    function MAX_DECAY_PERCENT() internal pure returns (uint256) {
+        return JBConstants.MAX_DECAY_PERCENT;
     }
 
     function SPLITS_TOTAL_PERCENT() internal pure returns (uint256) {
@@ -702,7 +702,7 @@ contract UnitTestSetup is Test {
         projectUri = "myIPFSHash";
 
         metadata = JBPayDataHookRulesetMetadata({
-            reservedRate: 5000, //50%
+            reservedPercent: 5000, //50%
             redemptionRate: 5000, //50%
             baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
             pausePay: false,
@@ -724,7 +724,7 @@ contract UnitTestSetup is Test {
         rulesetConfigurations[0].mustStartAtOrAfter = 0;
         rulesetConfigurations[0].duration = 14;
         rulesetConfigurations[0].weight = 10 ** 18;
-        rulesetConfigurations[0].decayRate = 450_000_000;
+        rulesetConfigurations[0].decayPercent = 450_000_000;
         rulesetConfigurations[0].approvalHook = IJBRulesetApprovalHook(address(0));
         rulesetConfigurations[0].metadata = metadata;
         rulesetConfigurations[0].fundAccessLimitGroups = fundAccessLimitGroups;
