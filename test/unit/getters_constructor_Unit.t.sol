@@ -427,8 +427,9 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
         assertEq(hook.firstOwnerOf(tokenId), previousOwner);
 
         // Prank the previous owner and transfer the NFT to the new owner.
-        vm.prank(previousOwner);
+        vm.startPrank(previousOwner);
         IERC721(hook).transferFrom(previousOwner, newOwner, tokenId);
+        vm.stopPrank();
 
         // Check: is the first owner of the NFT still the previous owner?
         assertEq(hook.firstOwnerOf(tokenId), previousOwner);

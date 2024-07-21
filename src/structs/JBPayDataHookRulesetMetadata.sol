@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-/// @custom:member reservedRate The reserved rate of the ruleset. This number is a percentage calculated out of
-/// `JBConstants.MAX_RESERVED_RATE`.
+/// @custom:member reservedPercent The reserved percent of the ruleset. This number is a percentage calculated out of
+/// `JBConstants.MAX_RESERVED_PERCENT`.
 /// @custom:member redemptionRate The redemption rate of the ruleset. This number is a percentage calculated out of
 /// `JBConstants.MAX_REDEMPTION_RATE`.
 /// @custom:member baseCurrency The currency on which to base the ruleset's weight.
@@ -26,7 +26,7 @@ pragma solidity ^0.8.0;
 /// this ruleset.
 /// @custom:member metadata Metadata of the metadata, up to uint8 in size.
 struct JBPayDataHookRulesetMetadata {
-    uint16 reservedRate;
+    uint16 reservedPercent;
     uint16 redemptionRate;
     uint32 baseCurrency;
     bool pausePay;
