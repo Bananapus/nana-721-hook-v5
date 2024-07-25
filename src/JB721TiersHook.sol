@@ -296,7 +296,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         _requirePermissionFrom({account: owner(), projectId: PROJECT_ID, permissionId: JBPermissionIds.MINT_721});
 
         // Record the mint. The token IDs returned correspond to the tiers passed in.
-        // slither-disable-next-line reentrency-events,unused-return
+        // slither-disable-next-line reentrancy-events,unused-return
         (tokenIds,) = STORE.recordMint({
             amount: type(uint256).max, // force the mint.
             tierIds: tierIds,
@@ -313,10 +313,11 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             // Set the token ID.
             tokenId = tokenIds[i];
 
-            // Mint the NFT.
-            _mint(beneficiary, tokenId);
-
             emit Mint(tokenId, tierIds[i], beneficiary, 0, _msgSender());
+
+            // Mint the NFT.
+            // slither-disable-next-line reentrancy-events
+            _mint(beneficiary, tokenId);
         }
     }
 
@@ -363,14 +364,14 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             }
 
             // Record the removed tiers.
-            // slither-disable-next-line reentrency-events
+            // slither-disable-next-line reentrancy-events
             store.recordRemoveTierIds(tierIdsToRemove);
         }
 
         // Add the tiers.
         if (numberOfTiersToAdd != 0) {
             // Record the added tiers in the store.
-            // slither-disable-next-line reentrency-events
+            // slither-disable-next-line reentrancy-events
             uint256[] memory tierIdsAdded = store.recordAddTiers(tiersToAdd);
 
             // Emit events for each added tier.
@@ -452,11 +453,11 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         IJB721TiersHookStore store = STORE;
 
         // Record the reserved mint for the tier.
-        // slither-disable-next-line reentrency-events,calls-loop
+        // slither-disable-next-line reentrancy-events,calls-loop
         uint256[] memory tokenIds = store.recordMintReservesFor(tierId, count);
 
         // Keep a reference to the beneficiary.
-        // slither-disable-next-line reentrency-events,calls-loop
+        // slither-disable-next-line reentrancy-events,calls-loop
         address reserveBeneficiary = store.reserveBeneficiaryOf(address(this), tierId);
 
         // Keep a reference to the token ID being iterated upon.
