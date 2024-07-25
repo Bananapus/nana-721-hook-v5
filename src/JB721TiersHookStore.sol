@@ -247,7 +247,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @param tokenId The token ID of the 721 to get the tier of.
     /// @param includeResolvedUri If set to `true`, if the contract has a token URI resolver, its content will be
     /// resolved and included.
-    /// @return The tier.
+    /// @return tier The tier.
     function tierOfTokenId(
         address hook,
         uint256 tokenId,
@@ -962,6 +962,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         (bool allowOwnerMint, bool transfersPausable, bool useVotingUnits, bool cannotBeRemoved) =
             _unpackBools(storedTier.packedBools);
 
+        // slither-disable-next-line calls-loop
         return JB721Tier({
             id: uint32(tierId),
             price: storedTier.price,
