@@ -839,8 +839,11 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             // Make sure the provided tier exists (tiers cannot have a supply of 0).
             if (storedTier.initialSupply == 0) revert INVALID_TIER();
 
-            // Get a reference to the price, applying a discount if needed.
-            uint256 price = storedTier.discountPercent == 0 ? storedTier.price : mulDiv(storedTier.price, storedTier.discountPercent, JB721Constants.MAX_DISCOUNT_PERCENT);
+            // Get a reference to the price.
+            uint256 price = storedTier.discountPercent;
+            
+            // Apply a discount if needed.
+            if (storedTier.discountPercent > 0) price -= mulDiv(price, storedTier.discountPercent, JB721Constants.MAX_DISCOUNT_PERCENT);
 
             // Make sure the `amount` is greater than or equal to the tier's price.
             if (price > leftoverAmount) revert PRICE_EXCEEDS_AMOUNT();
