@@ -12,9 +12,11 @@ pragma solidity ^0.8.0;
 /// @custom:member reserveBeneficiary The address which receives any reserve NFTs from this tier.
 /// @custom:member encodedIPFSUri The IPFS URI to use for each NFT in this tier.
 /// @custom:member category The category that NFTs in this tier belongs to. Used to group NFT tiers.
+/// @custom:member discountPercent The discount that should be applied to the tier.
 /// @custom:member allowOwnerMint A boolean indicating whether the contract's owner can mint NFTs from this tier
 /// on-demand.
 /// @custom:member cannotBeRemoved A boolean indicating whether attempts to remove this tier will revert.
+/// @custom:member cannotIncreaseDiscountPercent If the tier cannot have its discount increased.
 /// @custom:member transfersPausable A boolean indicating whether transfers for NFTs in tier can be paused.
 /// @custom:member resolvedUri A resolved token URI for NFTs in this tier. Only available if the NFT this tier belongs
 /// to has a resolver.
@@ -28,8 +30,10 @@ struct JB721Tier {
     address reserveBeneficiary;
     bytes32 encodedIPFSUri;
     uint24 category;
+    uint8 discountPercent;
     bool allowOwnerMint;
     bool transfersPausable;
     bool cannotBeRemoved;
+    bool cannotIncreaseDiscountPercent;
     string resolvedUri;
 }

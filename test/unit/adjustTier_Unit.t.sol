@@ -542,11 +542,13 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
+                discountPercent: uint8(0),
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: true,
-                cannotBeRemoved: false
+                cannotBeRemoved: false,
+                cannotIncreaseDiscountPercent: false
             });
             tiers[i] = JB721Tier({
                 id: uint32(i + 1),
@@ -558,9 +560,11 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: i == 0 ? address(0) : tierConfigs[i].reserveBeneficiary,
                 encodedIPFSUri: tierConfigs[i].encodedIPFSUri,
                 category: tierConfigs[i].category,
+                discountPercent: tierConfigs[i].discountPercent,
                 allowOwnerMint: tierConfigs[i].allowOwnerMint,
                 transfersPausable: tierConfigs[i].transfersPausable,
                 cannotBeRemoved: tierConfigs[i].cannotBeRemoved,
+                cannotIncreaseDiscountPercent: tierConfigs[i].cannotIncreaseDiscountPercent,
                 resolvedUri: ""
             });
         }
@@ -661,11 +665,13 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
+                discountPercent: uint8(0),
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: true,
-                cannotBeRemoved: false
+                cannotBeRemoved: false,
+                cannotIncreaseDiscountPercent: false
             });
             tiers[i] = JB721Tier({
                 id: uint32(i + 1),
@@ -677,9 +683,11 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: i == 0 ? address(0) : tierConfigs[i].reserveBeneficiary,
                 encodedIPFSUri: tierConfigs[i].encodedIPFSUri,
                 category: tierConfigs[i].category,
+                discountPercent: tierConfigs[i].discountPercent,
                 allowOwnerMint: tierConfigs[i].allowOwnerMint,
                 transfersPausable: tierConfigs[i].transfersPausable,
                 cannotBeRemoved: tierConfigs[i].cannotBeRemoved,
+                cannotIncreaseDiscountPercent: tierConfigs[i].cannotIncreaseDiscountPercent,
                 resolvedUri: ""
             });
         }
@@ -726,11 +734,13 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                     reserveBeneficiary: reserveBeneficiary,
                     encodedIPFSUri: tokenUris[0],
                     category: uint24(100),
+                    discountPercent: uint8(0),
                     allowOwnerMint: false,
                     useReserveBeneficiaryAsDefault: false,
                     transfersPausable: false,
                     useVotingUnits: true,
-                    cannotBeRemoved: false
+                    cannotBeRemoved: false,
+                    cannotIncreaseDiscountPercent: false
                 });
                 tiersRemaining[arrayIndex] = JB721Tier({
                     id: uint32(i + 1),
@@ -742,9 +752,11 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                     reserveBeneficiary: i == 0 ? address(0) : tierConfigsRemaining[arrayIndex].reserveBeneficiary,
                     encodedIPFSUri: tierConfigsRemaining[arrayIndex].encodedIPFSUri,
                     category: tierConfigsRemaining[arrayIndex].category,
+                    discountPercent: tierConfigsRemaining[arrayIndex].discountPercent,
                     allowOwnerMint: tierConfigsRemaining[arrayIndex].allowOwnerMint,
                     transfersPausable: tierConfigsRemaining[arrayIndex].transfersPausable,
                     cannotBeRemoved: tierConfigsRemaining[arrayIndex].cannotBeRemoved,
+                    cannotIncreaseDiscountPercent: tierConfigsRemaining[arrayIndex].cannotIncreaseDiscountPercent,
                     resolvedUri: ""
                 });
                 arrayIndex++;
@@ -768,11 +780,13 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100 + i),
+                discountPercent: uint8(0),
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: true,
-                cannotBeRemoved: false
+                cannotBeRemoved: false,
+                cannotIncreaseDiscountPercent: false
             });
             tiersAdded[i] = JB721Tier({
                 id: uint32(tiers.length + (i + 1)),
@@ -784,9 +798,11 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: address(0),
                 encodedIPFSUri: tierConfigsToAdd[i].encodedIPFSUri,
                 category: tierConfigsToAdd[i].category,
+                discountPercent: tierConfigsToAdd[i].discountPercent,
                 allowOwnerMint: tierConfigsToAdd[i].allowOwnerMint,
                 transfersPausable: tierConfigsToAdd[i].transfersPausable,
                 cannotBeRemoved: tierConfigsToAdd[i].cannotBeRemoved,
+                cannotIncreaseDiscountPercent: tierConfigsToAdd[i].cannotIncreaseDiscountPercent,
                 resolvedUri: ""
             });
             vm.expectEmit(true, true, true, true, address(hook));
@@ -835,11 +851,13 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
+                discountPercent: uint8(0),
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: true,
-                cannotBeRemoved: false
+                cannotBeRemoved: false,
+                cannotIncreaseDiscountPercent: false
             });
             tiers[i] = JB721Tier({
                 id: uint32(i + 1),
@@ -851,9 +869,11 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: tierConfigs[i].reserveBeneficiary,
                 encodedIPFSUri: tierConfigs[i].encodedIPFSUri,
                 category: tierConfigs[i].category,
+                discountPercent: tierConfigs[i].discountPercent,
                 allowOwnerMint: tierConfigs[i].allowOwnerMint,
                 transfersPausable: tierConfigs[i].transfersPausable,
                 cannotBeRemoved: tierConfigs[i].cannotBeRemoved,
+                cannotIncreaseDiscountPercent: tierConfigs[i].cannotIncreaseDiscountPercent,
                 resolvedUri: ""
             });
         }
@@ -888,11 +908,13 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
+                discountPercent: uint8(0),
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: true,
-                cannotBeRemoved: false
+                cannotBeRemoved: false,
+                cannotIncreaseDiscountPercent: false
             });
             tiersAdded[i] = JB721Tier({
                 id: uint32(tiers.length + (i + 1)),
@@ -904,9 +926,11 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: tierConfigsToAdd[i].reserveBeneficiary,
                 encodedIPFSUri: tierConfigsToAdd[i].encodedIPFSUri,
                 category: tierConfigsToAdd[i].category,
+                discountPercent: tierConfigsToAdd[i].discountPercent,
                 allowOwnerMint: tierConfigsToAdd[i].allowOwnerMint,
                 transfersPausable: tierConfigsToAdd[i].transfersPausable,
                 cannotBeRemoved: tierConfigsToAdd[i].cannotBeRemoved,
+                cannotIncreaseDiscountPercent: tierConfigsToAdd[i].cannotIncreaseDiscountPercent,
                 resolvedUri: ""
             });
         }
@@ -936,11 +960,13 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
+                discountPercent: uint8(0),
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: true,
-                cannotBeRemoved: false
+                cannotBeRemoved: false,
+                cannotIncreaseDiscountPercent: false
             });
             tiers[i] = JB721Tier({
                 id: uint32(i + 1),
@@ -952,9 +978,11 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: tierConfigs[i].reserveBeneficiary,
                 encodedIPFSUri: tierConfigs[i].encodedIPFSUri,
                 category: tierConfigs[i].category,
+                discountPercent: tierConfigs[i].discountPercent,
                 allowOwnerMint: tierConfigs[i].allowOwnerMint,
                 transfersPausable: tierConfigs[i].transfersPausable,
                 cannotBeRemoved: tierConfigs[i].cannotBeRemoved,
+                cannotIncreaseDiscountPercent: tierConfigs[i].cannotIncreaseDiscountPercent,
                 resolvedUri: ""
             });
         }
@@ -989,11 +1017,13 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
+                discountPercent: uint8(0),
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: true,
-                cannotBeRemoved: false
+                cannotBeRemoved: false,
+                cannotIncreaseDiscountPercent: false
             });
             tiersAdded[i] = JB721Tier({
                 id: uint32(tiers.length + (i + 1)),
@@ -1005,9 +1035,11 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: tierConfigsToAdd[i].reserveBeneficiary,
                 encodedIPFSUri: tierConfigsToAdd[i].encodedIPFSUri,
                 category: tierConfigsToAdd[i].category,
+                discountPercent: tierConfigsToAdd[i].discountPercent,
                 allowOwnerMint: tierConfigsToAdd[i].allowOwnerMint,
                 transfersPausable: tierConfigsToAdd[i].transfersPausable,
                 cannotBeRemoved: tierConfigsToAdd[i].cannotBeRemoved,
+                cannotIncreaseDiscountPercent: tierConfigsToAdd[i].cannotIncreaseDiscountPercent,
                 resolvedUri: ""
             });
         }
@@ -1033,11 +1065,13 @@ contract Test_adjustTier_Unit is UnitTestSetup {
             reserveBeneficiary: reserveBeneficiary,
             encodedIPFSUri: tokenUris[0],
             category: uint24(100),
+            discountPercent: uint8(0),
             allowOwnerMint: false,
             useReserveBeneficiaryAsDefault: false,
             transfersPausable: false,
             useVotingUnits: true,
-            cannotBeRemoved: true
+            cannotBeRemoved: true,
+            cannotIncreaseDiscountPercent: false
         });
         tierConfigs[1] = JB721TierConfig({
             price: 10,
@@ -1047,11 +1081,13 @@ contract Test_adjustTier_Unit is UnitTestSetup {
             reserveBeneficiary: reserveBeneficiary,
             encodedIPFSUri: tokenUris[0],
             category: uint24(100),
+            discountPercent: uint8(0),
             allowOwnerMint: false,
             useReserveBeneficiaryAsDefault: false,
             transfersPausable: false,
             useVotingUnits: true,
-            cannotBeRemoved: false
+            cannotBeRemoved: false,
+            cannotIncreaseDiscountPercent: false
         });
         //  Deploy the hook and its store with the initial tiers.
         JB721TiersHookStore store = new JB721TiersHookStore();
@@ -1103,11 +1139,13 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
+                discountPercent: uint8(0),
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: true,
-                cannotBeRemoved: false
+                cannotBeRemoved: false,
+                cannotIncreaseDiscountPercent: false
             });
             tiers[i] = JB721Tier({
                 id: uint32(i + 1),
@@ -1119,9 +1157,11 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: tierConfigs[i].reserveBeneficiary,
                 encodedIPFSUri: tierConfigs[i].encodedIPFSUri,
                 category: tierConfigs[i].category,
+                discountPercent: tierConfigs[i].discountPercent,
                 allowOwnerMint: tierConfigs[i].allowOwnerMint,
                 transfersPausable: tierConfigs[i].transfersPausable,
                 cannotBeRemoved: tierConfigs[i].cannotBeRemoved,
+                cannotIncreaseDiscountPercent: tierConfigs[i].cannotIncreaseDiscountPercent,
                 resolvedUri: ""
             });
         }
@@ -1156,11 +1196,13 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
+                discountPercent: uint8(0),
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: false,
-                cannotBeRemoved: false
+                cannotBeRemoved: false,
+                cannotIncreaseDiscountPercent: false
             });
             tiersAdded[i] = JB721Tier({
                 id: uint32(tiers.length + (i + 1)),
@@ -1172,9 +1214,11 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: tierConfigsToAdd[i].reserveBeneficiary,
                 encodedIPFSUri: tierConfigsToAdd[i].encodedIPFSUri,
                 category: tierConfigsToAdd[i].category,
+                discountPercent: tierConfigsToAdd[i].discountPercent,
                 allowOwnerMint: tierConfigsToAdd[i].allowOwnerMint,
                 transfersPausable: tierConfigsToAdd[i].transfersPausable,
                 cannotBeRemoved: tierConfigsToAdd[i].cannotBeRemoved,
+                cannotIncreaseDiscountPercent: tierConfigsToAdd[i].cannotIncreaseDiscountPercent,
                 resolvedUri: ""
             });
         }
@@ -1206,11 +1250,13 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
+                discountPercent: uint8(0),
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 cannotBeRemoved: false,
-                useVotingUnits: true
+                useVotingUnits: true,
+                cannotIncreaseDiscountPercent: false
             });
         }
         // Set the second to last tier to have a category of `99`, which is less than the last tier's category of `100`.
@@ -1242,11 +1288,13 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
+                discountPercent: uint8(0),
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: false,
-                cannotBeRemoved: false
+                cannotBeRemoved: false,
+                cannotIncreaseDiscountPercent: false
             });
         }
 
@@ -1281,11 +1329,13 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
+                discountPercent: uint8(0),
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: false, // <-- If false, voting power is based on tier price
-                cannotBeRemoved: false
+                cannotBeRemoved: false,
+                cannotIncreaseDiscountPercent: false
             });
         }
 
@@ -1315,11 +1365,13 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
+                discountPercent: uint8(0),
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: true,
-                cannotBeRemoved: false
+                cannotBeRemoved: false,
+                cannotIncreaseDiscountPercent: false
             });
         }
 
@@ -1354,11 +1406,13 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
+                discountPercent: uint8(0),
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: true, // <-- If false, voting power is based on tier price
-                cannotBeRemoved: false
+                cannotBeRemoved: false,
+                cannotIncreaseDiscountPercent: false
             });
         }
 
@@ -1419,11 +1473,13 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
+                discountPercent: uint8(0),
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: false,
-                cannotBeRemoved: false
+                cannotBeRemoved: false,
+                cannotIncreaseDiscountPercent: false
             });
             tiers[i] = JB721Tier({
                 id: uint32(i + 1),
@@ -1435,9 +1491,11 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 reserveBeneficiary: i == 0 ? address(0) : tierConfigs[i].reserveBeneficiary,
                 encodedIPFSUri: tierConfigs[i].encodedIPFSUri,
                 category: tierConfigs[i].category,
+                discountPercent: tierConfigs[i].discountPercent,
                 allowOwnerMint: tierConfigs[i].allowOwnerMint,
                 transfersPausable: tierConfigs[i].transfersPausable,
                 cannotBeRemoved: tierConfigs[i].cannotBeRemoved,
+                cannotIncreaseDiscountPercent: tierConfigs[i].cannotIncreaseDiscountPercent,
                 resolvedUri: ""
             });
         }

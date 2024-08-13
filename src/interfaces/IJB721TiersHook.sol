@@ -21,6 +21,12 @@ interface IJB721TiersHook is IJB721Hook {
         address caller
     );
 
+    event SetDiscount(
+        uint256 indexed tierId,
+        uint256 discountPercent,
+        address caller
+    );
+
     event MintReservedNft(uint256 indexed tokenId, uint256 indexed tierId, address indexed beneficiary, address caller);
 
     event AddTier(uint256 indexed tierId, JB721TierConfig tier, address caller);
@@ -58,6 +64,12 @@ interface IJB721TiersHook is IJB721Hook {
     function contractURI() external view returns (string memory);
 
     function adjustTiers(JB721TierConfig[] memory tierDataToAdd, uint256[] memory tierIdsToRemove) external;
+
+    function setDiscountOf(
+        uint256 tierId,
+        uint256 discountPercent
+    )
+        external;
 
     function mintPendingReservesFor(JB721TiersMintReservesConfig[] memory reserveMintConfigs) external;
 

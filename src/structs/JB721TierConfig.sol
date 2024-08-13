@@ -12,6 +12,7 @@ pragma solidity ^0.8.0;
 /// reserve beneficiary if one is set.
 /// @custom:member encodedIPFSUri The IPFS URI to use for each NFT in this tier.
 /// @custom:member category The category that NFTs in this tier belongs to. Used to group NFT tiers.
+/// @custom:member discountPercent The discount that should be applied to the tier.
 /// @custom:member allowOwnerMint A boolean indicating whether the contract's owner can mint NFTs from this tier
 /// on-demand.
 /// @custom:member useReserveBeneficiaryAsDefault A boolean indicating whether this tier's `reserveBeneficiary` should
@@ -20,6 +21,7 @@ pragma solidity ^0.8.0;
 /// @custom:member useVotingUnits A boolean indicating whether the `votingUnits` should be used to calculate voting
 /// power. If `useVotingUnits` is false, voting power is based on the tier's price.
 /// @custom:member cannotBeRemoved If the tier cannot be removed once added.
+/// @custom:member cannotIncreaseDiscount If the tier cannot have its discount increased.
 struct JB721TierConfig {
     uint104 price;
     uint32 initialSupply;
@@ -28,9 +30,11 @@ struct JB721TierConfig {
     address reserveBeneficiary;
     bytes32 encodedIPFSUri;
     uint24 category;
+    uint8 discountPercent;
     bool allowOwnerMint;
     bool useReserveBeneficiaryAsDefault;
     bool transfersPausable;
     bool useVotingUnits;
     bool cannotBeRemoved;
+    bool cannotIncreaseDiscountPercent;
 }

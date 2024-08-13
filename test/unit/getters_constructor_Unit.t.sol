@@ -45,15 +45,16 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
         assertEq(address(prices2), prices);
     }
 
-    function test_bools_doesPackingAndUnpackingWork(bool a, bool b, bool c, bool d) public {
+    function test_bools_doesPackingAndUnpackingWork(bool a, bool b, bool c, bool d, bool e) public {
         ForTest_JB721TiersHookStore store = new ForTest_JB721TiersHookStore();
-        uint8 packed = store.ForTest_packBools(a, b, c, d);
-        (bool a2, bool b2, bool c2, bool d2) = store.ForTest_unpackBools(packed);
+        uint8 packed = store.ForTest_packBools(a, b, c, d, e);
+        (bool a2, bool b2, bool c2, bool d2, bool e2) = store.ForTest_unpackBools(packed);
         // Check: do the packed values match the unpacked values?
         assertEq(a, a2);
         assertEq(b, b2);
         assertEq(c, c2);
         assertEq(d, d2);
+        assertEq(e, e2);
     }
 
     function test_tiersOf_returnsAllTiersWithResolver(uint256 numberOfTiers) public {
@@ -146,9 +147,11 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
                     reserveBeneficiary: address(0),
                     encodedIPFSUri: bytes32(0),
                     category: uint24(100),
+                    discountPercent: uint8(0),
                     allowOwnerMint: false,
                     transfersPausable: false,
                     cannotBeRemoved: false,
+                    cannotIncreaseDiscountPercent: false,
                     resolvedUri: ""
                 })
             );
@@ -174,7 +177,8 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(0),
                     category: uint24(100),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false)
+                    discountPercent: uint8(0),
+                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false, false)
                 })
             );
         }
@@ -225,7 +229,8 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false)
+                    discountPercent: uint8(0),
+                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false, false)
                 })
             );
             // Manually set the number of reserve mints for each tier.
@@ -264,7 +269,8 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
                 votingUnits: uint16(0),
                 reserveFrequency: uint16(100),
                 category: uint24(100),
-                packedBools: hook.test_store().ForTest_packBools(false, false, true, false)
+                discountPercent: uint8(0),
+                packedBools: hook.test_store().ForTest_packBools(false, false, true, false, false)
             })
         );
 
@@ -386,7 +392,8 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(0),
                     category: uint24(100),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false)
+                    discountPercent: uint8(0),
+                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false, false)
                 })
             );
             // Calculate the theoretical weight for the current tier. 10 the price multiplier.
@@ -481,11 +488,13 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
                 reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[0],
                 category: uint24(100),
+                discountPercent: uint8(0),
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: true,
-                cannotBeRemoved: false
+                cannotBeRemoved: false,
+                cannotIncreaseDiscountPercent: false
             });
         }
 

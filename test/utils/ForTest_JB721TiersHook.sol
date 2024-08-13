@@ -26,7 +26,8 @@ interface IJB721TiersHookStore_ForTest is IJB721TiersHookStore {
         bool allowOwnerMint,
         bool transfersPausable,
         bool useVotingUnits,
-        bool cannotBeRemoved
+        bool cannotBeRemoved,
+        bool cannotIncreaseDiscountPercent
     )
         external
         returns (uint8);
@@ -106,7 +107,7 @@ contract ForTest_JB721TiersHookStore is JB721TiersHookStore, IJB721TiersHookStor
             storedTier = _storedTierOf[nft][currentSortIndex];
 
             // Unpack stored tier.
-            (bool allowOwnerMint, bool transfersPausable,,) = _unpackBools(storedTier.packedBools);
+            (bool allowOwnerMint, bool transfersPausable,,,) = _unpackBools(storedTier.packedBools);
 
             // Add the tier to the array being returned.
             tiers[numberOfIncludedTiers++] = JB721Tier({
@@ -119,9 +120,11 @@ contract ForTest_JB721TiersHookStore is JB721TiersHookStore, IJB721TiersHookStor
                 reserveBeneficiary: reserveBeneficiaryOf(nft, currentSortIndex),
                 encodedIPFSUri: encodedIPFSUriOf[nft][currentSortIndex],
                 category: storedTier.category,
+                discountPercent: storedTier.discountPercent,
                 allowOwnerMint: allowOwnerMint,
                 transfersPausable: transfersPausable,
                 cannotBeRemoved: false,
+                cannotIncreaseDiscountPercent: false,
                 resolvedUri: ""
             });
             // Set the next sort index.
@@ -160,16 +163,17 @@ contract ForTest_JB721TiersHookStore is JB721TiersHookStore, IJB721TiersHookStor
         bool allowOwnerMint,
         bool transfersPausable,
         bool useVotingUnits,
-        bool cannotBeRemoved
+        bool cannotBeRemoved,
+        bool cannotIncreaseDiscountPercent
     )
         public
         pure
         returns (uint8)
     {
-        return _packBools(allowOwnerMint, transfersPausable, useVotingUnits, cannotBeRemoved);
+        return _packBools(allowOwnerMint, transfersPausable, useVotingUnits, cannotBeRemoved, cannotIncreaseDiscountPercent);
     }
 
-    function ForTest_unpackBools(uint8 packed) public pure returns (bool, bool, bool, bool) {
+    function ForTest_unpackBools(uint8 packed) public pure returns (bool, bool, bool, bool, bool) {
         return _unpackBools(packed);
     }
 }

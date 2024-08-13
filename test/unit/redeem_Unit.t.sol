@@ -23,7 +23,8 @@ contract Test_redeem_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(0),
                     category: uint24(100),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false)
+                    discountPercent: uint8(0),
+                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false, false)
                 })
             );
             totalWeight += (10 * i - 5 * i) * i * 10;
@@ -95,7 +96,8 @@ contract Test_redeem_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(0),
                     category: uint24(100),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false)
+                    discountPercent: uint8(0),
+                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false, false)
                 })
             );
             totalWeight += (10 * i - 5 * i) * i * 10;
@@ -153,7 +155,8 @@ contract Test_redeem_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(0),
                     category: uint24(100),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false)
+                    discountPercent: uint8(0),
+                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false, false)
                 })
             );
             totalWeight += (10 * i - 5 * i) * i * 10;

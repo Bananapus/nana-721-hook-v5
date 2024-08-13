@@ -586,11 +586,13 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
                 reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[i],
                 category: uint24(100),
+                discountPercent: uint8(0),
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: false,
-                cannotBeRemoved: false
+                cannotBeRemoved: false,
+                cannotIncreaseDiscountPercent: false
             });
         }
         tiersHookConfig = JBDeploy721TiersHookConfig({

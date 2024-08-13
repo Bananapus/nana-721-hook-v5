@@ -317,6 +317,26 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         }
     }
 
+    function setDiscountOf(
+        uint256 tierId,
+        uint256 discountPercent
+    )
+        external
+        override
+    {
+        // Enforce permissions.
+        _requirePermissionFrom({account: owner(), projectId: PROJECT_ID, permissionId: JBPermissionIds.MINT_721});
+
+        // Record the mint. The token IDs returned correspond to the tiers passed in.
+        // slither-disable-next-line reentrancy-events,unused-return
+        STORE.recordSetDiscountOf({
+            tierId: tierId,
+            discountPercent: discountPercent
+        });
+
+        emit SetDiscount(tierId, discountPercent, msg.sender);
+    }
+
     /// @notice Mint pending reserved NFTs based on the provided information.
     /// @dev "Pending" means that the NFTs have been reserved, but have not been minted yet.
     /// @param reserveMintConfigs Contains information about how many reserved tokens to mint for each tier.
