@@ -1149,7 +1149,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @param transfersPausable Whether or not 721 transfers can be paused.
     /// @param useVotingUnits Whether or not custom voting unit amounts are allowed in new tiers.
     /// @param cannotBeRemoved Whether or not attempts to remove the tier will revert.
-    /// @param cannotIncreaseDiscountPercent todo
+    /// @param cannotIncreaseDiscountPercent Whether or not attempts to increase the discount percent will revert.
     /// @return packed The packed bools.
     function _packBools(
         bool allowOwnerMint,
@@ -1177,7 +1177,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @param transfersPausable Whether or not 721 transfers can be paused.
     /// @param useVotingUnits Whether or not custom voting unit amounts are allowed in new tiers.
     /// @param cannotBeRemoved Whether or not the tier can be removed once added.
-    /// @param cannotIncreaseDiscountPercent todo
+    /// @param cannotIncreaseDiscountPercent Whether or not the discount percent cannot be increased.
     function _unpackBools(uint8 packed)
         internal
         pure
