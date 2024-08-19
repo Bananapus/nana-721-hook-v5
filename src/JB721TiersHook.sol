@@ -64,11 +64,9 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     //*********************************************************************//
 
     /// @notice The contract that stores and manages data for this contract's NFTs.
-    /// @dev Set once in initializer.
     IJB721TiersHookStore public immutable override STORE;
 
     /// @notice The contract storing and managing project rulesets.
-    /// @dev Set once in initializer.
     IJBRulesets public immutable override RULESETS;
 
     /// @notice If an address pays more than the price of the NFT they received, the extra amount is stored as credits

@@ -64,7 +64,7 @@ contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
     /// @return newHook The address of the newly deployed hook.
     function deployHookFor(
         uint256 projectId,
-        JBDeploy721TiersHookConfig memory deployTiersHookConfig
+        JBDeploy721TiersHookConfig calldata deployTiersHookConfig
     )
         external
         override

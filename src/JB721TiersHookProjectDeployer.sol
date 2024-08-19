@@ -65,8 +65,8 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
     /// @return projectId The ID of the newly launched project.
     function launchProjectFor(
         address owner,
-        JBDeploy721TiersHookConfig memory deployTiersHookConfig,
-        JBLaunchProjectConfig memory launchProjectConfig,
+        JBDeploy721TiersHookConfig calldata deployTiersHookConfig,
+        JBLaunchProjectConfig calldata launchProjectConfig,
         IJBController controller
     )
         external
@@ -96,8 +96,8 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
     /// @return rulesetId The ID of the successfully created ruleset.
     function launchRulesetsFor(
         uint256 projectId,
-        JBDeploy721TiersHookConfig memory deployTiersHookConfig,
-        JBLaunchRulesetsConfig memory launchRulesetsConfig,
+        JBDeploy721TiersHookConfig calldata deployTiersHookConfig,
+        JBLaunchRulesetsConfig calldata launchRulesetsConfig,
         IJBController controller
     )
         external
@@ -131,8 +131,8 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
     /// @return rulesetId The ID of the successfully created ruleset.
     function queueRulesetsOf(
         uint256 projectId,
-        JBDeploy721TiersHookConfig memory deployTiersHookConfig,
-        JBQueueRulesetsConfig memory queueRulesetsConfig,
+        JBDeploy721TiersHookConfig calldata deployTiersHookConfig,
+        JBQueueRulesetsConfig calldata queueRulesetsConfig,
         IJBController controller
     )
         external

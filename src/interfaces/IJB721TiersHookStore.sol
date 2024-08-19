@@ -43,7 +43,7 @@ interface IJB721TiersHookStore {
 
     function encodedIPFSUriOf(address hook, uint256 tierId) external view returns (bytes32);
 
-    function redemptionWeightOf(address hook, uint256[] memory tokenIds) external view returns (uint256 weight);
+    function redemptionWeightOf(address hook, uint256[] calldata tokenIds) external view returns (uint256 weight);
 
     function totalRedemptionWeight(address hook) external view returns (uint256 weight);
 
@@ -69,13 +69,13 @@ interface IJB721TiersHookStore {
 
     function encodedTierIPFSUriOf(address hook, uint256 tokenId) external view returns (bytes32);
 
-    function recordAddTiers(JB721TierConfig[] memory tierData) external returns (uint256[] memory tierIds);
+    function recordAddTiers(JB721TierConfig[] calldata tierData) external returns (uint256[] memory tierIds);
 
     function recordSetDiscountPercentOf(uint256 tierId, uint256 discountPercent) external;
 
     function recordMintReservesFor(uint256 tierId, uint256 count) external returns (uint256[] memory tokenIds);
 
-    function recordBurn(uint256[] memory tokenIds) external;
+    function recordBurn(uint256[] calldata tokenIds) external;
 
     function recordMint(
         uint256 amount,
@@ -87,7 +87,7 @@ interface IJB721TiersHookStore {
 
     function recordTransferForTier(uint256 tierId, address from, address to) external;
 
-    function recordRemoveTierIds(uint256[] memory tierIds) external;
+    function recordRemoveTierIds(uint256[] calldata tierIds) external;
 
     function recordSetTokenUriResolver(IJB721TokenUriResolver resolver) external;
 

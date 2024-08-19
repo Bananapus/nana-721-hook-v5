@@ -60,20 +60,20 @@ interface IJB721TiersHook is IJB721Hook {
 
     function contractURI() external view returns (string memory);
 
-    function adjustTiers(JB721TierConfig[] memory tierDataToAdd, uint256[] memory tierIdsToRemove) external;
+    function adjustTiers(JB721TierConfig[] calldata tierDataToAdd, uint256[] calldata tierIdsToRemove) external;
 
     function setDiscountPercentOf(uint256 tierId, uint256 discountPercent) external;
 
     function setDiscountPercentsOf(JB721TiersSetDiscountPercentConfig[] calldata configs) external;
 
-    function mintPendingReservesFor(JB721TiersMintReservesConfig[] memory reserveMintConfigs) external;
+    function mintPendingReservesFor(JB721TiersMintReservesConfig[] calldata reserveMintConfigs) external;
 
     function mintPendingReservesFor(uint256 tierId, uint256 count) external;
 
     function mintFor(uint16[] calldata tierIds, address beneficiary) external returns (uint256[] memory tokenIds);
 
     function setMetadata(
-        string memory baseUri,
+        string calldata baseUri,
         string calldata contractMetadataUri,
         IJB721TokenUriResolver tokenUriResolver,
         uint256 encodedIPFSUriTierId,
