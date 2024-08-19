@@ -318,7 +318,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     }
     
     /// @notice Allows the collection's owner to set the discount for a tier, if the tier allows it.
-    /// @dev Only the contract's owner or an operator with the `SET_DISCOUNT_PERCENT` permission from the owner can adjust the
+    /// @dev Only the contract's owner or an operator with the `SET_721_DISCOUNT_PERCENT` permission from the owner can adjust the
     /// tiers.
     /// @param tierId The ID of the tier to set the discount of.
     /// @param discountPercent The discount percent to set.
@@ -330,7 +330,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         override
     {
         // Enforce permissions.
-        _requirePermissionFrom({account: owner(), projectId: PROJECT_ID, permissionId: JBPermissionIds.MINT_721}); // todo change to SET_DISCOUNT_PERCENT
+        _requirePermissionFrom({account: owner(), projectId: PROJECT_ID, permissionId: JBPermissionIds.SET_721_DISCOUNT_PERCENT}); 
 
         // Record the mint. The token IDs returned correspond to the tiers passed in.
         // slither-disable-next-line reentrancy-events,unused-return

@@ -630,6 +630,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
             ownerMustSendPayouts: false,
             allowAddAccountingContext: false,
             allowAddPriceFeed: false,
+            allowCrosschainSuckerExtension: false,
             holdFees: false,
             useTotalSurplusForRedemptions: false,
             useDataHookForRedeem: true,

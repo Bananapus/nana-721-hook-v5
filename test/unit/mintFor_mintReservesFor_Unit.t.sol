@@ -153,6 +153,7 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                             allowSetController: false,
                             allowAddAccountingContext: false,
                             allowAddPriceFeed: false,
+                            allowCrosschainSuckerExtension: false,
                             ownerMustSendPayouts: false,
                             holdFees: false,
                             useTotalSurplusForRedemptions: false,

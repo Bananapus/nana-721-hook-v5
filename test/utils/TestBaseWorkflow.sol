@@ -86,7 +86,7 @@ contract TestBaseWorkflow is Test {
         jbDirectory = new JBDirectory(jbPermissions, jbProjects, projectOwner);
         vm.label(address(jbDirectory), "JBDirectory");
 
-        jbPrices = new JBPrices(jbPermissions, jbProjects, jbDirectory, projectOwner);
+        jbPrices = new JBPrices(jbDirectory, jbPermissions, jbProjects, projectOwner);
         vm.label(address(jbPrices), "JBPrices");
 
         jbRulesets = new JBRulesets(jbDirectory);
@@ -105,14 +105,14 @@ contract TestBaseWorkflow is Test {
         vm.label(address(jbSplits), "JBSplits");
 
         jbController = new JBController(
-            jbPermissions,
-            jbProjects,
             jbDirectory,
-            jbRulesets,
-            jbTokens,
-            jbSplits,
             jbFundAccessLimits,
+            jbPermissions,
             jbPrices,
+            jbProjects,
+            jbRulesets,
+            jbSplits,
+            jbTokens,
             address(0)
         );
         vm.label(address(jbController), "JBController");
@@ -120,13 +120,13 @@ contract TestBaseWorkflow is Test {
         vm.prank(projectOwner);
         jbDirectory.setIsAllowedToSetFirstController(address(jbController), true);
 
-        jbTerminalStore = new JBTerminalStore(jbDirectory, jbRulesets, jbPrices);
+        jbTerminalStore = new JBTerminalStore(jbDirectory, jbPrices, jbRulesets);
         vm.label(address(jbTerminalStore), "JBTerminalStore");
 
         accessJBLib = new AccessJBLib();
 
         jbMultiTerminal = new JBMultiTerminal(
-            jbPermissions, jbProjects, jbSplits, jbTerminalStore, jbFeelessAddresses, IPermit2(address(0)), address(0)
+            jbFeelessAddresses, jbPermissions, jbProjects, jbSplits, jbTerminalStore, IPermit2(address(0)), address(0)
         );
         vm.label(address(jbMultiTerminal), "JBMultiTerminal");
 

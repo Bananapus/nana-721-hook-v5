@@ -65,7 +65,7 @@ interface IJB721TiersHook is IJB721Hook {
 
     function adjustTiers(JB721TierConfig[] memory tierDataToAdd, uint256[] memory tierIdsToRemove) external;
 
-    function setDiscountOf(
+    function setDiscountPercentOf(
         uint256 tierId,
         uint256 discountPercent
     )
