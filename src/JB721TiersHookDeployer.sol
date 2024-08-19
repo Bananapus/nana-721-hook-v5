@@ -77,12 +77,10 @@ contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
             projectId: projectId,
             name: deployTiersHookConfig.name,
             symbol: deployTiersHookConfig.symbol,
-            rulesets: deployTiersHookConfig.rulesets,
             baseUri: deployTiersHookConfig.baseUri,
             tokenUriResolver: deployTiersHookConfig.tokenUriResolver,
             contractUri: deployTiersHookConfig.contractUri,
             tiersConfig: deployTiersHookConfig.tiersConfig,
-            store: STORE,
             flags: deployTiersHookConfig.flags
         });
 

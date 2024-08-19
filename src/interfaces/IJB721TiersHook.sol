@@ -11,6 +11,7 @@ import {JB721InitTiersConfig} from "./../structs/JB721InitTiersConfig.sol";
 import {JB721TierConfig} from "./../structs/JB721TierConfig.sol";
 import {JB721TiersHookFlags} from "./../structs/JB721TiersHookFlags.sol";
 import {JB721TiersMintReservesConfig} from "./../structs/JB721TiersMintReservesConfig.sol";
+import {JB721TiersSetDiscountPercentConfig} from "./../structs/JB721TiersSetDiscountPercentConfig.sol";
 
 interface IJB721TiersHook is IJB721Hook {
     event Mint(
@@ -21,11 +22,7 @@ interface IJB721TiersHook is IJB721Hook {
         address caller
     );
 
-    event SetDiscountPercent(
-        uint256 indexed tierId,
-        uint256 discountPercent,
-        address caller
-    );
+    event SetDiscountPercent(uint256 indexed tierId, uint256 discountPercent, address caller);
 
     event MintReservedNft(uint256 indexed tokenId, uint256 indexed tierId, address indexed beneficiary, address caller);
 
@@ -65,11 +62,9 @@ interface IJB721TiersHook is IJB721Hook {
 
     function adjustTiers(JB721TierConfig[] memory tierDataToAdd, uint256[] memory tierIdsToRemove) external;
 
-    function setDiscountPercentOf(
-        uint256 tierId,
-        uint256 discountPercent
-    )
-        external;
+    function setDiscountPercentOf(uint256 tierId, uint256 discountPercent) external;
+
+    function setDiscountPercentsOf(JB721TiersSetDiscountPercentConfig[] calldata configs) external;
 
     function mintPendingReservesFor(JB721TiersMintReservesConfig[] memory reserveMintConfigs) external;
 
@@ -90,12 +85,10 @@ interface IJB721TiersHook is IJB721Hook {
         uint256 projectId,
         string memory name,
         string memory symbol,
-        IJBRulesets rulesets,
         string memory baseUri,
         IJB721TokenUriResolver tokenUriResolver,
         string memory contractUri,
         JB721InitTiersConfig memory tiersConfig,
-        IJB721TiersHookStore store,
         JB721TiersHookFlags memory flags
     )
         external;

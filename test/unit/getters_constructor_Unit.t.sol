@@ -22,7 +22,6 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
         JBDeploy721TiersHookConfig memory hookConfig = JBDeploy721TiersHookConfig(
             name,
             symbol,
-            IJBRulesets(mockJBRulesets),
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
@@ -500,7 +499,6 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
 
         // Set the initial supply of the tier at `errorIndex` to 0. This should cause an error.
         tiers[errorIndex].initialSupply = 0;
-        JB721TiersHookStore store = new JB721TiersHookStore();
 
         // Expect the error.
         vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.NO_SUPPLY.selector));
@@ -510,7 +508,6 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
             projectId,
             name,
             symbol,
-            IJBRulesets(mockJBRulesets),
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
@@ -520,7 +517,6 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
                 decimals: 18,
                 prices: IJBPrices(address(0))
             }),
-            store,
             JB721TiersHookFlags({
                 preventOverspending: false,
                 noNewTiersWithReserves: true,

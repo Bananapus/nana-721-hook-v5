@@ -56,14 +56,13 @@ contract ForTest_JB721TiersHook is JB721TiersHook {
         JB721TiersHookFlags memory flags
     )
         // The directory is also `IJBPermissioned`.
-        JB721TiersHook(directory, IJBPermissioned(address(directory)).PERMISSIONS(), _trustedForwarder)
+        JB721TiersHook(directory, IJBPermissioned(address(directory)).PERMISSIONS(), rulesets, store, _trustedForwarder)
     {
         // Disable the safety check to not allow initializing the original contract
         JB721TiersHook.initialize(
             projectId,
             name,
             symbol,
-            rulesets,
             baseUri,
             tokenUriResolver,
             contractUri,
@@ -73,7 +72,6 @@ contract ForTest_JB721TiersHook is JB721TiersHook {
                 decimals: 18,
                 prices: IJBPrices(address(0))
             }),
-            store,
             flags
         );
         test_store = IJB721TiersHookStore_ForTest(address(store));
@@ -170,7 +168,9 @@ contract ForTest_JB721TiersHookStore is JB721TiersHookStore, IJB721TiersHookStor
         pure
         returns (uint8)
     {
-        return _packBools(allowOwnerMint, transfersPausable, useVotingUnits, cannotBeRemoved, cannotIncreaseDiscountPercent);
+        return _packBools(
+            allowOwnerMint, transfersPausable, useVotingUnits, cannotBeRemoved, cannotIncreaseDiscountPercent
+        );
     }
 
     function ForTest_unpackBools(uint8 packed) public pure returns (bool, bool, bool, bool, bool) {

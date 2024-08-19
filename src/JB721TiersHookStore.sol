@@ -495,7 +495,9 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @notice Record newly added tiers.
     /// @param tiersToAdd The tiers to add.
     /// @return tierIds The IDs of the tiers being added.
-    function recordAddTiers(JB721TierConfig[] calldata tiersToAdd)
+    function recordAddTiers(
+        JB721TierConfig[] calldata tiersToAdd
+    )
         external
         override
         returns (uint256[] memory tierIds)
@@ -571,7 +573,9 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             }
 
             // Make sure the discount percent is within the bound.
-            if (tierToAdd.discountPercent > JB721Constants.MAX_DISCOUNT_PERCENT) revert DISCOUNT_PERCENT_EXCEEDS_BOUNDS();
+            if (tierToAdd.discountPercent > JB721Constants.MAX_DISCOUNT_PERCENT) {
+                revert DISCOUNT_PERCENT_EXCEEDS_BOUNDS();
+            }
 
             // Make sure the tier has a non-zero supply.
             if (tierToAdd.initialSupply == 0) revert NO_SUPPLY();
@@ -841,9 +845,11 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
 
             // Get a reference to the price.
             uint256 price = storedTier.price;
-            
+
             // Apply a discount if needed.
-            if (storedTier.discountPercent > 0) price -= mulDiv(price, storedTier.discountPercent, JB721Constants.MAX_DISCOUNT_PERCENT);
+            if (storedTier.discountPercent > 0) {
+                price -= mulDiv(price, storedTier.discountPercent, JB721Constants.MAX_DISCOUNT_PERCENT);
+            }
 
             // Make sure the `amount` is greater than or equal to the tier's price.
             if (price > leftoverAmount) revert PRICE_EXCEEDS_AMOUNT();
@@ -889,11 +895,10 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         }
     }
 
-    /// @notice Records the setting of a discount for a tier. 
+    /// @notice Records the setting of a discount for a tier.
     /// @param tierId The ID of the tier to record a discount for.
     /// @param discountPercent The new discount percent being applied.
     function recordSetDiscountPercentOf(uint256 tierId, uint256 discountPercent) external override {
-
         // Make sure the discount percent is within the bound.
         if (discountPercent > JB721Constants.MAX_DISCOUNT_PERCENT) revert DISCOUNT_PERCENT_EXCEEDS_BOUNDS();
 
@@ -904,7 +909,9 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         (,,,, bool cannotIncreaseDiscountPercent) = _unpackBools(storedTier.packedBools);
 
         // Make sure that increasing the discount is allowed for the tier.
-        if (discountPercent > storedTier.discountPercent && cannotIncreaseDiscountPercent) revert DISCOUNT_PERCENT_INCREASE_NOT_ALLOWED();
+        if (discountPercent > storedTier.discountPercent && cannotIncreaseDiscountPercent) {
+            revert DISCOUNT_PERCENT_INCREASE_NOT_ALLOWED();
+        }
 
         // Set the discount.
         storedTier.discountPercent = uint8(discountPercent);
@@ -995,8 +1002,13 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Get a reference to the reserve beneficiary.
         address reserveBeneficiary = reserveBeneficiaryOf(hook, tierId);
 
-        (bool allowOwnerMint, bool transfersPausable, bool useVotingUnits, bool cannotBeRemoved, bool cannotIncreaseDiscountPercent) =
-            _unpackBools(storedTier.packedBools);
+        (
+            bool allowOwnerMint,
+            bool transfersPausable,
+            bool useVotingUnits,
+            bool cannotBeRemoved,
+            bool cannotIncreaseDiscountPercent
+        ) = _unpackBools(storedTier.packedBools);
 
         return JB721Tier({
             id: uint32(tierId),
@@ -1181,10 +1193,18 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @param useVotingUnits Whether or not custom voting unit amounts are allowed in new tiers.
     /// @param cannotBeRemoved Whether or not the tier can be removed once added.
     /// @param cannotIncreaseDiscountPercent Whether or not the discount percent cannot be increased.
-    function _unpackBools(uint8 packed)
+    function _unpackBools(
+        uint8 packed
+    )
         internal
         pure
-        returns (bool allowOwnerMint, bool transfersPausable, bool useVotingUnits, bool cannotBeRemoved, bool cannotIncreaseDiscountPercent)
+        returns (
+            bool allowOwnerMint,
+            bool transfersPausable,
+            bool useVotingUnits,
+            bool cannotBeRemoved,
+            bool cannotIncreaseDiscountPercent
+        )
     {
         assembly {
             allowOwnerMint := iszero(iszero(and(0x1, packed)))

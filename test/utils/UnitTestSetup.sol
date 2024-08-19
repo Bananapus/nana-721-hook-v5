@@ -216,15 +216,19 @@ contract UnitTestSetup is Test {
             mockJBDirectory, abi.encodeWithSelector(IJBPermissioned.PERMISSIONS.selector), abi.encode(mockJBPermissions)
         );
 
-        hookOrigin =
-            new JB721TiersHook(IJBDirectory(mockJBDirectory), IJBPermissions(mockJBPermissions), trustedForwarder);
-        addressRegistry = new JBAddressRegistry();
         store = new JB721TiersHookStore();
+        hookOrigin = new JB721TiersHook(
+            IJBDirectory(mockJBDirectory),
+            IJBPermissions(mockJBPermissions),
+            IJBRulesets(mockJBRulesets),
+            IJB721TiersHookStore(store),
+            trustedForwarder
+        );
+        addressRegistry = new JBAddressRegistry();
         jbHookDeployer = new JB721TiersHookDeployer(hookOrigin, store, addressRegistry, trustedForwarder);
         JBDeploy721TiersHookConfig memory hookConfig = JBDeploy721TiersHookConfig(
             name,
             symbol,
-            IJBRulesets(mockJBRulesets),
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
@@ -590,9 +594,6 @@ contract UnitTestSetup is Test {
         vm.etch(hook_i, address(hook).code);
         tiersHook = JB721TiersHook(hook_i);
 
-        // Deploy the hook store.
-        JB721TiersHookStore hookStore = new JB721TiersHookStore();
-
         // Initialize the hook's flags and init config in memory (for stack's sake).
         JB721TiersHookFlags memory flags = JB721TiersHookFlags({
             preventOverspending: preventOverspending,
@@ -612,12 +613,10 @@ contract UnitTestSetup is Test {
             projectId,
             name,
             symbol,
-            IJBRulesets(mockJBRulesets),
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
             initConfig,
-            IJB721TiersHookStore(hookStore),
             flags
         );
 
@@ -691,7 +690,6 @@ contract UnitTestSetup is Test {
         tiersHookConfig = JBDeploy721TiersHookConfig({
             name: name,
             symbol: symbol,
-            rulesets: IJBRulesets(mockJBRulesets),
             baseUri: baseUri,
             tokenUriResolver: IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri: contractUri,

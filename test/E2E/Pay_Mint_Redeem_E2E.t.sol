@@ -56,9 +56,9 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
     function setUp() public override {
         super.setUp();
-        hook = new JB721TiersHook(jbDirectory, jbPermissions, trustedForwarder);
-        addressRegistry = new JBAddressRegistry();
         store = new JB721TiersHookStore();
+        hook = new JB721TiersHook(jbDirectory, jbPermissions, jbRulesets, store, trustedForwarder);
+        addressRegistry = new JBAddressRegistry();
         JB721TiersHookDeployer hookDeployer = new JB721TiersHookDeployer(hook, store, addressRegistry, trustedForwarder);
         deployer =
             new JB721TiersHookProjectDeployer(IJBDirectory(jbDirectory), IJBPermissions(jbPermissions), hookDeployer);
@@ -598,7 +598,6 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         tiersHookConfig = JBDeploy721TiersHookConfig({
             name: name,
             symbol: symbol,
-            rulesets: jbRulesets,
             baseUri: baseUri,
             tokenUriResolver: IJB721TokenUriResolver(address(0)),
             contractUri: contractUri,

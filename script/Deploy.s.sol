@@ -60,21 +60,6 @@ contract DeployScript is Script, Sphinx {
                 : JBAddressRegistry(_registry);
         }
 
-        JB721TiersHook hook;
-        {
-            // Perform the check for the registry.
-            (address _hook, bool _hookIsDeployed) = _isDeployed(
-                HOOK_SALT,
-                type(JB721TiersHook).creationCode,
-                abi.encode(core.directory, core.permissions, TRUSTED_FORWARDER)
-            );
-
-            // Deploy it if it has not been deployed yet.
-            hook = !_hookIsDeployed
-                ? new JB721TiersHook{salt: HOOK_SALT}(core.directory, core.permissions, TRUSTED_FORWARDER)
-                : JB721TiersHook(_hook);
-        }
-
         JB721TiersHookStore store;
         {
             // Perform the check for the store.
@@ -83,6 +68,23 @@ contract DeployScript is Script, Sphinx {
 
             // Deploy it if it has not been deployed yet.
             store = !_storeIsDeployed ? new JB721TiersHookStore{salt: HOOK_STORE_SALT}() : JB721TiersHookStore(_store);
+        }
+
+        JB721TiersHook hook;
+        {
+            // Perform the check for the registry.
+            (address _hook, bool _hookIsDeployed) = _isDeployed(
+                HOOK_SALT,
+                type(JB721TiersHook).creationCode,
+                abi.encode(core.directory, core.permissions, core.rulesets, store, TRUSTED_FORWARDER)
+            );
+
+            // Deploy it if it has not been deployed yet.
+            hook = !_hookIsDeployed
+                ? new JB721TiersHook{salt: HOOK_SALT}(
+                    core.directory, core.permissions, core.rulesets, store, TRUSTED_FORWARDER
+                )
+                : JB721TiersHook(_hook);
         }
 
         JB721TiersHookDeployer hookDeployer;

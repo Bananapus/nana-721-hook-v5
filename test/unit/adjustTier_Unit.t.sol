@@ -692,14 +692,12 @@ contract Test_adjustTier_Unit is UnitTestSetup {
             });
         }
         //  Deploy the hook and its store with the initial tiers.
-        JB721TiersHookStore store = new JB721TiersHookStore();
         vm.etch(hook_i, address(hook).code);
         JB721TiersHook hook = JB721TiersHook(hook_i);
         hook.initialize(
             projectId,
             name,
             symbol,
-            IJBRulesets(mockJBRulesets),
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
@@ -709,7 +707,6 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 decimals: 18,
                 prices: IJBPrices(address(0))
             }),
-            IJB721TiersHookStore(address(store)),
             JB721TiersHookFlags({
                 preventOverspending: false,
                 noNewTiersWithReserves: false,
@@ -1090,14 +1087,12 @@ contract Test_adjustTier_Unit is UnitTestSetup {
             cannotIncreaseDiscountPercent: false
         });
         //  Deploy the hook and its store with the initial tiers.
-        JB721TiersHookStore store = new JB721TiersHookStore();
         vm.etch(hook_i, address(hook).code);
         JB721TiersHook hook = JB721TiersHook(hook_i);
         hook.initialize(
             projectId,
             name,
             symbol,
-            IJBRulesets(mockJBRulesets),
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
@@ -1107,7 +1102,6 @@ contract Test_adjustTier_Unit is UnitTestSetup {
                 decimals: 18,
                 prices: IJBPrices(address(0))
             }),
-            IJB721TiersHookStore(address(store)),
             JB721TiersHookFlags({
                 preventOverspending: false,
                 noNewTiersWithReserves: false,
