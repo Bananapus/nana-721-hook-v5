@@ -71,7 +71,7 @@ interface IJB721TiersHookStore {
 
     function recordAddTiers(JB721TierConfig[] memory tierData) external returns (uint256[] memory tierIds);
 
-    function recordSetDiscountOf(uint256 tierId, uint256 discountPercent) external;
+    function recordSetDiscountPercentOf(uint256 tierId, uint256 discountPercent) external;
 
     function recordMintReservesFor(uint256 tierId, uint256 count) external returns (uint256[] memory tokenIds);
 

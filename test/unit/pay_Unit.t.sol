@@ -1300,7 +1300,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                             useDataHookForPay: true,
                             useDataHookForRedeem: true,
                             dataHook: address(hook),
-                            metadata: 4 // the first 2 bits are discarded, so this is 001.
+                            metadata: 8 // the first 3 bits are discarded, so this is 0001.
                         })
                     )
                 })

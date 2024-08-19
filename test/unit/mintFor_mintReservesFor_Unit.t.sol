@@ -160,7 +160,7 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                             useDataHookForPay: true,
                             useDataHookForRedeem: true,
                             dataHook: address(0),
-                            metadata: 8 // the first 2 bits are discarded, so this is 010.
+                            metadata: 16 // the first 3 bits are discarded, so this is 0100.
                         })
                     )
                 })
