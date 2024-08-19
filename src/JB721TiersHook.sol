@@ -334,7 +334,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
 
         // Record the mint. The token IDs returned correspond to the tiers passed in.
         // slither-disable-next-line reentrancy-events,unused-return
-        STORE.recordSetDiscountOf({
+        STORE.recordSetDiscountPercentOf({
             tierId: tierId,
             discountPercent: discountPercent
         });

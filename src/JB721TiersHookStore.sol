@@ -892,7 +892,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @notice Records the setting of a discount for a tier. 
     /// @param tierId The ID of the tier to record a discount for.
     /// @param discountPercent The new discount percent being applied.
-    function recordSetDiscountOf(uint256 tierId, uint256 discountPercent) external override {
+    function recordSetDiscountPercentOf(uint256 tierId, uint256 discountPercent) external override {
 
         // Make sure the discount percent is within the bound.
         if (discountPercent > JB721Constants.MAX_DISCOUNT_PERCENT) revert DISCOUNT_PERCENT_EXCEEDS_BOUNDS();
