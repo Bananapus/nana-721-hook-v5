@@ -339,7 +339,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             discountPercent: discountPercent
         });
 
-        emit SetDiscount(tierId, discountPercent, msg.sender);
+        emit SetDiscountPercent(tierId, discountPercent, msg.sender);
     }
 
     /// @notice Mint pending reserved NFTs based on the provided information.

@@ -21,7 +21,7 @@ interface IJB721TiersHook is IJB721Hook {
         address caller
     );
 
-    event SetDiscount(
+    event SetDiscountPercent(
         uint256 indexed tierId,
         uint256 discountPercent,
         address caller
