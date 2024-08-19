@@ -248,6 +248,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         // pack the prices contract in bits 40-199 (160 bits).
         packed |= uint256(uint160(address(tiersConfig.prices))) << 40;
         // Store the packed value.
+        // slither-disable-next-line events-maths
         _packedPricingContext = packed;
 
         // Store the base URI if provided.
@@ -256,12 +257,16 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         // Set the contract URI if provided.
         if (bytes(contractUri).length != 0) contractURI = contractUri;
 
+        // Transfer ownership to the initializer.
+        _transferOwnership(_msgSender());
+
         // Set the token URI resolver if provided.
         if (tokenUriResolver != IJB721TokenUriResolver(address(0))) {
             store.recordSetTokenUriResolver(tokenUriResolver);
         }
 
         // Record the tiers in this hook's store.
+        // slither-disable-next-line unused-return
         if (tiersConfig.tiers.length != 0) store.recordAddTiers(tiersConfig.tiers);
 
         // Set the flags if needed.
@@ -269,9 +274,6 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             flags.noNewTiersWithReserves || flags.noNewTiersWithVotes || flags.noNewTiersWithOwnerMinting
                 || flags.preventOverspending
         ) store.recordFlags(flags);
-
-        // Transfer ownership to the initializer.
-        _transferOwnership(_msgSender());
     }
 
     //*********************************************************************//
@@ -294,6 +296,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         _requirePermissionFrom({account: owner(), projectId: PROJECT_ID, permissionId: JBPermissionIds.MINT_721});
 
         // Record the mint. The token IDs returned correspond to the tiers passed in.
+        // slither-disable-next-line reentrancy-events,unused-return
         (tokenIds,) = STORE.recordMint({
             amount: type(uint256).max, // force the mint.
             tierIds: tierIds,
@@ -310,10 +313,11 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             // Set the token ID.
             tokenId = tokenIds[i];
 
-            // Mint the NFT.
-            _mint(beneficiary, tokenId);
-
             emit Mint(tokenId, tierIds[i], beneficiary, 0, _msgSender());
+
+            // Mint the NFT.
+            // slither-disable-next-line reentrancy-events
+            _mint(beneficiary, tokenId);
         }
     }
 
@@ -354,18 +358,20 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
 
         // Remove the tiers.
         if (numberOfTiersToRemove != 0) {
-            // Record the removed tiers.
-            store.recordRemoveTierIds(tierIdsToRemove);
-
             // Emit events for each removed tier.
             for (uint256 i; i < numberOfTiersToRemove; i++) {
                 emit RemoveTier(tierIdsToRemove[i], _msgSender());
             }
+
+            // Record the removed tiers.
+            // slither-disable-next-line reentrancy-events
+            store.recordRemoveTierIds(tierIdsToRemove);
         }
 
         // Add the tiers.
         if (numberOfTiersToAdd != 0) {
             // Record the added tiers in the store.
+            // slither-disable-next-line reentrancy-events
             uint256[] memory tierIdsAdded = store.recordAddTiers(tiersToAdd);
 
             // Emit events for each added tier.
@@ -410,16 +416,17 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         IJB721TiersHookStore store = STORE;
 
         if (tokenUriResolver != IJB721TokenUriResolver(address(this))) {
-            // Store the new URI resolver.
-            store.recordSetTokenUriResolver(tokenUriResolver);
-
             emit SetTokenUriResolver(tokenUriResolver, _msgSender());
+
+            // Store the new URI resolver.
+            // slither-disable-next-line reentrancy-events
+            store.recordSetTokenUriResolver(tokenUriResolver);
         }
         if (encodedIPFSTUriTierId != 0 && encodedIPFSUri != bytes32(0)) {
+            emit SetEncodedIPFSUri(encodedIPFSTUriTierId, encodedIPFSUri, _msgSender());
+
             // Store the new encoded IPFS URI.
             store.recordSetEncodedIPFSUriOf(encodedIPFSTUriTierId, encodedIPFSUri);
-
-            emit SetEncodedIPFSUri(encodedIPFSTUriTierId, encodedIPFSUri, _msgSender());
         }
     }
 
@@ -433,6 +440,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     /// @param count The number of reserved NFTs to mint.
     function mintPendingReservesFor(uint256 tierId, uint256 count) public override {
         // Get a reference to the project's current ruleset.
+        // slither-disable-next-line calls-loop
         JBRuleset memory ruleset = RULESETS.currentOf(PROJECT_ID);
 
         // Pending reserve mints must not be paused.
@@ -445,9 +453,11 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         IJB721TiersHookStore store = STORE;
 
         // Record the reserved mint for the tier.
+        // slither-disable-next-line reentrancy-events,calls-loop
         uint256[] memory tokenIds = store.recordMintReservesFor(tierId, count);
 
         // Keep a reference to the beneficiary.
+        // slither-disable-next-line reentrancy-events,calls-loop
         address reserveBeneficiary = store.reserveBeneficiaryOf(address(this), tierId);
 
         // Keep a reference to the token ID being iterated upon.
@@ -457,10 +467,11 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             // Set the token ID.
             tokenId = tokenIds[i];
 
-            // Mint the NFT.
-            _mint(reserveBeneficiary, tokenId);
-
             emit MintReservedNft(tokenId, tierId, reserveBeneficiary, _msgSender());
+
+            // Mint the NFT.
+            // slither-disable-next-line reentrency-events
+            _mint(reserveBeneficiary, tokenId);
         }
     }
 
@@ -541,6 +552,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
 
             // Mint NFTs from the tiers as specified.
             if (tierIdsToMint.length != 0) {
+                // slither-disable-next-line reentrancy-events,reentrancy-no-eth
                 leftoverAmount =
                     _mintAll({amount: leftoverAmount, mintTierIds: tierIdsToMint, beneficiary: context.beneficiary});
             }
@@ -604,6 +616,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         uint256[] memory tokenIds;
 
         // Record the NFT mints. The token IDs returned correspond to the tier IDs passed in.
+        // slither-disable-next-line reentrency-events
         (tokenIds, leftoverAmount) = STORE.recordMint({
             amount: amount,
             tierIds: mintTierIds,
@@ -621,10 +634,11 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             // Get a reference to the token ID being iterated on.
             tokenId = tokenIds[i];
 
-            // Mint the NFT.
-            _mint(beneficiary, tokenId);
-
             emit Mint(tokenId, mintTierIds[i], beneficiary, amount, _msgSender());
+
+            // Mint the NFT.
+            // slither-disable-next-line reentrancy-events
+            _mint(beneficiary, tokenId);
         }
     }
 
@@ -636,6 +650,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         IJB721TiersHookStore store = STORE;
 
         // Get a reference to the tier.
+        // slither-disable-next-line calls-loop
         JB721Tier memory tier = store.tierOfTokenId({hook: address(this), tokenId: tokenId, includeResolvedUri: false});
 
         // Record the transfers and keep a reference to where the token is coming from.
@@ -646,6 +661,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             // If transfers are pausable, check if they're paused.
             if (tier.transfersPausable) {
                 // Get a reference to the project's current ruleset.
+                // slither-disable-next-line calls-loop
                 JBRuleset memory ruleset = RULESETS.currentOf(PROJECT_ID);
 
                 // If transfers are paused and the NFT isn't being transferred to the zero address, revert.
@@ -656,10 +672,12 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             }
 
             // If the token isn't already associated with a first owner, store the sender as the first owner.
+            // slither-disable-next-line calls-loop
             if (_firstOwnerOf[tokenId] == address(0)) _firstOwnerOf[tokenId] = from;
         }
 
         // Record the transfer.
+        // slither-disable-next-line reentrency-events,calls-loop
         store.recordTransferForTier(tier.id, from, to);
     }
 
