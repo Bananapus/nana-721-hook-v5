@@ -256,7 +256,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
 
         // Set the token URI resolver if provided.
         if (tokenUriResolver != IJB721TokenUriResolver(address(0))) {
-            STORE.recordSetTokenUriResolver(tokenUriResolver);
+            _recordSetTokenUriResolver(tokenUriResolver);
         }
 
         // Record the tiers in this hook's store.
@@ -299,12 +299,12 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         });
 
         // Keep a reference to the number of NFTs being minted.
-        uint256 numberOfNfts = tierIds.length;
+        uint256 numberOfTiers = tierIds.length;
 
         // Keep a reference to the token ID being iterated upon.
         uint256 tokenId;
 
-        for (uint256 i; i < numberOfNfts; i++) {
+        for (uint256 i; i < numberOfTiers; i++) {
             // Set the token ID.
             tokenId = tokenIds[i];
 
@@ -443,9 +443,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
 
         if (tokenUriResolver != IJB721TokenUriResolver(address(this))) {
             // Store the new URI resolver.
-            STORE.recordSetTokenUriResolver(tokenUriResolver);
-
-            emit SetTokenUriResolver(tokenUriResolver, _msgSender());
+            _recordSetTokenUriResolver(tokenUriResolver);
         }
         if (encodedIPFSTUriTierId != 0 && encodedIPFSUri != bytes32(0)) {
             // Store the new encoded IPFS URI.
@@ -556,8 +554,8 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         }
 
         // Keep a reference to the boolean indicating whether paying more than the price of the NFTs being minted is
-        // allowed. Defaults to false.
-        bool allowOverspending;
+        // allowed. Defaults to the collection's flag.
+        bool allowOverspending = !STORE.flagsOf(address(this)).preventOverspending;
 
         // Resolve the metadata.
         (bool found, bytes memory metadata) =
@@ -567,11 +565,14 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             // Keep a reference to the IDs of the tier be to minted.
             uint16[] memory tierIdsToMint;
 
+            // Keep a reference to the payer's flag indicating whether overspending is allowed.
+            bool payerAllowsOverspending;
+
             // Decode the metadata.
-            (allowOverspending, tierIdsToMint) = abi.decode(metadata, (bool, uint16[]));
+            (payerAllowsOverspending, tierIdsToMint) = abi.decode(metadata, (bool, uint16[]));
 
             // Make sure overspending is allowed if requested.
-            if (allowOverspending && STORE.flagsOf(address(this)).preventOverspending) {
+            if (allowOverspending && !payerAllowsOverspending) {
                 allowOverspending = false;
             }
 
@@ -580,8 +581,6 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
                 leftoverAmount =
                     _mintAll({amount: leftoverAmount, mintTierIds: tierIdsToMint, beneficiary: context.beneficiary});
             }
-        } else if (!STORE.flagsOf(address(this)).preventOverspending) {
-            allowOverspending = true;
         }
 
         // If overspending is allowed and there are leftover funds, add those funds to the beneficiary's NFT credits.
@@ -673,6 +672,14 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         STORE.recordSetDiscountPercentOf({tierId: tierId, discountPercent: discountPercent});
 
         emit SetDiscountPercent(tierId, discountPercent, msg.sender);
+    }
+
+    /// @notice Record the setting of a new token URI resolver.
+    /// @param tokenUriResolver The new token URI resolver.
+    function _recordSetTokenUriResolver(IJB721TokenUriResolver tokenUriResolver) internal {
+        STORE.recordSetTokenUriResolver(tokenUriResolver);
+
+        emit SetTokenUriResolver(tokenUriResolver, _msgSender());
     }
 
     /// @notice Before transferring an NFT, register its first owner (if necessary).
