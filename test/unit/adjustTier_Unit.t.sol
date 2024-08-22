@@ -1042,7 +1042,9 @@ contract Test_adjustTier_Unit is UnitTestSetup {
         }
 
         // Expect the `adjustTiers` call to revert because of the `noNewTiersWithReserves` flag.
-        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_ReserveFrequencyNotAllowed.selector));
+        vm.expectRevert(
+            abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_ReserveFrequencyNotAllowed.selector)
+        );
         vm.prank(owner);
         hook.adjustTiers(tierConfigsToAdd, new uint256[](0));
     }
@@ -1257,7 +1259,9 @@ contract Test_adjustTier_Unit is UnitTestSetup {
         tierConfigsToAdd[numberTiersToAdd - 1].category = uint8(99);
 
         // Expect the `adjustTiers` call to revert because of the invalid category sort order.
-        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_InvalidCategorySortOrder.selector));
+        vm.expectRevert(
+            abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_InvalidCategorySortOrder.selector)
+        );
         vm.prank(owner);
         hook.adjustTiers(tierConfigsToAdd, new uint256[](0));
     }

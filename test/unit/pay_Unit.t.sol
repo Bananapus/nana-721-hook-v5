@@ -899,7 +899,9 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
 
             // If there is no remaining supply, this should revert.
             if (supplyLeft == 0) {
-                vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_InsufficientSupplyRemaining.selector));
+                vm.expectRevert(
+                    abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_InsufficientSupplyRemaining.selector)
+                );
             }
 
             // Execute the payment.

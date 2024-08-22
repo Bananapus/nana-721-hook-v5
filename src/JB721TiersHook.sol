@@ -108,7 +108,6 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         STORE = store;
     }
 
-
     //*********************************************************************//
     // ------------------------- external views -------------------------- //
     //*********************************************************************//
@@ -264,7 +263,9 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     /// @notice The combined redemption weight of all outstanding NFTs.
     /// @dev An NFT's redemption weight is its price.
     /// @return weight The total redemption weight.
-    function totalRedemptionWeight(JBBeforeRedeemRecordedContext calldata)
+    function totalRedemptionWeight(
+        JBBeforeRedeemRecordedContext calldata
+    )
         public
         view
         virtual
@@ -352,7 +353,13 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             // Mint the NFT.
             _mint(beneficiary, tokenId);
 
-            emit Mint({tokenId: tokenId, tierId: tierIds[i], beneficiary: beneficiary, totalAmountPaid: 0, caller: _msgSender()});
+            emit Mint({
+                tokenId: tokenId,
+                tierId: tierIds[i],
+                beneficiary: beneficiary,
+                totalAmountPaid: 0,
+                caller: _msgSender()
+            });
         }
     }
 
@@ -489,7 +496,12 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             // Mint the NFT.
             _mint(reserveBeneficiary, tokenId);
 
-            emit MintReservedNft({tokenId: tokenId, tierId: tierId, beneficiary: reserveBeneficiary, caller: _msgSender()});
+            emit MintReservedNft({
+                tokenId: tokenId,
+                tierId: tierId,
+                beneficiary: reserveBeneficiary,
+                caller: _msgSender()
+            });
         }
     }
 
@@ -555,7 +567,13 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             // Mint the NFT.
             _mint(beneficiary, tokenId);
 
-            emit Mint({tokenId: tokenId, tierId: mintTierIds[i], beneficiary: beneficiary, totalAmountPaid: amount, caller: _msgSender()});
+            emit Mint({
+                tokenId: tokenId,
+                tierId: mintTierIds[i],
+                beneficiary: beneficiary,
+                totalAmountPaid: amount,
+                caller: _msgSender()
+            });
         }
     }
 
@@ -664,9 +682,19 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
 
                 // Emit the change in NFT credits.
                 if (newPayCredits > payCredits) {
-                    emit AddPayCredits({amount: newPayCredits - payCredits, newTotalCredits: newPayCredits, account: context.beneficiary, caller: _msgSender()});
+                    emit AddPayCredits({
+                        amount: newPayCredits - payCredits,
+                        newTotalCredits: newPayCredits,
+                        account: context.beneficiary,
+                        caller: _msgSender()
+                    });
                 } else if (payCredits > newPayCredits) {
-                    emit UsePayCredits({amount: payCredits - newPayCredits, newTotalCredits: newPayCredits, account: context.beneficiary, caller: _msgSender()});
+                    emit UsePayCredits({
+                        amount: payCredits - newPayCredits,
+                        newTotalCredits: newPayCredits,
+                        account: context.beneficiary,
+                        caller: _msgSender()
+                    });
                 }
 
                 // Store the new NFT credits for the beneficiary.
@@ -675,7 +703,12 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             // Otherwise, reset their NFT credits.
         } else if (payCredits != unusedPayCredits) {
             // Emit the change in NFT credits.
-            emit UsePayCredits({amount: payCredits - unusedPayCredits, newTotalCredits: unusedPayCredits, account: context.beneficiary, caller: _msgSender()});
+            emit UsePayCredits({
+                amount: payCredits - unusedPayCredits,
+                newTotalCredits: unusedPayCredits,
+                account: context.beneficiary,
+                caller: _msgSender()
+            });
 
             // Store the new NFT credits.
             payCreditsOf[context.beneficiary] = unusedPayCredits;

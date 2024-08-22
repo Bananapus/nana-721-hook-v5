@@ -45,7 +45,6 @@ interface IJB721TiersHook is IJB721Hook {
     function payCreditsOf(address addr) external view returns (uint256);
     function pricingContext() external view returns (uint256, uint256, IJBPrices);
 
-
     function adjustTiers(JB721TierConfig[] calldata tierDataToAdd, uint256[] calldata tierIdsToRemove) external;
     function initialize(
         uint256 projectId,
