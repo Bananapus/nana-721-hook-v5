@@ -107,7 +107,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
         );
 
         // Expect a revert for overspending.
-        vm.expectRevert(abi.encodeWithSelector(JB721TiersHook.OVERSPENDING.selector));
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHook.JB721TiersHook_Overspending.selector));
 
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
@@ -707,7 +707,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
         vm.prank(owner);
         hook.adjustTiers(new JB721TierConfig[](0), toRemove);
 
-        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.TIER_REMOVED.selector));
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_TierRemoved.selector));
 
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
@@ -773,7 +773,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
         vm.prank(owner);
         hook.adjustTiers(new JB721TierConfig[](0), toRemove);
 
-        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.INVALID_TIER.selector));
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_InvalidTier.selector));
 
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
@@ -835,7 +835,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
 
         // Expect a revert for the amount being too low.
-        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.PRICE_EXCEEDS_AMOUNT.selector));
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_PriceExceedsAmount.selector));
 
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
@@ -899,7 +899,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
 
             // If there is no remaining supply, this should revert.
             if (supplyLeft == 0) {
-                vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.INSUFFICIENT_SUPPLY_REMAINING.selector));
+                vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_InsufficientSupplyRemaining.selector));
             }
 
             // Execute the payment.
@@ -955,7 +955,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
         vm.prank(terminal);
 
         // Expect a revert for the caller not being a terminal of the project.
-        vm.expectRevert(abi.encodeWithSelector(JB721Hook.INVALID_PAY.selector));
+        vm.expectRevert(abi.encodeWithSelector(JB721Hook.JB721Hook_InvalidPay.selector));
 
         hook.afterPayRecordedWith(
             JBAfterPayRecordedContext({
@@ -1155,7 +1155,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
         vm.prank(mockTerminalAddress);
-        vm.expectRevert(abi.encodeWithSelector(JB721TiersHook.OVERSPENDING.selector));
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHook.JB721TiersHook_Overspending.selector));
         hook.afterPayRecordedWith(
             JBAfterPayRecordedContext({
                 payer: msg.sender,
@@ -1215,7 +1215,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
 
         // If prevent is enabled the call should revert. Otherwise, we should receive pay credits.
         if (prevent) {
-            vm.expectRevert(abi.encodeWithSelector(JB721TiersHook.OVERSPENDING.selector));
+            vm.expectRevert(abi.encodeWithSelector(JB721TiersHook.JB721TiersHook_Overspending.selector));
         } else {
             uint256 payCredits = hook.payCreditsOf(beneficiary);
             uint256 stashedPayCredits = payCredits;
@@ -1354,7 +1354,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
         uint256 tokenId = _generateTokenId(1, 1);
 
         // Expect a revert on account of transfers being paused.
-        vm.expectRevert(JB721TiersHook.TIER_TRANSFERS_PAUSED.selector);
+        vm.expectRevert(JB721TiersHook.JB721TiersHook_TierTransfersPaused.selector);
 
         vm.prank(msg.sender);
         IERC721(hook).transferFrom(msg.sender, beneficiary, tokenId);

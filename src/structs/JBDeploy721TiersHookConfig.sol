@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IJB721TokenUriResolver} from "../interfaces/IJB721TokenUriResolver.sol";
 import {JB721InitTiersConfig} from "./JB721InitTiersConfig.sol";
 import {JB721TiersHookFlags} from "./JB721TiersHookFlags.sol";
+import {IJB721TokenUriResolver} from "../interfaces/IJB721TokenUriResolver.sol";
 
 /// @custom:member name The NFT collection's name.
 /// @custom:member symbol The NFT collection's symbol.

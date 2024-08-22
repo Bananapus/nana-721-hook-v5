@@ -185,7 +185,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
         // Pay the terminal to mint the NFTs.
         vm.prank(caller);
-        uint256 tokensReceived = jbMultiTerminal.pay{value: valueSent}({
+        jbMultiTerminal.pay{value: valueSent}({
             projectId: projectId,
             amount: valueSent,
             token: JBConstants.NATIVE_TOKEN,
@@ -360,7 +360,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         assertEq(IJB721TiersHook(dataHook).STORE().numberOfPendingReservesFor(dataHook, highestTier), 0);
 
         // Check: cannot mint pending reserves (since none should be pending)?
-        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.INSUFFICIENT_PENDING_RESERVES.selector));
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_InsufficientPendingReserves.selector));
         vm.prank(projectOwner);
         IJB721TiersHook(dataHook).mintPendingReservesFor(highestTier, 1);
 
@@ -421,7 +421,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         // Check: there should now be 0 pending reserves.
         assertEq(IJB721TiersHook(dataHook).STORE().numberOfPendingReservesFor(dataHook, highestTier), 0);
         // Check: it should not be possible to mint pending reserves now (since there are none left).
-        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.INSUFFICIENT_PENDING_RESERVES.selector));
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_InsufficientPendingReserves.selector));
         vm.prank(projectOwner);
         IJB721TiersHook(dataHook).mintPendingReservesFor(highestTier, 1);
     }
