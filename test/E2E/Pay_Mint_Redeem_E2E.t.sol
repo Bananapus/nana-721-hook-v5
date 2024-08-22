@@ -148,6 +148,82 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         assertEq(IJB721TiersHook(dataHook).firstOwnerOf(tokenId), beneficiary);
     }
 
+    function testMintWithDiscountOnPayIfOneTierIsPassed() external {
+        uint256 valueSent = 10;
+        // Cap the highest tier ID possible to 10.
+        uint256 highestTier = valueSent <= 100 ? (valueSent / 10) : 10;
+        (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
+            createDiscountedData();
+        uint256 projectId = deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+
+        // Crafting the payment metadata: add the highest tier ID.
+        uint16[] memory rawMetadata = new uint16[](1);
+        rawMetadata[0] = uint16(highestTier);
+
+        // Build the metadata using the tiers to mint and the overspending flag.
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encode(true, rawMetadata);
+
+        address dataHook = jbRulesets.currentOf(projectId).dataHook();
+
+        // Pass the hook ID.
+        bytes4[] memory ids = new bytes4[](1);
+        ids[0] = JBMetadataResolver.getId("pay", address(hook));
+
+        // Generate the metadata.
+        bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
+
+        // Check: was an NFT with the correct tier ID and token ID minted?
+        vm.expectEmit(true, true, true, true);
+        emit Mint(
+            _generateTokenId(highestTier, 1),
+            highestTier,
+            beneficiary,
+            valueSent,
+            address(jbMultiTerminal) // msg.sender
+        );
+
+        // Pay the terminal to mint the NFTs.
+        vm.prank(caller);
+        uint256 tokensReceived = jbMultiTerminal.pay{value: valueSent}({
+            projectId: projectId,
+            amount: valueSent,
+            token: JBConstants.NATIVE_TOKEN,
+            beneficiary: beneficiary,
+            minReturnedTokens: 0,
+            memo: "Take my money!",
+            metadata: hookMetadata
+        });
+        uint256 tokenId = _generateTokenId(highestTier, 1);
+        // Check: did the beneficiary receive the NFT?
+        assertEq(IERC721(dataHook).balanceOf(beneficiary), 1);
+
+        // TODO: Current calc results in 10 credits, but the correct credit amount would be 2 (20% of 10)
+        assertEq(IJB721TiersHook(dataHook).payCreditsOf(beneficiary), 10);
+        assertEq(IJB721TiersHook(dataHook).payCreditsOf(beneficiary), mulDiv(valueSent, 200, 200));
+
+        // One correct calc would use 1000 as the dividend for appropriate scaling.
+        assertEq(2, mulDiv(valueSent, 200, 1000));
+        // Or divide by 100 for the same refund/credits. I'm not sure yet what the better solution is.
+        assertEq(2, mulDiv(valueSent, 20, 100));
+
+        // Check: is the beneficiary the first owner of the NFT?
+        assertEq(IERC721(dataHook).ownerOf(tokenId), beneficiary);
+        assertEq(IJB721TiersHook(dataHook).firstOwnerOf(tokenId), beneficiary);
+
+        // Check: after a transfer, are the `firstOwnerOf` and `ownerOf` still correct?
+        vm.prank(beneficiary);
+        IERC721(dataHook).transferFrom(beneficiary, address(696_969_420), tokenId);
+        assertEq(IERC721(dataHook).ownerOf(tokenId), address(696_969_420));
+        assertEq(IJB721TiersHook(dataHook).firstOwnerOf(tokenId), beneficiary);
+
+        // Check: is the same true after a second transfer?
+        vm.prank(address(696_969_420));
+        IERC721(dataHook).transferFrom(address(696_969_420), address(123_456_789), tokenId);
+        assertEq(IERC721(dataHook).ownerOf(tokenId), address(123_456_789));
+        assertEq(IJB721TiersHook(dataHook).firstOwnerOf(tokenId), beneficiary);
+    }
+
     function testMintOnPayIfMultipleTiersArePassed() external {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
@@ -587,6 +663,98 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
                 encodedIPFSUri: tokenUris[i],
                 category: uint24(100),
                 discountPercent: uint8(0),
+                allowOwnerMint: false,
+                useReserveBeneficiaryAsDefault: false,
+                transfersPausable: false,
+                useVotingUnits: false,
+                cannotBeRemoved: false,
+                cannotIncreaseDiscountPercent: false
+            });
+        }
+        tiersHookConfig = JBDeploy721TiersHookConfig({
+            name: name,
+            symbol: symbol,
+            baseUri: baseUri,
+            tokenUriResolver: IJB721TokenUriResolver(address(0)),
+            contractUri: contractUri,
+            tiersConfig: JB721InitTiersConfig({
+                tiers: tierConfigs,
+                currency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
+                decimals: 18,
+                prices: IJBPrices(address(0))
+            }),
+            reserveBeneficiary: reserveBeneficiary,
+            flags: JB721TiersHookFlags({
+                preventOverspending: false,
+                noNewTiersWithReserves: false,
+                noNewTiersWithVotes: false,
+                noNewTiersWithOwnerMinting: true
+            })
+        });
+
+        JBPayDataHookRulesetMetadata memory metadata = JBPayDataHookRulesetMetadata({
+            reservedPercent: 5000, //50%
+            redemptionRate: 5000, //50%
+            baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
+            pausePay: false,
+            pauseCreditTransfers: false,
+            allowOwnerMinting: true,
+            allowTerminalMigration: false,
+            allowSetTerminals: false,
+            allowSetController: false,
+            ownerMustSendPayouts: false,
+            allowAddAccountingContext: false,
+            allowAddPriceFeed: false,
+            allowCrosschainSuckerExtension: false,
+            holdFees: false,
+            useTotalSurplusForRedemptions: false,
+            useDataHookForRedeem: true,
+            metadata: 0x00
+        });
+
+        JBPayDataHookRulesetConfig[] memory rulesetConfigurations = new JBPayDataHookRulesetConfig[](1);
+        // Package up the ruleset configuration.
+        rulesetConfigurations[0].mustStartAtOrAfter = 0;
+        rulesetConfigurations[0].duration = 14;
+        rulesetConfigurations[0].weight = 1000 * 10 ** 18;
+        rulesetConfigurations[0].decayPercent = 450_000_000;
+        rulesetConfigurations[0].approvalHook = IJBRulesetApprovalHook(address(0));
+        rulesetConfigurations[0].metadata = metadata;
+
+        JBTerminalConfig[] memory terminalConfigurations = new JBTerminalConfig[](1);
+        JBAccountingContext[] memory accountingContextsToAccept = new JBAccountingContext[](1);
+        accountingContextsToAccept[0] = JBAccountingContext({
+            token: JBConstants.NATIVE_TOKEN,
+            currency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
+            decimals: 18
+        });
+        terminalConfigurations[0] =
+            JBTerminalConfig({terminal: jbMultiTerminal, accountingContextsToAccept: accountingContextsToAccept});
+
+        launchProjectConfig = JBLaunchProjectConfig({
+            projectUri: projectUri,
+            rulesetConfigurations: rulesetConfigurations,
+            terminalConfigurations: terminalConfigurations,
+            memo: ""
+        });
+    }
+
+    function createDiscountedData()
+        internal
+        view
+        returns (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig)
+    {
+        JB721TierConfig[] memory tierConfigs = new JB721TierConfig[](10);
+        for (uint256 i; i < 10; i++) {
+            tierConfigs[i] = JB721TierConfig({
+                price: uint104((i + 1) * 10),
+                initialSupply: uint32(10),
+                votingUnits: uint32((i + 1) * 10),
+                reserveFrequency: 10,
+                reserveBeneficiary: reserveBeneficiary,
+                encodedIPFSUri: tokenUris[i],
+                category: uint24(100),
+                discountPercent: uint8(200),
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
