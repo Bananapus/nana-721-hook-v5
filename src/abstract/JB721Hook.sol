@@ -215,6 +215,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     /// `IJBPayHook`.
     /// @dev Reverts if the calling contract is not one of the project's terminals.
     /// @param context The payment context passed in by the terminal.
+    // slither-disable-next-line locked-ether
     function afterPayRecordedWith(JBAfterPayRecordedContext calldata context) external payable virtual override {
         uint256 projectId = PROJECT_ID;
 
@@ -233,6 +234,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     /// `context.beneficiary`. Part of `IJBRedeemHook`.
     /// @dev Reverts if the calling contract is not one of the project's terminals.
     /// @param context The redemption context passed in by the terminal.
+    // slither-disable-next-line locked-ether
     function afterRedeemRecordedWith(JBAfterRedeemRecordedContext calldata context) external payable virtual override {
         // Keep a reference to the project ID.
         uint256 projectId = PROJECT_ID;

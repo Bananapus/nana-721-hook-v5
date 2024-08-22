@@ -1032,6 +1032,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             bool cannotIncreaseDiscountPercent
         ) = _unpackBools(storedTier.packedBools);
 
+        // slither-disable-next-line calls-loop
         return JB721Tier({
             id: uint32(tierId),
             price: storedTier.price,

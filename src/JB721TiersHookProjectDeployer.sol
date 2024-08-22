@@ -222,6 +222,7 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         }
 
         // Launch the project.
+        // slither-disable-next-line unused-return
         controller.launchProjectFor({
             owner: owner,
             projectUri: launchProjectConfig.projectUri,
