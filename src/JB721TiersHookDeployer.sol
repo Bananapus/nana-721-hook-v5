@@ -73,7 +73,7 @@ contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
         // Deploy the governance variant specified by the config.
         newHook = IJB721TiersHook(Clones.clone(address(HOOK)));
 
-        emit HookDeployed(projectId, newHook);
+        emit HookDeployed({projectId: projectId, hook: newHook, caller: msg.sender});
 
         newHook.initialize({
             projectId: projectId,
@@ -86,12 +86,11 @@ contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
             flags: deployTiersHookConfig.flags
         });
 
+
         // Transfer the hook's ownership to the address that called this function.
         JBOwnable(address(newHook)).transferOwnership(_msgSender());
 
         // Add the hook to the address registry. This contract's nonce starts at 1.
         ADDRESS_REGISTRY.registerAddress(address(this), ++_nonce);
-
-        emit HookDeployed({projectId: projectId, hook: newHook, caller: msg.sender});
     }
 }
