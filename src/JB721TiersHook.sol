@@ -165,9 +165,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     /// @notice The combined redemption weight of all outstanding NFTs.
     /// @dev An NFT's redemption weight is its price.
     /// @return weight The total redemption weight.
-    function totalRedemptionWeight(
-        JBBeforeRedeemRecordedContext calldata
-    )
+    function totalRedemptionWeight(JBBeforeRedeemRecordedContext calldata)
         public
         view
         virtual
