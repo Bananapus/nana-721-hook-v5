@@ -23,7 +23,8 @@ contract Test_redeem_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(0),
                     category: uint24(100),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false)
+                    discountPercent: uint8(0),
+                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false, false)
                 })
             );
             totalWeight += (10 * i - 5 * i) * i * 10;
@@ -95,7 +96,8 @@ contract Test_redeem_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(0),
                     category: uint24(100),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false)
+                    discountPercent: uint8(0),
+                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false, false)
                 })
             );
             totalWeight += (10 * i - 5 * i) * i * 10;
@@ -153,7 +155,8 @@ contract Test_redeem_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(0),
                     category: uint24(100),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false)
+                    discountPercent: uint8(0),
+                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false, false)
                 })
             );
             totalWeight += (10 * i - 5 * i) * i * 10;
@@ -209,7 +212,7 @@ contract Test_redeem_Unit is UnitTestSetup {
         vm.assume(tokenCount > 0);
 
         // Expect a revert on account of the token count being non-zero while the total supply is zero.
-        vm.expectRevert(abi.encodeWithSelector(JB721Hook.UNEXPECTED_TOKEN_REDEEMED.selector));
+        vm.expectRevert(abi.encodeWithSelector(JB721Hook.JB721Hook_UnexpectedTokenRedeemed.selector));
 
         hook.beforeRedeemRecordedWith(
             JBBeforeRedeemRecordedContext({
@@ -359,7 +362,7 @@ contract Test_redeem_Unit is UnitTestSetup {
         );
 
         // Expect to revert on account of the project ID being incorrect.
-        vm.expectRevert(abi.encodeWithSelector(JB721Hook.INVALID_REDEEM.selector));
+        vm.expectRevert(abi.encodeWithSelector(JB721Hook.JB721Hook_InvalidRedeem.selector));
 
         vm.prank(mockTerminalAddress);
         hook.afterRedeemRecordedWith(
@@ -400,7 +403,7 @@ contract Test_redeem_Unit is UnitTestSetup {
         );
 
         // Expect to revert on account of the caller not being a terminal of the project.
-        vm.expectRevert(abi.encodeWithSelector(JB721Hook.INVALID_REDEEM.selector));
+        vm.expectRevert(abi.encodeWithSelector(JB721Hook.JB721Hook_InvalidRedeem.selector));
 
         vm.prank(mockTerminalAddress);
         hook.afterRedeemRecordedWith(
@@ -458,7 +461,7 @@ contract Test_redeem_Unit is UnitTestSetup {
             abi.encode(true)
         );
 
-        vm.expectRevert(abi.encodeWithSelector(JB721Hook.UNAUTHORIZED_TOKEN.selector, tokenId));
+        vm.expectRevert(abi.encodeWithSelector(JB721Hook.JB721Hook_UnauthorizedToken.selector));
 
         vm.prank(mockTerminalAddress);
         hook.afterRedeemRecordedWith(

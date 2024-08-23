@@ -140,10 +140,12 @@ contract UnitTestSetup is Test {
             reserveBeneficiary: reserveBeneficiary, // Use default beneficiary.
             encodedIPFSUri: bytes32(0), // Use default hashes array.
             category: type(uint24).max,
+            discountPercent: uint8(0),
             allowOwnerMint: false,
             useReserveBeneficiaryAsDefault: false,
             transfersPausable: false,
             cannotBeRemoved: false,
+            cannotIncreaseDiscountPercent: false,
             useVotingUnits: true
         });
 
@@ -158,11 +160,13 @@ contract UnitTestSetup is Test {
                     reserveBeneficiary: reserveBeneficiary,
                     encodedIPFSUri: tokenUris[i],
                     category: uint24(100),
+                    discountPercent: uint8(0),
                     allowOwnerMint: false,
                     useReserveBeneficiaryAsDefault: false,
                     transfersPausable: false,
                     useVotingUnits: true,
-                    cannotBeRemoved: false
+                    cannotBeRemoved: false,
+                    cannotIncreaseDiscountPercent: false
                 })
             );
         }
@@ -193,6 +197,7 @@ contract UnitTestSetup is Test {
                             allowSetController: false,
                             allowAddAccountingContext: false,
                             allowAddPriceFeed: false,
+                            allowCrosschainSuckerExtension: false,
                             ownerMustSendPayouts: false,
                             holdFees: false,
                             useTotalSurplusForRedemptions: false,
@@ -211,15 +216,19 @@ contract UnitTestSetup is Test {
             mockJBDirectory, abi.encodeWithSelector(IJBPermissioned.PERMISSIONS.selector), abi.encode(mockJBPermissions)
         );
 
-        hookOrigin =
-            new JB721TiersHook(IJBDirectory(mockJBDirectory), IJBPermissions(mockJBPermissions), trustedForwarder);
-        addressRegistry = new JBAddressRegistry();
         store = new JB721TiersHookStore();
+        hookOrigin = new JB721TiersHook(
+            IJBDirectory(mockJBDirectory),
+            IJBPermissions(mockJBPermissions),
+            IJBRulesets(mockJBRulesets),
+            IJB721TiersHookStore(store),
+            trustedForwarder
+        );
+        addressRegistry = new JBAddressRegistry();
         jbHookDeployer = new JB721TiersHookDeployer(hookOrigin, store, addressRegistry, trustedForwarder);
         JBDeploy721TiersHookConfig memory hookConfig = JBDeploy721TiersHookConfig(
             name,
             symbol,
-            IJBRulesets(mockJBRulesets),
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
@@ -481,11 +490,13 @@ contract UnitTestSetup is Test {
                 category: categoryIncrement == 0
                     ? tierConfig.category == type(uint24).max ? uint24(i * 2 + 1) : tierConfig.category
                     : uint24(i * 2 + categoryIncrement),
+                discountPercent: tierConfig.discountPercent,
                 allowOwnerMint: tierConfig.allowOwnerMint,
                 useReserveBeneficiaryAsDefault: tierConfig.useReserveBeneficiaryAsDefault,
                 transfersPausable: tierConfig.transfersPausable,
                 useVotingUnits: tierConfig.useVotingUnits,
-                cannotBeRemoved: tierConfig.cannotBeRemoved
+                cannotBeRemoved: tierConfig.cannotBeRemoved,
+                cannotIncreaseDiscountPercent: tierConfig.cannotIncreaseDiscountPercent
             });
 
             newTiers[i] = JB721Tier({
@@ -498,9 +509,11 @@ contract UnitTestSetup is Test {
                 reserveBeneficiary: tierConfigs[i].reserveBeneficiary,
                 encodedIPFSUri: tierConfigs[i].encodedIPFSUri,
                 category: tierConfigs[i].category,
+                discountPercent: tierConfigs[i].discountPercent,
                 allowOwnerMint: tierConfigs[i].allowOwnerMint,
                 transfersPausable: tierConfigs[i].transfersPausable,
                 cannotBeRemoved: tierConfigs[i].cannotBeRemoved,
+                cannotIncreaseDiscountPercent: tierConfigs[i].cannotIncreaseDiscountPercent,
                 resolvedUri: defaultTierConfig.encodedIPFSUri == bytes32(0)
                     ? ""
                     : string(abi.encodePacked("resolverURI", _generateTokenId(initialId + i + 1, 0)))
@@ -581,9 +594,6 @@ contract UnitTestSetup is Test {
         vm.etch(hook_i, address(hook).code);
         tiersHook = JB721TiersHook(hook_i);
 
-        // Deploy the hook store.
-        JB721TiersHookStore hookStore = new JB721TiersHookStore();
-
         // Initialize the hook's flags and init config in memory (for stack's sake).
         JB721TiersHookFlags memory flags = JB721TiersHookFlags({
             preventOverspending: preventOverspending,
@@ -603,12 +613,10 @@ contract UnitTestSetup is Test {
             projectId,
             name,
             symbol,
-            IJBRulesets(mockJBRulesets),
             baseUri,
             IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri,
             initConfig,
-            IJB721TiersHookStore(hookStore),
             flags
         );
 
@@ -670,17 +678,18 @@ contract UnitTestSetup is Test {
                 reserveBeneficiary: reserveBeneficiary,
                 encodedIPFSUri: tokenUris[i],
                 category: uint24(100),
+                discountPercent: uint8(0),
                 allowOwnerMint: false,
                 useReserveBeneficiaryAsDefault: false,
                 transfersPausable: false,
                 useVotingUnits: true,
-                cannotBeRemoved: false
+                cannotBeRemoved: false,
+                cannotIncreaseDiscountPercent: false
             });
         }
         tiersHookConfig = JBDeploy721TiersHookConfig({
             name: name,
             symbol: symbol,
-            rulesets: IJBRulesets(mockJBRulesets),
             baseUri: baseUri,
             tokenUriResolver: IJB721TokenUriResolver(mockTokenUriResolver),
             contractUri: contractUri,
@@ -714,6 +723,7 @@ contract UnitTestSetup is Test {
             ownerMustSendPayouts: false,
             allowAddAccountingContext: false,
             allowAddPriceFeed: false,
+            allowCrosschainSuckerExtension: false,
             holdFees: false,
             useTotalSurplusForRedemptions: false,
             useDataHookForRedeem: false,

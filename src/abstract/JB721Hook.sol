@@ -1,22 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {mulDiv} from "@prb/math/src/Common.sol";
-import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
-import {IERC2981} from "@openzeppelin/contracts/interfaces/IERC2981.sol";
-import {IJBRulesetDataHook} from "@bananapus/core/src/interfaces/IJBRulesetDataHook.sol";
 import {IJBDirectory} from "@bananapus/core/src/interfaces/IJBDirectory.sol";
 import {IJBPayHook} from "@bananapus/core/src/interfaces/IJBPayHook.sol";
 import {IJBRedeemHook} from "@bananapus/core/src/interfaces/IJBRedeemHook.sol";
+import {IJBRulesetDataHook} from "@bananapus/core/src/interfaces/IJBRulesetDataHook.sol";
 import {IJBTerminal} from "@bananapus/core/src/interfaces/IJBTerminal.sol";
 import {JBConstants} from "@bananapus/core/src/libraries/JBConstants.sol";
-import {JBBeforePayRecordedContext} from "@bananapus/core/src/structs/JBBeforePayRecordedContext.sol";
+import {JBMetadataResolver} from "@bananapus/core/src/libraries/JBMetadataResolver.sol";
 import {JBAfterPayRecordedContext} from "@bananapus/core/src/structs/JBAfterPayRecordedContext.sol";
 import {JBAfterRedeemRecordedContext} from "@bananapus/core/src/structs/JBAfterRedeemRecordedContext.sol";
+import {JBBeforePayRecordedContext} from "@bananapus/core/src/structs/JBBeforePayRecordedContext.sol";
 import {JBBeforeRedeemRecordedContext} from "@bananapus/core/src/structs/JBBeforeRedeemRecordedContext.sol";
 import {JBPayHookSpecification} from "@bananapus/core/src/structs/JBPayHookSpecification.sol";
 import {JBRedeemHookSpecification} from "@bananapus/core/src/structs/JBRedeemHookSpecification.sol";
-import {JBMetadataResolver} from "@bananapus/core/src/libraries/JBMetadataResolver.sol";
+import {IERC2981} from "@openzeppelin/contracts/interfaces/IERC2981.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {mulDiv} from "@prb/math/src/Common.sol";
 
 import {ERC721} from "./ERC721.sol";
 import {IJB721Hook} from "../interfaces/IJB721Hook.sol";
@@ -31,10 +31,10 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     // --------------------------- custom errors ------------------------- //
     //*********************************************************************//
 
-    error INVALID_PAY();
-    error INVALID_REDEEM();
-    error UNAUTHORIZED_TOKEN(uint256 tokenId);
-    error UNEXPECTED_TOKEN_REDEEMED();
+    error JB721Hook_InvalidPay();
+    error JB721Hook_InvalidRedeem();
+    error JB721Hook_UnauthorizedToken();
+    error JB721Hook_UnexpectedTokenRedeemed();
 
     //*********************************************************************//
     // --------------- public immutable stored properties ---------------- //
@@ -54,13 +54,20 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     uint256 public override PROJECT_ID;
 
     //*********************************************************************//
-    // ------------------------- external views -------------------------- //
+    // -------------------------- constructor ---------------------------- //
     //*********************************************************************//
 
-    /// @notice Required by the IJBRulesetDataHook interfaces. Return false to not leak any permissions.
-    function hasMintPermissionFor(uint256, address) external pure returns (bool) {
-        return false;
+    /// @param directory A directory of terminals and controllers for projects.
+    constructor(IJBDirectory directory) {
+        DIRECTORY = directory;
+        // Store the address of the original hook deploy. Clones will each use the address of the instance they're based
+        // on.
+        METADATA_ID_TARGET = address(this);
     }
+
+    //*********************************************************************//
+    // ------------------------- external views -------------------------- //
+    //*********************************************************************//
 
     /// @notice The data calculated before a payment is recorded in the terminal store. This data is provided to the
     /// terminal's `pay(...)` transaction.
@@ -69,7 +76,9 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     /// @return weight The new `weight` to use, overriding the ruleset's `weight`.
     /// @return hookSpecifications The amount and data to send to pay hooks (this contract) instead of adding to the
     /// terminal's balance.
-    function beforePayRecordedWith(JBBeforePayRecordedContext calldata context)
+    function beforePayRecordedWith(
+        JBBeforePayRecordedContext calldata context
+    )
         public
         view
         virtual
@@ -93,7 +102,9 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     /// @return totalSupply The total amount of tokens that are considered to be existing.
     /// @return hookSpecifications The amount and data to send to redeem hooks (this contract) instead of returning to
     /// the beneficiary.
-    function beforeRedeemRecordedWith(JBBeforeRedeemRecordedContext calldata context)
+    function beforeRedeemRecordedWith(
+        JBBeforeRedeemRecordedContext calldata context
+    )
         public
         view
         virtual
@@ -106,7 +117,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         )
     {
         // Make sure (fungible) project tokens aren't also being redeemed.
-        if (context.redeemCount > 0) revert UNEXPECTED_TOKEN_REDEEMED();
+        if (context.redeemCount > 0) revert JB721Hook_UnexpectedTokenRedeemed();
 
         // Fetch the redeem hook metadata using the corresponding metadata ID.
         (bool metadataExists, bytes memory metadata) =
@@ -129,6 +140,11 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
 
         // Use the redemption rate from the context.
         redemptionRate = context.redemptionRate;
+    }
+
+    /// @notice Required by the IJBRulesetDataHook interfaces. Return false to not leak any permissions.
+    function hasMintPermissionFor(uint256, address) external pure returns (bool) {
+        return false;
     }
 
     //*********************************************************************//
@@ -154,19 +170,6 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         return 0;
     }
 
-    /// @notice Calculates the cumulative redemption weight of all NFT token IDs.
-    /// @param context The redemption context passed to this contract by the `redeemTokensOf(...)` function.
-    /// @return The total cumulative redemption weight of all NFT token IDs.
-    function totalRedemptionWeight(JBBeforeRedeemRecordedContext calldata context)
-        public
-        view
-        virtual
-        returns (uint256)
-    {
-        context; // Prevents unused var compiler and natspec complaints.
-        return 0;
-    }
-
     /// @notice Indicates if this contract adheres to the specified interface.
     /// @dev See {IERC165-supportsInterface}.
     /// @param _interfaceId The ID of the interface to check for adherence to.
@@ -176,17 +179,24 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
             || _interfaceId == type(IERC2981).interfaceId || super.supportsInterface(_interfaceId);
     }
 
-    //*********************************************************************//
-    // -------------------------- constructor ---------------------------- //
-    //*********************************************************************//
-
-    /// @param directory A directory of terminals and controllers for projects.
-    constructor(IJBDirectory directory) {
-        DIRECTORY = directory;
-        // Store the address of the original hook deploy. Clones will each use the address of the instance they're based
-        // on.
-        METADATA_ID_TARGET = address(this);
+    /// @notice Calculates the cumulative redemption weight of all NFT token IDs.
+    /// @param context The redemption context passed to this contract by the `redeemTokensOf(...)` function.
+    /// @return The total cumulative redemption weight of all NFT token IDs.
+    function totalRedemptionWeight(
+        JBBeforeRedeemRecordedContext calldata context
+    )
+        public
+        view
+        virtual
+        returns (uint256)
+    {
+        context; // Prevents unused var compiler and natspec complaints.
+        return 0;
     }
+
+    //*********************************************************************//
+    // ------------------------ internal views --------------------------- //
+    //*********************************************************************//
 
     /// @notice Initializes the contract by associating it with a project and adding ERC721 details.
     /// @param projectId The ID of the project that this contract is associated with.
@@ -214,7 +224,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         if (
             msg.value != 0 || !DIRECTORY.isTerminalOf(projectId, IJBTerminal(msg.sender))
                 || context.projectId != projectId
-        ) revert INVALID_PAY();
+        ) revert JB721Hook_InvalidPay();
 
         // Process the payment.
         _processPayment(context);
@@ -234,7 +244,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         if (
             msg.value != 0 || !DIRECTORY.isTerminalOf(projectId, IJBTerminal(msg.sender))
                 || context.projectId != projectId
-        ) revert INVALID_REDEEM();
+        ) revert JB721Hook_InvalidRedeem();
 
         // Fetch the redeem hook metadata using the corresponding metadata ID.
         (bool metadataExists, bytes memory metadata) = JBMetadataResolver.getDataFor(
@@ -258,7 +268,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
             tokenId = decodedTokenIds[i];
 
             // Make sure the token's owner is correct.
-            if (_ownerOf(tokenId) != context.holder) revert UNAUTHORIZED_TOKEN(tokenId);
+            if (_ownerOf(tokenId) != context.holder) revert JB721Hook_UnauthorizedToken();
 
             // Burn the token.
             _burn(tokenId);
@@ -272,15 +282,11 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     // ---------------------- internal transactions ---------------------- //
     //*********************************************************************//
 
-    /// @notice Process a received payment.
-    /// @param context The payment context passed in by the terminal.
-    function _processPayment(JBAfterPayRecordedContext calldata context) internal virtual {
-        context; // Prevents unused var compiler and natspec complaints.
-    }
-
     /// @notice Executes after NFTs have been burned via redemption.
     /// @param tokenIds The token IDs of the NFTs that were burned.
-    function _didBurn(uint256[] memory tokenIds) internal virtual {
-        tokenIds;
-    }
+    function _didBurn(uint256[] memory tokenIds) internal virtual;
+
+    /// @notice Process a received payment.
+    /// @param context The payment context passed in by the terminal.
+    function _processPayment(JBAfterPayRecordedContext calldata context) internal virtual;
 }

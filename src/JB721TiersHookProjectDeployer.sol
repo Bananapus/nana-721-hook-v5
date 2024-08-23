@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {JBOwnable} from "@bananapus/ownable/src/JBOwnable.sol";
 import {JBPermissioned} from "@bananapus/core/src/abstract/JBPermissioned.sol";
-import {IJBDirectory} from "@bananapus/core/src/interfaces/IJBDirectory.sol";
 import {IJBController} from "@bananapus/core/src/interfaces/IJBController.sol";
+import {IJBDirectory} from "@bananapus/core/src/interfaces/IJBDirectory.sol";
 import {IJBPermissions} from "@bananapus/core/src/interfaces/IJBPermissions.sol";
-import {JBPermissionIds} from "@bananapus/permission-ids/src/JBPermissionIds.sol";
 import {JBRulesetConfig} from "@bananapus/core/src/structs/JBRulesetConfig.sol";
 import {JBRulesetMetadata} from "@bananapus/core/src/structs/JBRulesetMetadata.sol";
+import {JBOwnable} from "@bananapus/ownable/src/JBOwnable.sol";
+import {JBPermissionIds} from "@bananapus/permission-ids/src/JBPermissionIds.sol";
 
 import {IJB721TiersHookDeployer} from "./interfaces/IJB721TiersHookDeployer.sol";
 import {IJB721TiersHookProjectDeployer} from "./interfaces/IJB721TiersHookProjectDeployer.sol";
@@ -65,8 +65,8 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
     /// @return projectId The ID of the newly launched project.
     function launchProjectFor(
         address owner,
-        JBDeploy721TiersHookConfig memory deployTiersHookConfig,
-        JBLaunchProjectConfig memory launchProjectConfig,
+        JBDeploy721TiersHookConfig calldata deployTiersHookConfig,
+        JBLaunchProjectConfig calldata launchProjectConfig,
         IJBController controller
     )
         external
@@ -96,8 +96,8 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
     /// @return rulesetId The ID of the successfully created ruleset.
     function launchRulesetsFor(
         uint256 projectId,
-        JBDeploy721TiersHookConfig memory deployTiersHookConfig,
-        JBLaunchRulesetsConfig memory launchRulesetsConfig,
+        JBDeploy721TiersHookConfig calldata deployTiersHookConfig,
+        JBLaunchRulesetsConfig calldata launchRulesetsConfig,
         IJBController controller
     )
         external
@@ -131,8 +131,8 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
     /// @return rulesetId The ID of the successfully created ruleset.
     function queueRulesetsOf(
         uint256 projectId,
-        JBDeploy721TiersHookConfig memory deployTiersHookConfig,
-        JBQueueRulesetsConfig memory queueRulesetsConfig,
+        JBDeploy721TiersHookConfig calldata deployTiersHookConfig,
+        JBQueueRulesetsConfig calldata queueRulesetsConfig,
         IJBController controller
     )
         external
@@ -207,6 +207,7 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
                     allowSetController: payDataRulesetConfig.metadata.allowSetController,
                     allowAddAccountingContext: payDataRulesetConfig.metadata.allowAddAccountingContext,
                     allowAddPriceFeed: payDataRulesetConfig.metadata.allowAddPriceFeed,
+                    allowCrosschainSuckerExtension: payDataRulesetConfig.metadata.allowCrosschainSuckerExtension,
                     ownerMustSendPayouts: payDataRulesetConfig.metadata.ownerMustSendPayouts,
                     holdFees: payDataRulesetConfig.metadata.holdFees,
                     useTotalSurplusForRedemptions: payDataRulesetConfig.metadata.useTotalSurplusForRedemptions,
@@ -280,6 +281,7 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
                     allowSetController: payDataRulesetConfig.metadata.allowSetController,
                     allowAddAccountingContext: payDataRulesetConfig.metadata.allowAddAccountingContext,
                     allowAddPriceFeed: payDataRulesetConfig.metadata.allowAddPriceFeed,
+                    allowCrosschainSuckerExtension: payDataRulesetConfig.metadata.allowCrosschainSuckerExtension,
                     ownerMustSendPayouts: payDataRulesetConfig.metadata.ownerMustSendPayouts,
                     holdFees: payDataRulesetConfig.metadata.holdFees,
                     useTotalSurplusForRedemptions: payDataRulesetConfig.metadata.useTotalSurplusForRedemptions,
@@ -351,6 +353,7 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
                     allowSetController: payDataRulesetConfig.metadata.allowSetController,
                     allowAddAccountingContext: payDataRulesetConfig.metadata.allowAddAccountingContext,
                     allowAddPriceFeed: payDataRulesetConfig.metadata.allowAddPriceFeed,
+                    allowCrosschainSuckerExtension: payDataRulesetConfig.metadata.allowCrosschainSuckerExtension,
                     ownerMustSendPayouts: payDataRulesetConfig.metadata.ownerMustSendPayouts,
                     holdFees: payDataRulesetConfig.metadata.holdFees,
                     useTotalSurplusForRedemptions: payDataRulesetConfig.metadata.useTotalSurplusForRedemptions,

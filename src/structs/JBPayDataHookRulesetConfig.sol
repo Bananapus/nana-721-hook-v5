@@ -2,8 +2,8 @@
 pragma solidity ^0.8.0;
 
 import {IJBRulesetApprovalHook} from "@bananapus/core/src/interfaces/IJBRulesetApprovalHook.sol";
-import {JBSplitGroup} from "@bananapus/core/src/structs/JBSplitGroup.sol";
 import {JBFundAccessLimitGroup} from "@bananapus/core/src/structs/JBFundAccessLimitGroup.sol";
+import {JBSplitGroup} from "@bananapus/core/src/structs/JBSplitGroup.sol";
 
 import {JBPayDataHookRulesetMetadata} from "./JBPayDataHookRulesetMetadata.sol";
 

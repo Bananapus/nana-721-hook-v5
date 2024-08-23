@@ -31,7 +31,8 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false)
+                    discountPercent: uint8(0),
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false, false)
                 })
             );
             hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
@@ -81,7 +82,8 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false)
+                    discountPercent: uint8(0),
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false, false)
                 })
             );
 
@@ -151,13 +153,14 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                             allowSetController: false,
                             allowAddAccountingContext: false,
                             allowAddPriceFeed: false,
+                            allowCrosschainSuckerExtension: false,
                             ownerMustSendPayouts: false,
                             holdFees: false,
                             useTotalSurplusForRedemptions: false,
                             useDataHookForPay: true,
                             useDataHookForRedeem: true,
                             dataHook: address(0),
-                            metadata: 8 // the first 2 bits are discarded, so this is 010.
+                            metadata: 16 // the first 3 bits are discarded, so this is 0100.
                         })
                     )
                 })
@@ -177,7 +180,8 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false)
+                    discountPercent: uint8(0),
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false, false)
                 })
             );
             hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
@@ -188,7 +192,7 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
         for (uint256 tier = 1; tier <= numberOfTiers; tier++) {
             uint256 mintable = hook.test_store().numberOfPendingReservesFor(address(hook), tier);
             vm.prank(owner);
-            vm.expectRevert(JB721TiersHook.MINT_RESERVE_NFTS_PAUSED.selector);
+            vm.expectRevert(JB721TiersHook.JB721TiersHook_MintReserveNftsPaused.selector);
             hook.mintPendingReservesFor(tier, mintable);
         }
     }
@@ -213,7 +217,8 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false)
+                    discountPercent: uint8(0),
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false, false)
                 })
             );
             hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
@@ -226,7 +231,9 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
             // Increase it by 1 to cause an error, then attempt to mint.
             amount++;
             // Check: is the correct error thrown?
-            vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.INSUFFICIENT_PENDING_RESERVES.selector));
+            vm.expectRevert(
+                abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_InsufficientPendingReserves.selector)
+            );
             vm.prank(owner);
             hook.mintPendingReservesFor(i, amount);
         }
@@ -255,7 +262,8 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     votingUnits: uint16(0),
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false)
+                    discountPercent: uint8(0),
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false, false)
                 })
             );
             hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
@@ -323,7 +331,7 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
         vm.prank(owner);
 
         // Expect the function call to revert with the specified error message.
-        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.CANT_MINT_MANUALLY.selector));
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_CantMintManually.selector));
 
         // Call the `mintFor` function to trigger the revert.
         hook.mintFor(tiersToMint, beneficiary);
