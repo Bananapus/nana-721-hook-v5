@@ -1579,4 +1579,138 @@ contract Test_adjustTier_Unit is UnitTestSetup {
         // Check: does the array have a length of 0?
         assertEq(intialTiers.length, 0, "Length mismatch.");
     }
+
+    function test_adjustTier_revertIfCannotIncreaseDiscount() public {
+        // Initial tier config and data.
+        JB721TierConfig[] memory tierConfigs = new JB721TierConfig[](1);
+        tierConfigs[0] = JB721TierConfig({
+            price: 10,
+            initialSupply: uint32(100),
+            votingUnits: uint16(0),
+            reserveFrequency: uint16(0),
+            reserveBeneficiary: reserveBeneficiary,
+            encodedIPFSUri: tokenUris[0],
+            category: uint24(100),
+            discountPercent: uint8(0),
+            allowOwnerMint: false,
+            useReserveBeneficiaryAsDefault: false,
+            transfersPausable: false,
+            useVotingUnits: true,
+            cannotBeRemoved: true,
+            cannotIncreaseDiscountPercent: true
+        });
+        //  Deploy the hook and its store with the initial tiers.
+        vm.etch(hook_i, address(hook).code);
+        JB721TiersHook hook = JB721TiersHook(hook_i);
+        hook.initialize(
+            projectId,
+            name,
+            symbol,
+            baseUri,
+            IJB721TokenUriResolver(mockTokenUriResolver),
+            contractUri,
+            JB721InitTiersConfig({
+                tiers: tierConfigs,
+                currency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
+                decimals: 18,
+                prices: IJBPrices(address(0))
+            }),
+            JB721TiersHookFlags({
+                preventOverspending: false,
+                noNewTiersWithReserves: false,
+                noNewTiersWithVotes: false,
+                noNewTiersWithOwnerMinting: true
+            })
+        );
+        hook.transferOwnership(owner);
+
+        // Expect the `setDiscountPercentOf` call to revert because of the flag.
+        vm.expectRevert(
+            abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_DiscountPercentIncreaseNotAllowed.selector)
+        );
+        vm.prank(owner);
+        // Attempt to increase the discount of the first tier to 100%
+        hook.setDiscountPercentOf(1, 100);
+    }
+
+    function test_adjustTiers_revertIfCannotIncreaseDiscounts() public {
+        // Initial tier config and data.
+        JB721TierConfig[] memory initialConfig = new JB721TierConfig[](2);
+        initialConfig[0] = JB721TierConfig({
+            price: 10,
+            initialSupply: uint32(100),
+            votingUnits: uint16(0),
+            reserveFrequency: uint16(0),
+            reserveBeneficiary: reserveBeneficiary,
+            encodedIPFSUri: tokenUris[0],
+            category: uint24(100),
+            discountPercent: uint8(0),
+            allowOwnerMint: false,
+            useReserveBeneficiaryAsDefault: false,
+            transfersPausable: false,
+            useVotingUnits: true,
+            cannotBeRemoved: true,
+            cannotIncreaseDiscountPercent: true
+        });
+        initialConfig[1] = JB721TierConfig({
+            price: 10,
+            initialSupply: uint32(100),
+            votingUnits: uint16(0),
+            reserveFrequency: uint16(0),
+            reserveBeneficiary: reserveBeneficiary,
+            encodedIPFSUri: tokenUris[0],
+            category: uint24(100),
+            discountPercent: uint8(0),
+            allowOwnerMint: false,
+            useReserveBeneficiaryAsDefault: false,
+            transfersPausable: false,
+            useVotingUnits: true,
+            cannotBeRemoved: true,
+            cannotIncreaseDiscountPercent: false
+        });
+
+        //  Deploy the hook and its store with the initial tiers.
+        vm.etch(hook_i, address(hook).code);
+        JB721TiersHook hook = JB721TiersHook(hook_i);
+        hook.initialize(
+            projectId,
+            name,
+            symbol,
+            baseUri,
+            IJB721TokenUriResolver(mockTokenUriResolver),
+            contractUri,
+            JB721InitTiersConfig({
+                tiers: initialConfig,
+                currency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
+                decimals: 18,
+                prices: IJBPrices(address(0))
+            }),
+            JB721TiersHookFlags({
+                preventOverspending: false,
+                noNewTiersWithReserves: false,
+                noNewTiersWithVotes: false,
+                noNewTiersWithOwnerMinting: true
+            })
+        );
+        hook.transferOwnership(owner);
+
+        // Build calldata for increasing multiple tier discounts at once.
+        JB721TiersSetDiscountPercentConfig[] memory discountCalldata = new JB721TiersSetDiscountPercentConfig[](2);
+        discountCalldata[0] = JB721TiersSetDiscountPercentConfig({
+            tierId: 1,
+            discountPercent: 100 // invalid
+        });
+
+        discountCalldata[1] = JB721TiersSetDiscountPercentConfig({
+            tierId: 2,
+            discountPercent: 100 // valid
+        });
+
+        // Expect the `setDiscountPercentsOf` call to revert because of the flag.
+        vm.expectRevert(
+            abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_DiscountPercentIncreaseNotAllowed.selector)
+        );
+        vm.prank(owner);
+        hook.setDiscountPercentsOf(discountCalldata);
+    }
 }
