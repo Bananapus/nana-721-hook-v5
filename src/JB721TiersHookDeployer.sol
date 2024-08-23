@@ -86,7 +86,6 @@ contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
             flags: deployTiersHookConfig.flags
         });
 
-
         // Transfer the hook's ownership to the address that called this function.
         JBOwnable(address(newHook)).transferOwnership(_msgSender());
 

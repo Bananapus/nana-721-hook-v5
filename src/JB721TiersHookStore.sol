@@ -537,9 +537,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @notice Record newly added tiers.
     /// @param tiersToAdd The tiers to add.
     /// @return tierIds The IDs of the tiers being added.
-    function recordAddTiers(
-        JB721TierConfig[] calldata tiersToAdd
-    )
+    function recordAddTiers(JB721TierConfig[] calldata tiersToAdd)
         external
         override
         returns (uint256[] memory tierIds)
@@ -1197,9 +1195,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @param useVotingUnits Whether or not custom voting unit amounts are allowed in new tiers.
     /// @param cannotBeRemoved Whether or not the tier can be removed once added.
     /// @param cannotIncreaseDiscountPercent Whether or not the discount percent cannot be increased.
-    function _unpackBools(
-        uint8 packed
-    )
+    function _unpackBools(uint8 packed)
         internal
         pure
         returns (
