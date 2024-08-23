@@ -148,12 +148,16 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         assertEq(IJB721TiersHook(dataHook).firstOwnerOf(tokenId), beneficiary);
     }
 
-    function testMintWithDiscountOnPayIfOneTierIsPassed() external {
-        uint256 valueSent = 10;
-        // Cap the highest tier ID possible to 10.
-        uint256 highestTier = valueSent <= 100 ? (valueSent / 10) : 10;
+    function testFuzzMintWithDiscountOnPayIfOneTierIsPassed(uint256 tierStartPrice, uint256 discountPercent) external {
+        // Cap our fuzzed params
+        tierStartPrice = bound(tierStartPrice, 1, type(uint104).max);
+        discountPercent = bound(discountPercent, 1, 200);
+
+        // Cap the highest tier ID.
+        uint256 highestTier = 1;
+
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
-            createDiscountedData();
+            createDiscountedData(tierStartPrice, uint8(discountPercent));
         uint256 projectId = deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
 
         // Crafting the payment metadata: add the highest tier ID.
@@ -179,15 +183,16 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
             _generateTokenId(highestTier, 1),
             highestTier,
             beneficiary,
-            valueSent,
+            tierStartPrice,
             address(jbMultiTerminal) // msg.sender
         );
 
         // Pay the terminal to mint the NFTs.
+        vm.deal(caller, type(uint256).max);
         vm.prank(caller);
-        jbMultiTerminal.pay{value: valueSent}({
+        jbMultiTerminal.pay{value: tierStartPrice}({
             projectId: projectId,
-            amount: valueSent,
+            amount: tierStartPrice,
             token: JBConstants.NATIVE_TOKEN,
             beneficiary: beneficiary,
             minReturnedTokens: 0,
@@ -195,17 +200,13 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
             metadata: hookMetadata
         });
         uint256 tokenId = _generateTokenId(highestTier, 1);
+
         // Check: did the beneficiary receive the NFT?
         assertEq(IERC721(dataHook).balanceOf(beneficiary), 1);
 
-        // TODO: Current calc results in 10 credits, but the correct credit amount would be 2 (20% of 10)
-        assertEq(IJB721TiersHook(dataHook).payCreditsOf(beneficiary), 10);
-        assertEq(IJB721TiersHook(dataHook).payCreditsOf(beneficiary), mulDiv(valueSent, 200, 200));
-
-        // One correct calc would use 1000 as the dividend for appropriate scaling.
-        assertEq(2, mulDiv(valueSent, 200, 1000));
-        // Or divide by 100 for the same refund/credits. I'm not sure yet what the better solution is.
-        assertEq(2, mulDiv(valueSent, 20, 100));
+        // Check: did the discount result in the correct credit amount for the beneficiary?
+        uint256 expectedCredits = mulDiv(tierStartPrice, discountPercent, JB721Constants.MAX_DISCOUNT_PERCENT);
+        assertEq(IJB721TiersHook(dataHook).payCreditsOf(beneficiary), expectedCredits);
 
         // Check: is the beneficiary the first owner of the NFT?
         assertEq(IERC721(dataHook).ownerOf(tokenId), beneficiary);
@@ -743,30 +744,32 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         });
     }
 
-    function createDiscountedData()
+    function createDiscountedData(
+        uint256 _price,
+        uint8 _discountPercent
+    )
         internal
         view
         returns (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig)
     {
-        JB721TierConfig[] memory tierConfigs = new JB721TierConfig[](10);
-        for (uint256 i; i < 10; i++) {
-            tierConfigs[i] = JB721TierConfig({
-                price: uint104((i + 1) * 10),
-                initialSupply: uint32(10),
-                votingUnits: uint32((i + 1) * 10),
-                reserveFrequency: 10,
-                reserveBeneficiary: reserveBeneficiary,
-                encodedIPFSUri: tokenUris[i],
-                category: uint24(100),
-                discountPercent: uint8(200),
-                allowOwnerMint: false,
-                useReserveBeneficiaryAsDefault: false,
-                transfersPausable: false,
-                useVotingUnits: false,
-                cannotBeRemoved: false,
-                cannotIncreaseDiscountPercent: false
-            });
-        }
+        JB721TierConfig[] memory tierConfigs = new JB721TierConfig[](1);
+        tierConfigs[0] = JB721TierConfig({
+            price: uint104(_price),
+            initialSupply: uint32(10),
+            votingUnits: uint32(10),
+            reserveFrequency: 10,
+            reserveBeneficiary: reserveBeneficiary,
+            encodedIPFSUri: tokenUris[0],
+            category: uint24(100),
+            discountPercent: _discountPercent,
+            allowOwnerMint: false,
+            useReserveBeneficiaryAsDefault: false,
+            transfersPausable: false,
+            useVotingUnits: false,
+            cannotBeRemoved: false,
+            cannotIncreaseDiscountPercent: false
+        });
+
         tiersHookConfig = JBDeploy721TiersHookConfig({
             name: name,
             symbol: symbol,
