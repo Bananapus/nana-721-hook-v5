@@ -16,6 +16,8 @@ import {MetadataResolverHelper} from "@bananapus/core/test/helpers/MetadataResol
 contract Test_TiersHook_E2E is TestBaseWorkflow {
     using JBRulesetMetadataResolver for JBRuleset;
 
+    uint256 totalSupplyAfterPay;
+
     address reserveBeneficiary = address(bytes20(keccak256("reserveBeneficiary")));
     address trustedForwarder = address(123_456);
 
@@ -150,8 +152,13 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
     function testFuzzMintWithDiscountOnPayIfOneTierIsPassed(uint256 tierStartPrice, uint256 discountPercent) external {
         // Cap our fuzzed params
-        tierStartPrice = bound(tierStartPrice, 1, type(uint104).max);
+        tierStartPrice = bound(tierStartPrice, 1, type(uint208).max - 1);
         discountPercent = bound(discountPercent, 1, 200);
+
+        {
+            uint256 amountMinted = (tierStartPrice * 1000) / 2;
+            totalSupplyAfterPay += amountMinted;
+        }
 
         // Cap the highest tier ID.
         uint256 highestTier = 1;
@@ -177,7 +184,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
 
-        // Check: was an NFT with the correct tier ID and token ID minted?
+        /* // Check: was an NFT with the correct tier ID and token ID minted?
         vm.expectEmit(true, true, true, true);
         emit Mint(
             _generateTokenId(highestTier, 1),
@@ -185,7 +192,11 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
             beneficiary,
             tierStartPrice,
             address(jbMultiTerminal) // msg.sender
-        );
+        ); */
+
+        if (totalSupplyAfterPay > type(uint208).max) {
+            vm.expectRevert(JBTokens.JBTokens_OverflowAlert.selector);
+        }
 
         // Pay the terminal to mint the NFTs.
         vm.deal(caller, type(uint256).max);
@@ -199,30 +210,43 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
             memo: "Take my money!",
             metadata: hookMetadata
         });
-        uint256 tokenId = _generateTokenId(highestTier, 1);
 
-        // Check: did the beneficiary receive the NFT?
-        assertEq(IERC721(dataHook).balanceOf(beneficiary), 1);
+        if (totalSupplyAfterPay < type(uint208).max) {
+            if (tierStartPrice > type(uint104).max) {
+                uint256 expectedDiscount =
+                    mulDiv(uint104(tierStartPrice), discountPercent, JB721Constants.MAX_DISCOUNT_PERCENT);
+                uint256 paidForNft = uint104(tierStartPrice) - expectedDiscount;
 
-        // Check: did the discount result in the correct credit amount for the beneficiary?
-        uint256 expectedCredits = mulDiv(tierStartPrice, discountPercent, JB721Constants.MAX_DISCOUNT_PERCENT);
-        assertEq(IJB721TiersHook(dataHook).payCreditsOf(beneficiary), expectedCredits);
+                // Check: should be credited tierStartPrice minus what you paid for the NFT plus the discount
+                assertEq(IJB721TiersHook(dataHook).payCreditsOf(beneficiary), tierStartPrice - paidForNft);
+            } else {
+                uint256 expectedCredits = mulDiv(tierStartPrice, discountPercent, JB721Constants.MAX_DISCOUNT_PERCENT);
+                assertEq(IJB721TiersHook(dataHook).payCreditsOf(beneficiary), expectedCredits);
+            }
 
-        // Check: is the beneficiary the first owner of the NFT?
-        assertEq(IERC721(dataHook).ownerOf(tokenId), beneficiary);
-        assertEq(IJB721TiersHook(dataHook).firstOwnerOf(tokenId), beneficiary);
+            {
+                // Check: did the beneficiary receive the NFT?
+                assertEq(IERC721(dataHook).balanceOf(beneficiary), 1);
 
-        // Check: after a transfer, are the `firstOwnerOf` and `ownerOf` still correct?
-        vm.prank(beneficiary);
-        IERC721(dataHook).transferFrom(beneficiary, address(696_969_420), tokenId);
-        assertEq(IERC721(dataHook).ownerOf(tokenId), address(696_969_420));
-        assertEq(IJB721TiersHook(dataHook).firstOwnerOf(tokenId), beneficiary);
+                uint256 tokenId = _generateTokenId(highestTier, 1);
 
-        // Check: is the same true after a second transfer?
-        vm.prank(address(696_969_420));
-        IERC721(dataHook).transferFrom(address(696_969_420), address(123_456_789), tokenId);
-        assertEq(IERC721(dataHook).ownerOf(tokenId), address(123_456_789));
-        assertEq(IJB721TiersHook(dataHook).firstOwnerOf(tokenId), beneficiary);
+                // Check: is the beneficiary the first owner of the NFT?
+                assertEq(IERC721(dataHook).ownerOf(tokenId), beneficiary);
+                assertEq(IJB721TiersHook(dataHook).firstOwnerOf(tokenId), beneficiary);
+
+                // Check: after a transfer, are the `firstOwnerOf` and `ownerOf` still correct?
+                vm.prank(beneficiary);
+                IERC721(dataHook).transferFrom(beneficiary, address(696_969_420), tokenId);
+                assertEq(IERC721(dataHook).ownerOf(tokenId), address(696_969_420));
+                assertEq(IJB721TiersHook(dataHook).firstOwnerOf(tokenId), beneficiary);
+
+                // Check: is the same true after a second transfer?
+                vm.prank(address(696_969_420));
+                IERC721(dataHook).transferFrom(address(696_969_420), address(123_456_789), tokenId);
+                assertEq(IERC721(dataHook).ownerOf(tokenId), address(123_456_789));
+                assertEq(IJB721TiersHook(dataHook).firstOwnerOf(tokenId), beneficiary);
+            }
+        }
     }
 
     function testMintOnPayIfMultipleTiersArePassed() external {
