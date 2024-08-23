@@ -1580,7 +1580,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
         assertEq(intialTiers.length, 0, "Length mismatch.");
     }
 
-    function test_adjustTier_revertIfCannotIncreaseDiscount() public {
+    function test_setDiscountPercentOf_revertIfCannotIncreaseDiscount() public {
         // Initial tier config and data.
         JB721TierConfig[] memory tierConfigs = new JB721TierConfig[](1);
         tierConfigs[0] = JB721TierConfig({
@@ -1633,7 +1633,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
         hook.setDiscountPercentOf(1, 100);
     }
 
-    function test_adjustTiers_revertIfCannotIncreaseDiscounts() public {
+    function test_setDiscountPercentsOf_revertIfCannotIncreaseDiscounts() public {
         // Initial tier config and data.
         JB721TierConfig[] memory initialConfig = new JB721TierConfig[](2);
         initialConfig[0] = JB721TierConfig({
