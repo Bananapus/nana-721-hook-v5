@@ -341,15 +341,12 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @param hook The 721 contract to get a total supply of.
     /// @return supply The total number of NFTs minted from all tiers on the contract.
     function totalSupplyOf(address hook) external view override returns (uint256 supply) {
-        // Keep a reference to the tier being iterated on.
-        JBStored721Tier memory storedTier;
-
         // Keep a reference to the greatest tier ID.
         uint256 maxTierId = maxTierIdOf[hook];
 
         for (uint256 i = maxTierId; i != 0; i--) {
             // Set the tier being iterated on.
-            storedTier = _storedTierOf[hook][i];
+            JBStored721Tier memory storedTier = _storedTierOf[hook][i];
 
             // Increment the total supply by the number of tokens already minted.
             supply += storedTier.initialSupply - storedTier.remainingSupply;
@@ -367,22 +364,16 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Keep a reference to the greatest tier ID.
         uint256 maxTierId = maxTierIdOf[hook];
 
-        // Keep a reference to the balance being iterated upon.
-        uint256 balance;
-
-        // Keep a reference to the stored tier.
-        JBStored721Tier memory storedTier;
-
         // Loop through all tiers.
         for (uint256 i = maxTierId; i != 0; i--) {
             // Get a reference to the account's balance in this tier.
-            balance = tierBalanceOf[hook][account][i];
+            uint256 balance = tierBalanceOf[hook][account][i];
 
             // If the account has no balance, return.
             if (balance == 0) continue;
 
             // Get the tier.
-            storedTier = _storedTierOf[hook][i];
+            JBStored721Tier memory storedTier = _storedTierOf[hook][i];
 
             // Parse the flags.
             (,, bool useVotingUnits,,) = _unpackBools(storedTier.packedBools);
@@ -467,21 +458,16 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Keep a reference to the greatest tier ID.
         uint256 maxTierId = maxTierIdOf[hook];
 
-        // Keep a reference to the tier being iterated upon.
-        JBStored721Tier memory storedTier;
-
         // Add each 721's price (from its tier) to the weight.
-        for (uint256 i; i < maxTierId; i++) {
+        for (uint256 i = 1; i <= maxTierId; i++) {
             // Keep a reference to the stored tier.
-            unchecked {
-                storedTier = _storedTierOf[hook][i + 1];
-            }
+            JBStored721Tier memory storedTier = _storedTierOf[hook][i];
 
             // Add the tier's price multiplied by the number of NFTs minted from the tier.
             weight += storedTier.price
                 * (
                     (storedTier.initialSupply - storedTier.remainingSupply)
-                        + _numberOfPendingReservesFor(hook, i + 1, storedTier)
+                        + _numberOfPendingReservesFor(hook, i, storedTier)
                 );
         }
     }
@@ -562,15 +548,12 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Keep track of the previous tier's ID while iterating.
         uint256 previousTierId;
 
-        // Keep a reference to the tier being iterated upon.
-        JB721TierConfig memory tierToAdd;
-
         // Keep a reference to the 721 contract's flags.
         JB721TiersHookFlags memory flags = _flagsOf[msg.sender];
 
         for (uint256 i; i < tiersToAdd.length; i++) {
             // Set the tier being iterated upon.
-            tierToAdd = tiersToAdd[i];
+            JB721TierConfig memory tierToAdd = tiersToAdd[i];
 
             // Make sure the supply maximum is enforced. If it's greater than one billion, it would overflow into the
             // next tier.
@@ -753,15 +736,12 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @param tokenIds The token IDs of the NFTs to burn.
     function recordBurn(uint256[] calldata tokenIds) external override {
         // Get a reference to the number of token IDs provided.
-        uint256 numberOfTokenIds = tokenIds.length;
-
-        // Keep a reference to the token ID being iterated on.
-        uint256 tokenId;
+        uint256 numberOfTokenIds = tokenIds.length; 
 
         // Iterate through all token IDs to increment the burn count.
         for (uint256 i; i < numberOfTokenIds; i++) {
             // Set the 721's token ID.
-            tokenId = tokenIds[i];
+            uint256 tokenId = tokenIds[i];
 
             uint256 tierId = tierIdOfToken(tokenId);
 
@@ -800,9 +780,6 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Keep a reference to the tier being iterated on.
         JBStored721Tier storage storedTier;
 
-        // Keep a reference to the tier ID being iterated on.
-        uint256 tierId;
-
         // Initialize the array for the token IDs to be returned.
         tokenIds = new uint256[](tierIds.length);
 
@@ -811,7 +788,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
 
         for (uint256 i; i < tierIds.length; i++) {
             // Set the tier ID being iterated on.
-            tierId = tierIds[i];
+            uint256 tierId = tierIds[i];
 
             // Make sure the tier hasn't been removed.
             if (_isTierRemovedWithRefresh(msg.sender, tierId, bitmapWord)) {
@@ -902,15 +879,9 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @notice Record tiers being removed.
     /// @param tierIds The IDs of the tiers being removed.
     function recordRemoveTierIds(uint256[] calldata tierIds) external override {
-        // Get a reference to the number of tiers being removed.
-        uint256 numTiers = tierIds.length;
-
-        // Keep a reference to the tier ID being iterated upon.
-        uint256 tierId;
-
-        for (uint256 i; i < numTiers; i++) {
+        for (uint256 i; i <  tierIds.length; i++) {
             // Set the tier being iterated upon (0-indexed).
-            tierId = tierIds[i];
+            uint256 tierId = tierIds[i];
 
             // Get a reference to the stored tier.
             JBStored721Tier storage storedTier = _storedTierOf[msg.sender][tierId];

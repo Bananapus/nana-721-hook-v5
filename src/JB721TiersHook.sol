@@ -407,12 +407,9 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         // Keep a reference to the number of configs being set.
         uint256 numberOfConfigs = configs.length;
 
-        // Keep a reference to the config being iterated on.
-        JB721TiersSetDiscountPercentConfig memory config;
-
         for (uint256 i; i < numberOfConfigs; i++) {
             // Set the config being iterated on.
-            config = configs[i];
+            JB721TiersSetDiscountPercentConfig memory config = configs[i];
 
             _setDiscountPercentOf(config.tierId, config.discountPercent);
         }
@@ -488,12 +485,9 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         // slither-disable-next-line calls-loop
         address reserveBeneficiary = STORE.reserveBeneficiaryOf(address(this), tierId);
 
-        // Keep a reference to the token ID being iterated upon.
-        uint256 tokenId;
-
         for (uint256 i; i < count; i++) {
             // Set the token ID.
-            tokenId = tokenIds[i];
+            uint256 tokenId = tokenIds[i];
 
             emit MintReservedNft({
                 tokenId: tokenId,

@@ -259,13 +259,10 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         // Get a reference to the number of NFT token IDs to check the owner of.
         uint256 numberOfTokenIds = decodedTokenIds.length;
 
-        // Keep a reference to the NFT token ID being iterated upon.
-        uint256 tokenId;
-
         // Iterate through the NFTs, burning them if the owner is correct.
         for (uint256 i; i < numberOfTokenIds; i++) {
             // Set the current NFT's token ID.
-            tokenId = decodedTokenIds[i];
+            uint256 tokenId = decodedTokenIds[i];
 
             // Make sure the token's owner is correct.
             if (_ownerOf(tokenId) != context.holder) revert JB721Hook_UnauthorizedToken(tokenId, context.holder);

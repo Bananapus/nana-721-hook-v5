@@ -179,13 +179,10 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         // Initialize an array of ruleset configurations.
         JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](numberOfRulesetConfigurations);
 
-        // Keep a reference to the pay data ruleset config being iterated on.
-        JBPayDataHookRulesetConfig memory payDataRulesetConfig;
-
         // Set the data hook to be active for pay transactions for each ruleset configuration.
         for (uint256 i; i < numberOfRulesetConfigurations; i++) {
             // Set the pay data ruleset config being iterated on.
-            payDataRulesetConfig = launchProjectConfig.rulesetConfigurations[i];
+            JBPayDataHookRulesetConfig memory payDataRulesetConfig = launchProjectConfig.rulesetConfigurations[i];
 
             // Add the ruleset config.
             rulesetConfigurations[i] = JBRulesetConfig({
@@ -253,13 +250,10 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         // Initialize an array of ruleset configurations.
         JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](numberOfRulesetConfigurations);
 
-        // Keep a reference to the pay data ruleset config being iterated on.
-        JBPayDataHookRulesetConfig memory payDataRulesetConfig;
-
         // Set the data hook to be active for pay transactions for each ruleset configuration.
         for (uint256 i; i < numberOfRulesetConfigurations; i++) {
             // Set the pay data ruleset config being iterated on.
-            payDataRulesetConfig = launchRulesetsConfig.rulesetConfigurations[i];
+            JBPayDataHookRulesetConfig memory payDataRulesetConfig = launchRulesetsConfig.rulesetConfigurations[i];
 
             // Add the ruleset config.
             rulesetConfigurations[i] = JBRulesetConfig({
@@ -325,13 +319,10 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         // Initialize an array of ruleset configurations.
         JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](numberOfRulesetConfigurations);
 
-        // Keep a reference to the pay data ruleset config being iterated on.
-        JBPayDataHookRulesetConfig memory payDataRulesetConfig;
-
         // Set the data hook to be active for pay transactions for each ruleset configuration.
         for (uint256 i; i < numberOfRulesetConfigurations; i++) {
             // Set the pay data ruleset config being iterated on.
-            payDataRulesetConfig = queueRulesetsConfig.rulesetConfigurations[i];
+            JBPayDataHookRulesetConfig memory payDataRulesetConfig = queueRulesetsConfig.rulesetConfigurations[i];
 
             // Add the ruleset config.
             rulesetConfigurations[i] = JBRulesetConfig({
