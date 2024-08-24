@@ -232,7 +232,9 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
             amount++;
             // Check: is the correct error thrown?
             vm.expectRevert(
-                abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_InsufficientPendingReserves.selector)
+                abi.encodeWithSelector(
+                    JB721TiersHookStore.JB721TiersHookStore_InsufficientPendingReserves.selector, amount, amount - 1
+                )
             );
             vm.prank(owner);
             hook.mintPendingReservesFor(i, amount);

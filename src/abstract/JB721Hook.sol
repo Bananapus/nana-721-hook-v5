@@ -33,7 +33,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
 
     error JB721Hook_InvalidPay();
     error JB721Hook_InvalidRedeem();
-    error JB721Hook_UnauthorizedToken();
+    error JB721Hook_UnauthorizedToken(uint256 tokenId, address holder);
     error JB721Hook_UnexpectedTokenRedeemed();
 
     //*********************************************************************//
@@ -268,7 +268,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
             tokenId = decodedTokenIds[i];
 
             // Make sure the token's owner is correct.
-            if (_ownerOf(tokenId) != context.holder) revert JB721Hook_UnauthorizedToken();
+            if (_ownerOf(tokenId) != context.holder) revert JB721Hook_UnauthorizedToken(tokenId, context.holder);
 
             // Burn the token.
             _burn(tokenId);

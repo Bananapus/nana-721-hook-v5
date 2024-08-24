@@ -25,20 +25,20 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
 
     error JB721TiersHookStore_CantMintManually();
     error JB721TiersHookStore_CantRemoveTier();
-    error JB721TiersHookStore_DiscountPercentExceedsBounds();
-    error JB721TiersHookStore_DiscountPercentIncreaseNotAllowed();
-    error JB721TiersHookStore_PriceExceedsAmount();
-    error JB721TiersHookStore_InsufficientPendingReserves();
-    error JB721TiersHookStore_InvalidCategorySortOrder();
-    error JB721TiersHookStore_InvalidQuantity();
-    error JB721TiersHookStore_InvalidTier();
-    error JB721TiersHookStore_MaxTiersExceeded();
-    error JB721TiersHookStore_NoSupply();
+    error JB721TiersHookStore_DiscountPercentExceedsBounds(uint256 percent, uint256 limit);
+    error JB721TiersHookStore_DiscountPercentIncreaseNotAllowed(uint256 percent, uint256 storedPercent);
+    error JB721TiersHookStore_PriceExceedsAmount(uint256 price, uint256 leftoverAmount);
+    error JB721TiersHookStore_InsufficientPendingReserves(uint256 count, uint256 numberOfPendingReserves);
+    error JB721TiersHookStore_InvalidCategorySortOrder(uint256 tierCategory, uint256 previousTierCategory);
+    error JB721TiersHookStore_InvalidQuantity(uint256 quantity, uint256 limit);
+    error JB721TiersHookStore_MaxTiersExceeded(uint256 numberOfTiers, uint256 limit);
     error JB721TiersHookStore_InsufficientSupplyRemaining();
     error JB721TiersHookStore_ReserveFrequencyNotAllowed();
     error JB721TiersHookStore_ManualMintingNotAllowed();
-    error JB721TiersHookStore_TierRemoved();
+    error JB721TiersHookStore_TierRemoved(uint256 tierId);
+    error JB721TiersHookStore_UnrecognizedTier();
     error JB721TiersHookStore_VotingUnitsNotAllowed();
+    error JB721TiersHookStore_ZeroInitialSupply();
 
     //*********************************************************************//
     // -------------------- private constant properties ------------------ //
@@ -429,11 +429,8 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         override
         returns (uint256 weight)
     {
-        // Get a reference to the total number of tokens.
-        uint256 numberOfTokenIds = tokenIds.length;
-
         // Add each 721's price (from its tier) to the weight.
-        for (uint256 i; i < numberOfTokenIds; i++) {
+        for (uint256 i; i < tokenIds.length; i++) {
             weight += _storedTierOf[hook][tierIdOfToken(tokenIds[i])].price;
         }
     }
@@ -544,20 +541,19 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         override
         returns (uint256[] memory tierIds)
     {
-        // Get a reference to the number of tiers to add.
-        uint256 numberOfNewTiers = tiersToAdd.length;
-
         // Keep a reference to the current greatest tier ID.
         uint256 currentMaxTierIdOf = maxTierIdOf[msg.sender];
 
         // Make sure the max number of tiers won't be exceeded.
-        if (currentMaxTierIdOf + numberOfNewTiers > type(uint16).max) revert JB721TiersHookStore_MaxTiersExceeded();
+        if (currentMaxTierIdOf + tiersToAdd.length > type(uint16).max) {
+            revert JB721TiersHookStore_MaxTiersExceeded(currentMaxTierIdOf + tiersToAdd.length, type(uint16).max);
+        }
 
         // Keep a reference to the current last sorted tier ID (sorted by price).
         uint256 currentLastSortedTierId = _lastSortedTierIdOf(msg.sender);
 
         // Initialize an array for the new tier IDs to be returned.
-        tierIds = new uint256[](numberOfNewTiers);
+        tierIds = new uint256[](tiersToAdd.length);
 
         // Keep a reference to the first sorted tier ID, to use when sorting new tiers if needed.
         // There's no need for sorting if there are no current tiers.
@@ -572,13 +568,15 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Keep a reference to the 721 contract's flags.
         JB721TiersHookFlags memory flags = _flagsOf[msg.sender];
 
-        for (uint256 i; i < numberOfNewTiers; i++) {
+        for (uint256 i; i < tiersToAdd.length; i++) {
             // Set the tier being iterated upon.
             tierToAdd = tiersToAdd[i];
 
             // Make sure the supply maximum is enforced. If it's greater than one billion, it would overflow into the
             // next tier.
-            if (tierToAdd.initialSupply > _ONE_BILLION - 1) revert JB721TiersHookStore_InvalidQuantity();
+            if (tierToAdd.initialSupply > _ONE_BILLION - 1) {
+                revert JB721TiersHookStore_InvalidQuantity(tierToAdd.initialSupply, _ONE_BILLION - 1);
+            }
 
             // Keep a reference to the previous tier.
             JB721TierConfig memory previousTier;
@@ -589,7 +587,9 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
                 previousTier = tiersToAdd[i - 1];
 
                 // Revert if the category is not equal or greater than the previously added tier's category.
-                if (tierToAdd.category < previousTier.category) revert JB721TiersHookStore_InvalidCategorySortOrder();
+                if (tierToAdd.category < previousTier.category) {
+                    revert JB721TiersHookStore_InvalidCategorySortOrder(tierToAdd.category, previousTier.category);
+                }
             }
 
             // Make sure the new tier doesn't have voting units if the 721 contract's flags don't allow it to.
@@ -616,11 +616,13 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
 
             // Make sure the discount percent is within the bound.
             if (tierToAdd.discountPercent > JB721Constants.MAX_DISCOUNT_PERCENT) {
-                revert JB721TiersHookStore_DiscountPercentExceedsBounds();
+                revert JB721TiersHookStore_DiscountPercentExceedsBounds(
+                    tierToAdd.discountPercent, JB721Constants.MAX_DISCOUNT_PERCENT
+                );
             }
 
             // Make sure the tier has a non-zero supply.
-            if (tierToAdd.initialSupply == 0) revert JB721TiersHookStore_NoSupply();
+            if (tierToAdd.initialSupply == 0) revert JB721TiersHookStore_ZeroInitialSupply();
 
             // Get a reference to the ID for the new tier.
             uint256 tierId = currentMaxTierIdOf + i + 1;
@@ -744,7 +746,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         }
 
         // Update the maximum tier ID to include the new tiers.
-        maxTierIdOf[msg.sender] = currentMaxTierIdOf + numberOfNewTiers;
+        maxTierIdOf[msg.sender] = currentMaxTierIdOf + tiersToAdd.length;
     }
 
     /// @notice Records 721 burns.
@@ -795,9 +797,6 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Set the leftover amount as the initial amount.
         leftoverAmount = amount;
 
-        // Get a reference to the number of tiers.
-        uint256 numberOfTiers = tierIds.length;
-
         // Keep a reference to the tier being iterated on.
         JBStored721Tier storage storedTier;
 
@@ -805,17 +804,19 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         uint256 tierId;
 
         // Initialize the array for the token IDs to be returned.
-        tokenIds = new uint256[](numberOfTiers);
+        tokenIds = new uint256[](tierIds.length);
 
         // Initialize a `JBBitmapWord` for checking whether tiers have been removed.
         JBBitmapWord memory bitmapWord;
 
-        for (uint256 i; i < numberOfTiers; i++) {
+        for (uint256 i; i < tierIds.length; i++) {
             // Set the tier ID being iterated on.
             tierId = tierIds[i];
 
             // Make sure the tier hasn't been removed.
-            if (_isTierRemovedWithRefresh(msg.sender, tierId, bitmapWord)) revert JB721TiersHookStore_TierRemoved();
+            if (_isTierRemovedWithRefresh(msg.sender, tierId, bitmapWord)) {
+                revert JB721TiersHookStore_TierRemoved(tierId);
+            }
 
             // Keep a reference to the stored tier being iterated on.
             storedTier = _storedTierOf[msg.sender][tierId];
@@ -827,7 +828,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             if (isOwnerMint && !allowOwnerMint) revert JB721TiersHookStore_CantMintManually();
 
             // Make sure the provided tier exists (tiers cannot have a supply of 0).
-            if (storedTier.initialSupply == 0) revert JB721TiersHookStore_InvalidTier();
+            if (storedTier.initialSupply == 0) revert JB721TiersHookStore_UnrecognizedTier();
 
             // Get a reference to the price.
             uint256 price = storedTier.price;
@@ -838,7 +839,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             }
 
             // Make sure the `amount` is greater than or equal to the tier's price.
-            if (price > leftoverAmount) revert JB721TiersHookStore_PriceExceedsAmount();
+            if (price > leftoverAmount) revert JB721TiersHookStore_PriceExceedsAmount(price, leftoverAmount);
 
             // Make sure there are enough NFTs available to mint.
             if (storedTier.remainingSupply <= _numberOfPendingReservesFor(msg.sender, tierId, storedTier)) {
@@ -877,7 +878,9 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         uint256 numberOfPendingReserves = _numberOfPendingReservesFor(msg.sender, tierId, storedTier);
 
         // Can't mint more than the number of pending reserves.
-        if (count > numberOfPendingReserves) revert JB721TiersHookStore_InsufficientPendingReserves();
+        if (count > numberOfPendingReserves) {
+            revert JB721TiersHookStore_InsufficientPendingReserves(count, numberOfPendingReserves);
+        }
 
         // Increment the number of reserve NFTs minted.
         numberOfReservesMintedFor[msg.sender][tierId] += count;
@@ -929,7 +932,9 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     function recordSetDiscountPercentOf(uint256 tierId, uint256 discountPercent) external override {
         // Make sure the discount percent is within the bound.
         if (discountPercent > JB721Constants.MAX_DISCOUNT_PERCENT) {
-            revert JB721TiersHookStore_DiscountPercentExceedsBounds();
+            revert JB721TiersHookStore_DiscountPercentExceedsBounds(
+                discountPercent, JB721Constants.MAX_DISCOUNT_PERCENT
+            );
         }
 
         // Get a reference to the stored tier.
@@ -940,7 +945,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
 
         // Make sure that increasing the discount is allowed for the tier.
         if (discountPercent > storedTier.discountPercent && cannotIncreaseDiscountPercent) {
-            revert JB721TiersHookStore_DiscountPercentIncreaseNotAllowed();
+            revert JB721TiersHookStore_DiscountPercentIncreaseNotAllowed(discountPercent, storedTier.discountPercent);
         }
 
         // Set the discount.
