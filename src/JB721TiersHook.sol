@@ -350,7 +350,10 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             isOwnerMint: true // manual mint.
         });
 
-        for (uint256 i; i < tierIds.length; i++) {
+        // Keep a reference to the number of NFTs being minted.
+        uint256 numberOfTiers = tierIds.length;
+
+        for (uint256 i; i < numberOfTiers; i++) {
             // Set the token ID.
             uint256 tokenId = tokenIds[i];
 

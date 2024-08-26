@@ -420,8 +420,11 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         override
         returns (uint256 weight)
     {
+        // Get a reference to the total number of tokens.
+        uint256 numberOfTokenIds = tokenIds.length;
+
         // Add each 721's price (from its tier) to the weight.
-        for (uint256 i; i < tokenIds.length; i++) {
+        for (uint256 i; i < numberOfTokenIds; i++) {
             weight += _storedTierOf[hook][tierIdOfToken(tokenIds[i])].price;
         }
     }
@@ -530,16 +533,19 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Keep a reference to the current greatest tier ID.
         uint256 currentMaxTierIdOf = maxTierIdOf[msg.sender];
 
+        // Get a reference to the number of tiers to add.
+        uint256 numberOfNewTiers = tiersToAdd.length;
+
         // Make sure the max number of tiers won't be exceeded.
-        if (currentMaxTierIdOf + tiersToAdd.length > type(uint16).max) {
-            revert JB721TiersHookStore_MaxTiersExceeded(currentMaxTierIdOf + tiersToAdd.length, type(uint16).max);
+        if (currentMaxTierIdOf + numberOfNewTiers > type(uint16).max) {
+            revert JB721TiersHookStore_MaxTiersExceeded(currentMaxTierIdOf + numberOfNewTiers, type(uint16).max);
         }
 
         // Keep a reference to the current last sorted tier ID (sorted by price).
         uint256 currentLastSortedTierId = _lastSortedTierIdOf(msg.sender);
 
         // Initialize an array for the new tier IDs to be returned.
-        tierIds = new uint256[](tiersToAdd.length);
+        tierIds = new uint256[](numberOfNewTiers);
 
         // Keep a reference to the first sorted tier ID, to use when sorting new tiers if needed.
         // There's no need for sorting if there are no current tiers.
@@ -551,7 +557,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Keep a reference to the 721 contract's flags.
         JB721TiersHookFlags memory flags = _flagsOf[msg.sender];
 
-        for (uint256 i; i < tiersToAdd.length; i++) {
+        for (uint256 i; i < numberOfNewTiers; i++) {
             // Set the tier being iterated upon.
             JB721TierConfig memory tierToAdd = tiersToAdd[i];
 
@@ -729,14 +735,14 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         }
 
         // Update the maximum tier ID to include the new tiers.
-        maxTierIdOf[msg.sender] = currentMaxTierIdOf + tiersToAdd.length;
+        maxTierIdOf[msg.sender] = currentMaxTierIdOf + numberOfNewTiers;
     }
 
     /// @notice Records 721 burns.
     /// @param tokenIds The token IDs of the NFTs to burn.
     function recordBurn(uint256[] calldata tokenIds) external override {
         // Get a reference to the number of token IDs provided.
-        uint256 numberOfTokenIds = tokenIds.length; 
+        uint256 numberOfTokenIds = tokenIds.length;
 
         // Iterate through all token IDs to increment the burn count.
         for (uint256 i; i < numberOfTokenIds; i++) {
@@ -780,13 +786,16 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Keep a reference to the tier being iterated on.
         JBStored721Tier storage storedTier;
 
+        // Get a reference to the number of tiers.
+        uint256 numberOfTiers = tierIds.length;
+
         // Initialize the array for the token IDs to be returned.
-        tokenIds = new uint256[](tierIds.length);
+        tokenIds = new uint256[](numberOfTiers);
 
         // Initialize a `JBBitmapWord` for checking whether tiers have been removed.
         JBBitmapWord memory bitmapWord;
 
-        for (uint256 i; i < tierIds.length; i++) {
+        for (uint256 i; i < numberOfTiers; i++) {
             // Set the tier ID being iterated on.
             uint256 tierId = tierIds[i];
 
@@ -879,7 +888,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @notice Record tiers being removed.
     /// @param tierIds The IDs of the tiers being removed.
     function recordRemoveTierIds(uint256[] calldata tierIds) external override {
-        for (uint256 i; i <  tierIds.length; i++) {
+        for (uint256 i; i < tierIds.length; i++) {
             // Set the tier being iterated upon (0-indexed).
             uint256 tierId = tierIds[i];
 
