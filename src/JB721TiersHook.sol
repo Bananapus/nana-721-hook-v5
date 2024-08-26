@@ -297,11 +297,13 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     function adjustTiers(JB721TierConfig[] calldata tiersToAdd, uint256[] calldata tierIdsToRemove) external override {
         // Enforce permissions.
         _requirePermissionFrom({account: owner(), projectId: PROJECT_ID, permissionId: JBPermissionIds.ADJUST_721_TIERS});
+        // Get a reference to the number of tiers being removed.
+        uint256 numberOfTiersToRemove = tierIdsToRemove.length;
 
         // Remove the tiers.
-        if (tierIdsToRemove.length != 0) {
+        if (numberOfTiersToRemove != 0) {
             // Emit events for each removed tier.
-            for (uint256 i; i < tierIdsToRemove.length; i++) {
+            for (uint256 i; i < numberOfTiersToRemove; i++) {
                 emit RemoveTier({tierId: tierIdsToRemove[i], caller: _msgSender()});
             }
 
@@ -310,13 +312,16 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             STORE.recordRemoveTierIds(tierIdsToRemove);
         }
 
+        // Get a reference to the number of tiers being added.
+        uint256 numberOfTiersToAdd = tiersToAdd.length;
+
         // Add the tiers.
-        if (tiersToAdd.length != 0) {
+        if (numberOfTiersToAdd != 0) {
             // Record the added tiers in the store.
             uint256[] memory tierIdsAdded = STORE.recordAddTiers(tiersToAdd);
 
             // Emit events for each added tier.
-            for (uint256 i; i < tiersToAdd.length; i++) {
+            for (uint256 i; i < numberOfTiersToAdd; i++) {
                 emit AddTier({tierId: tierIdsAdded[i], tier: tiersToAdd[i], caller: _msgSender()});
             }
         }
