@@ -1220,7 +1220,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
         }
 
         // Expect the `adjustTiers` call to revert because of the `initialSupply` of 0.
-        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_NoSupply.selector));
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_ZeroInitialSupply.selector));
         vm.prank(owner);
         hook.adjustTiers(tierConfigsToAdd, new uint256[](0));
     }
@@ -1260,7 +1260,7 @@ contract Test_adjustTier_Unit is UnitTestSetup {
 
         // Expect the `adjustTiers` call to revert because of the invalid category sort order.
         vm.expectRevert(
-            abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_InvalidCategorySortOrder.selector)
+            abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_InvalidCategorySortOrder.selector, 99, 100)
         );
         vm.prank(owner);
         hook.adjustTiers(tierConfigsToAdd, new uint256[](0));
@@ -1626,7 +1626,9 @@ contract Test_adjustTier_Unit is UnitTestSetup {
 
         // Expect the `setDiscountPercentOf` call to revert because of the flag.
         vm.expectRevert(
-            abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_DiscountPercentIncreaseNotAllowed.selector)
+            abi.encodeWithSelector(
+                JB721TiersHookStore.JB721TiersHookStore_DiscountPercentIncreaseNotAllowed.selector, 100, 0
+            )
         );
         vm.prank(owner);
         // Attempt to increase the discount of the first tier to 100%
@@ -1708,7 +1710,9 @@ contract Test_adjustTier_Unit is UnitTestSetup {
 
         // Expect the `setDiscountPercentsOf` call to revert because of the flag.
         vm.expectRevert(
-            abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_DiscountPercentIncreaseNotAllowed.selector)
+            abi.encodeWithSelector(
+                JB721TiersHookStore.JB721TiersHookStore_DiscountPercentIncreaseNotAllowed.selector, 100, 0
+            )
         );
         vm.prank(owner);
         hook.setDiscountPercentsOf(discountCalldata);

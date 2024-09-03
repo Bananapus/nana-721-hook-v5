@@ -39,8 +39,9 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     // --------------------------- custom errors ------------------------- //
     //*********************************************************************//
 
-    error JB721TiersHook_AlreadyInitialized();
-    error JB721TiersHook_Overspending();
+    error JB721TiersHook_AlreadyInitialized(uint256 projectId);
+    error JB721TiersHook_NoProjectId();
+    error JB721TiersHook_Overspending(uint256 leftoverAmount);
     error JB721TiersHook_MintReserveNftsPaused();
     error JB721TiersHook_TierTransfersPaused();
 
@@ -178,7 +179,10 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         override
     {
         // Stop re-initialization by ensuring a projectId is provided and doesn't already exist.
-        if (PROJECT_ID != 0 || projectId == 0) revert JB721TiersHook_AlreadyInitialized();
+        if (PROJECT_ID != 0) revert JB721TiersHook_AlreadyInitialized(PROJECT_ID);
+
+        // Make sure a projectId is provided.
+        if (projectId == 0) revert JB721TiersHook_NoProjectId();
 
         // Initialize the superclass.
         JB721Hook._initialize(projectId, name, symbol);
@@ -293,10 +297,6 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     function adjustTiers(JB721TierConfig[] calldata tiersToAdd, uint256[] calldata tierIdsToRemove) external override {
         // Enforce permissions.
         _requirePermissionFrom({account: owner(), projectId: PROJECT_ID, permissionId: JBPermissionIds.ADJUST_721_TIERS});
-
-        // Get a reference to the number of tiers being added.
-        uint256 numberOfTiersToAdd = tiersToAdd.length;
-
         // Get a reference to the number of tiers being removed.
         uint256 numberOfTiersToRemove = tierIdsToRemove.length;
 
@@ -311,6 +311,9 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             // slither-disable-next-line reentrancy-events
             STORE.recordRemoveTierIds(tierIdsToRemove);
         }
+
+        // Get a reference to the number of tiers being added.
+        uint256 numberOfTiersToAdd = tiersToAdd.length;
 
         // Add the tiers.
         if (numberOfTiersToAdd != 0) {
@@ -350,12 +353,9 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         // Keep a reference to the number of NFTs being minted.
         uint256 numberOfTiers = tierIds.length;
 
-        // Keep a reference to the token ID being iterated upon.
-        uint256 tokenId;
-
         for (uint256 i; i < numberOfTiers; i++) {
             // Set the token ID.
-            tokenId = tokenIds[i];
+            uint256 tokenId = tokenIds[i];
 
             // Mint the NFT.
             _mint(beneficiary, tokenId);
@@ -415,12 +415,9 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         // Keep a reference to the number of configs being set.
         uint256 numberOfConfigs = configs.length;
 
-        // Keep a reference to the config being iterated on.
-        JB721TiersSetDiscountPercentConfig memory config;
-
         for (uint256 i; i < numberOfConfigs; i++) {
             // Set the config being iterated on.
-            config = configs[i];
+            JB721TiersSetDiscountPercentConfig memory config = configs[i];
 
             _setDiscountPercentOf(config.tierId, config.discountPercent);
         }
@@ -496,12 +493,9 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         // slither-disable-next-line calls-loop
         address reserveBeneficiary = STORE.reserveBeneficiaryOf(address(this), tierId);
 
-        // Keep a reference to the token ID being iterated upon.
-        uint256 tokenId;
-
         for (uint256 i; i < count; i++) {
             // Set the token ID.
-            tokenId = tokenIds[i];
+            uint256 tokenId = tokenIds[i];
 
             emit MintReservedNft({
                 tokenId: tokenId,
@@ -687,7 +681,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         // If overspending is allowed and there are leftover funds, add those funds to the beneficiary's NFT credits.
         if (leftoverAmount != 0) {
             // If overspending isn't allowed, revert.
-            if (!allowOverspending) revert JB721TiersHook_Overspending();
+            if (!allowOverspending) revert JB721TiersHook_Overspending(leftoverAmount);
 
             // Increment the leftover amount.
             unchecked {
