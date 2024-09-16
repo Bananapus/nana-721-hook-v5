@@ -2,11 +2,11 @@
 pragma solidity 0.8.23;
 
 import "@bananapus/core/script/helpers/CoreDeploymentLib.sol";
+import "@bananapus/address-registry/script/helpers/AddressRegistryDeploymentLib.sol";
 
 import {Sphinx} from "@sphinx-labs/contracts/SphinxPlugin.sol";
 import {Script} from "forge-std/Script.sol";
 
-import {JBAddressRegistry} from "@bananapus/address-registry/src/JBAddressRegistry.sol";
 import {JB721TiersHookDeployer} from "../src/JB721TiersHookDeployer.sol";
 import {JB721TiersHookProjectDeployer} from "../src/JB721TiersHookProjectDeployer.sol";
 import {JB721TiersHookStore} from "../src/JB721TiersHookStore.sol";
@@ -15,12 +15,13 @@ import {JB721TiersHook} from "../src/JB721TiersHook.sol";
 contract DeployScript is Script, Sphinx {
     /// @notice tracks the deployment of the core contracts for the chain we are deploying to.
     CoreDeployment core;
+    /// @notice tracks the deployment of the address registry for the chain we are deploying to.
+    AddressRegistryDeployment registry;
 
     /// @notice The address that is allowed to forward calls to the terminal and controller on a users behalf.
     address private constant TRUSTED_FORWARDER = 0xB2b5841DBeF766d4b521221732F9B618fCf34A87;
 
     /// @notice the salts that are used to deploy the contracts.
-    bytes32 ADDRESS_REGISTRY_SALT = "JBAddressRegistry";
     bytes32 HOOK_SALT = "JB721TiersHook";
     bytes32 HOOK_DEPLOYER_SALT = "JB721TiersHookDeployer";
     bytes32 HOOK_STORE_SALT = "JB721TiersHookStore";
@@ -39,6 +40,12 @@ contract DeployScript is Script, Sphinx {
         core = CoreDeploymentLib.getDeployment(
             vm.envOr("NANA_CORE_DEPLOYMENT_PATH", string("node_modules/@bananapus/core/deployments/"))
         );
+
+        registry = AddressRegistryDeploymentLib.getDeployment(
+            vm.envOr(
+                "NANA_ADDRESS_REGISTRY_DEPLOYMENT_PATH", string("node_modules/@bananapus/address-registry/deployments/")
+            )
+        );
         // Perform the deployment transactions.
         deploy();
     }
@@ -48,18 +55,6 @@ contract DeployScript is Script, Sphinx {
     /// Since all the contract dependencies are passed in using the constructor args,
     // this makes it so that if any dependency contract (address) changes the contract will be redeployed.
     function deploy() public sphinx {
-        // TODO: For now we also deploy the `JBAddressRegistry` here, we probably want to move this to its repository.
-        JBAddressRegistry registry;
-        {
-            // Perform the check for the registry.
-            (address _registry, bool _registryIsDeployed) =
-                _isDeployed(ADDRESS_REGISTRY_SALT, type(JBAddressRegistry).creationCode, "");
-            // Deploy it if it has not been deployed yet.
-            registry = !_registryIsDeployed
-                ? new JBAddressRegistry{salt: ADDRESS_REGISTRY_SALT}()
-                : JBAddressRegistry(_registry);
-        }
-
         JB721TiersHookStore store;
         {
             // Perform the check for the store.
@@ -93,11 +88,11 @@ contract DeployScript is Script, Sphinx {
             (address _hookDeployer, bool _hookDeployerIsDeployed) = _isDeployed(
                 HOOK_DEPLOYER_SALT,
                 type(JB721TiersHookDeployer).creationCode,
-                abi.encode(hook, store, registry, TRUSTED_FORWARDER)
+                abi.encode(hook, store, registry.registry, TRUSTED_FORWARDER)
             );
 
             hookDeployer = !_hookDeployerIsDeployed
-                ? new JB721TiersHookDeployer{salt: HOOK_DEPLOYER_SALT}(hook, store, registry, TRUSTED_FORWARDER)
+                ? new JB721TiersHookDeployer{salt: HOOK_DEPLOYER_SALT}(hook, store, registry.registry, TRUSTED_FORWARDER)
                 : JB721TiersHookDeployer(_hookDeployer);
         }
 
