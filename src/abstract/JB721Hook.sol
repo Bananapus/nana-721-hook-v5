@@ -76,9 +76,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     /// @return weight The new `weight` to use, overriding the ruleset's `weight`.
     /// @return hookSpecifications The amount and data to send to pay hooks (this contract) instead of adding to the
     /// terminal's balance.
-    function beforePayRecordedWith(
-        JBBeforePayRecordedContext calldata context
-    )
+    function beforePayRecordedWith(JBBeforePayRecordedContext calldata context)
         public
         view
         virtual
@@ -102,9 +100,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     /// @return totalSupply The total amount of tokens that are considered to be existing.
     /// @return hookSpecifications The amount and data to send to redeem hooks (this contract) instead of returning to
     /// the beneficiary.
-    function beforeRedeemRecordedWith(
-        JBBeforeRedeemRecordedContext calldata context
-    )
+    function beforeRedeemRecordedWith(JBBeforeRedeemRecordedContext calldata context)
         public
         view
         virtual
@@ -182,9 +178,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     /// @notice Calculates the cumulative redemption weight of all NFT token IDs.
     /// @param context The redemption context passed to this contract by the `redeemTokensOf(...)` function.
     /// @return The total cumulative redemption weight of all NFT token IDs.
-    function totalRedemptionWeight(
-        JBBeforeRedeemRecordedContext calldata context
-    )
+    function totalRedemptionWeight(JBBeforeRedeemRecordedContext calldata context)
         public
         view
         virtual

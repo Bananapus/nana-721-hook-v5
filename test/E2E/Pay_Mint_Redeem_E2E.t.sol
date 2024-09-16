@@ -195,7 +195,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         ); */
 
         if (totalSupplyAfterPay > type(uint208).max) {
-            vm.expectRevert(JBTokens.JBTokens_OverflowAlert.selector);
+            vm.expectPartialRevert(JBTokens.JBTokens_OverflowAlert.selector);
         }
 
         // Pay the terminal to mint the NFTs.
