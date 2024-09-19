@@ -71,11 +71,13 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
     function testLaunchProjectAndAddHookToRegistry() external {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
-        uint256 projectId = deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+        (uint256 projectId, IJB721TiersHook _hook) =
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
         // Check: is the first project's ID 1?
         assertEq(projectId, 1);
         // Check: was the hook added to the address registry?
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
+        assertEq(address(_hook), dataHook);
         assertEq(addressRegistry.deployerOf(dataHook), address(deployer.HOOK_DEPLOYER()));
     }
 
@@ -85,7 +87,8 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         uint256 highestTier = valueSent <= 100 ? (valueSent / 10) : 10;
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
-        uint256 projectId = deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+        (uint256 projectId, IJB721TiersHook _hook) =
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
 
         // Crafting the payment metadata: add the highest tier ID.
         uint16[] memory rawMetadata = new uint16[](1);
@@ -96,7 +99,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         data[0] = abi.encode(true, rawMetadata);
 
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
-
+        assertEq(address(_hook), dataHook);
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
         ids[0] = JBMetadataResolver.getId("pay", address(hook));
@@ -165,7 +168,8 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createDiscountedData(tierStartPrice, uint8(discountPercent));
-        uint256 projectId = deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+        (uint256 projectId, IJB721TiersHook _hook) =
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
 
         // Crafting the payment metadata: add the highest tier ID.
         uint16[] memory rawMetadata = new uint16[](1);
@@ -176,13 +180,16 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         data[0] = abi.encode(true, rawMetadata);
 
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
+        assertEq(address(_hook), dataHook);
+        bytes memory hookMetadata;
+        {
+            // Pass the hook ID.
+            bytes4[] memory ids = new bytes4[](1);
+            ids[0] = JBMetadataResolver.getId("pay", address(hook));
 
-        // Pass the hook ID.
-        bytes4[] memory ids = new bytes4[](1);
-        ids[0] = JBMetadataResolver.getId("pay", address(hook));
-
-        // Generate the metadata.
-        bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
+            // Generate the metadata.
+            hookMetadata = metadataHelper.createMetadata(ids, data);
+        }
 
         /* // Check: was an NFT with the correct tier ID and token ID minted?
         vm.expectEmit(true, true, true, true);
@@ -195,7 +202,9 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         ); */
 
         if (totalSupplyAfterPay > type(uint208).max) {
-            vm.expectPartialRevert(JBTokens.JBTokens_OverflowAlert.selector);
+            vm.expectRevert(
+                abi.encodeWithSelector(JBTokens.JBTokens_OverflowAlert.selector, totalSupplyAfterPay, type(uint208).max)
+            );
         }
 
         // Pay the terminal to mint the NFTs.
@@ -252,7 +261,8 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
     function testMintOnPayIfMultipleTiersArePassed() external {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
-        uint256 projectId = deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+        (uint256 projectId, IJB721TiersHook _hook) =
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
 
         // Prices of the first 5 tiers (10 * `tierId`)
         uint256 amountNeeded = 50 + 40 + 30 + 20 + 10;
@@ -277,6 +287,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         data[0] = abi.encode(true, rawMetadata);
 
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
+        assertEq(address(_hook), dataHook);
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
@@ -314,9 +325,11 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         valueSent = bound(valueSent, 10, 2000);
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
-        uint256 projectId = deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+        (uint256 projectId, IJB721TiersHook _hook) =
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
 
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
+        assertEq(address(_hook), dataHook);
 
         // Build the metadata with no tiers specified and the overspending flag.
         bool allowOverspending = true;
@@ -347,8 +360,11 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         valueSent = bound(valueSent, 10, 2000);
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
-        uint256 projectId = deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+        (uint256 projectId, IJB721TiersHook _hook) =
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
+        assertEq(address(_hook), dataHook);
 
         // Pay the terminal with empty metadata (`bytes(0)`).
         vm.prank(caller);
@@ -378,8 +394,10 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
-        uint256 projectId = deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+        (uint256 projectId, IJB721TiersHook _hook) =
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
+        assertEq(address(_hook), dataHook);
 
         // Check: Ensure no pending reserves at start (since no minting has happened).
         assertEq(IJB721TiersHook(dataHook).STORE().numberOfPendingReservesFor(dataHook, highestTier), 0);
@@ -468,13 +486,15 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         uint256 highestTier = valueSent <= 100 ? (valueSent / 10) : 10;
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
-        uint256 projectId = deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+        (uint256 projectId, IJB721TiersHook _hook) =
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
 
         // Craft the metadata: buy 1 NFT from the highest tier.
         bytes memory hookMetadata;
         bytes[] memory data;
         bytes4[] memory ids;
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
+        assertEq(address(_hook), dataHook);
         {
             uint16[] memory rawMetadata = new uint16[](1);
             rawMetadata[0] = uint16(highestTier);
@@ -566,7 +586,8 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
             createData();
         uint256 tier = 10;
         uint256 tierPrice = tiersHookConfig.tiersConfig.tiers[tier - 1].price;
-        uint256 projectId = deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+        (uint256 projectId, IJB721TiersHook _hook) =
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
 
         // Craft the metadata: buy 5 NFTs from tier 10.
         uint16[] memory rawMetadata = new uint16[](5);
@@ -579,6 +600,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         data[0] = abi.encode(true, rawMetadata);
 
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
+        assertEq(address(_hook), dataHook);
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
