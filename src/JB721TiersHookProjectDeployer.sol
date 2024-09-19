@@ -63,6 +63,7 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
     /// @param launchProjectConfig Configuration which dictates the behavior of the project which is being launched.
     /// @param controller The controller that the project's rulesets will be queued with.
     /// @return projectId The ID of the newly launched project.
+    /// @return hook The 721 tiers hook that was deployed for the project.
     function launchProjectFor(
         address owner,
         JBDeploy721TiersHookConfig calldata deployTiersHookConfig,
@@ -71,13 +72,13 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
     )
         external
         override
-        returns (uint256 projectId)
+        returns (uint256 projectId, IJB721TiersHook hook)
     {
         // Get the project's ID, optimistically knowing it will be one greater than the current number of projects.
         projectId = DIRECTORY.PROJECTS().count() + 1;
 
         // Deploy the hook.
-        IJB721TiersHook hook = HOOK_DEPLOYER.deployHookFor(projectId, deployTiersHookConfig);
+        hook = HOOK_DEPLOYER.deployHookFor(projectId, deployTiersHookConfig);
 
         // Launch the project.
         _launchProjectFor(owner, launchProjectConfig, hook, controller);
@@ -94,6 +95,7 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
     /// @param launchRulesetsConfig Configuration which dictates the project's new rulesets.
     /// @param controller The controller that the project's rulesets will be queued with.
     /// @return rulesetId The ID of the successfully created ruleset.
+    /// @return hook The 721 tiers hook that was deployed for the project.
     function launchRulesetsFor(
         uint256 projectId,
         JBDeploy721TiersHookConfig calldata deployTiersHookConfig,
@@ -102,7 +104,7 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
     )
         external
         override
-        returns (uint256 rulesetId)
+        returns (uint256 rulesetId, IJB721TiersHook hook)
     {
         // Enforce permissions.
         _requirePermissionFrom({
@@ -112,13 +114,13 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         });
 
         // Deploy the hook.
-        IJB721TiersHook hook = HOOK_DEPLOYER.deployHookFor(projectId, deployTiersHookConfig);
+        hook = HOOK_DEPLOYER.deployHookFor(projectId, deployTiersHookConfig);
 
         // Transfer the hook's ownership to the project.
         JBOwnable(address(hook)).transferOwnershipToProject(projectId);
 
         // Launch the rulesets.
-        return _launchRulesetsFor(projectId, launchRulesetsConfig, hook, controller);
+        rulesetId = _launchRulesetsFor(projectId, launchRulesetsConfig, hook, controller);
     }
 
     /// @notice Queues rulesets for a project with an attached 721 tiers hook.
@@ -129,6 +131,7 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
     /// @param queueRulesetsConfig Configuration which dictates the project's newly queued rulesets.
     /// @param controller The controller that the project's rulesets will be queued with.
     /// @return rulesetId The ID of the successfully created ruleset.
+    /// @return hook The 721 tiers hook that was deployed for the project.
     function queueRulesetsOf(
         uint256 projectId,
         JBDeploy721TiersHookConfig calldata deployTiersHookConfig,
@@ -137,7 +140,7 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
     )
         external
         override
-        returns (uint256 rulesetId)
+        returns (uint256 rulesetId, IJB721TiersHook hook)
     {
         // Enforce permissions.
         _requirePermissionFrom({
@@ -147,13 +150,13 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         });
 
         // Deploy the hook.
-        IJB721TiersHook hook = HOOK_DEPLOYER.deployHookFor(projectId, deployTiersHookConfig);
+        hook = HOOK_DEPLOYER.deployHookFor(projectId, deployTiersHookConfig);
 
         // Transfer the hook's ownership to the project.
         JBOwnable(address(hook)).transferOwnershipToProject(projectId);
 
         // Queue the rulesets.
-        return _queueRulesetsOf(projectId, queueRulesetsConfig, hook, controller);
+        rulesetId = _queueRulesetsOf(projectId, queueRulesetsConfig, hook, controller);
     }
 
     //*********************************************************************//

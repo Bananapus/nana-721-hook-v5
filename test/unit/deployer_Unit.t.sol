@@ -46,7 +46,7 @@ contract Test_ProjectDeployer_Unit is UnitTestSetup {
         );
 
         // Launch the project.
-        uint256 projectId = deployer.launchProjectFor(
+        (uint256 projectId,) = deployer.launchProjectFor(
             owner, deploy721TiersHookConfig, launchProjectConfig, IJBController(mockJBController)
         );
 

@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {IJBDirectory} from "@bananapus/core/src/interfaces/IJBDirectory.sol";
 import {IJBController} from "@bananapus/core/src/interfaces/IJBController.sol";
 
+import {IJB721TiersHook} from "./IJB721TiersHook.sol";
 import {IJB721TiersHookDeployer} from "./IJB721TiersHookDeployer.sol";
 import {JBDeploy721TiersHookConfig} from "../structs/JBDeploy721TiersHookConfig.sol";
 import {JBLaunchProjectConfig} from "../structs/JBLaunchProjectConfig.sol";
@@ -21,7 +22,7 @@ interface IJB721TiersHookProjectDeployer {
         IJBController controller
     )
         external
-        returns (uint256 projectId);
+        returns (uint256 projectId, IJB721TiersHook hook);
 
     function launchRulesetsFor(
         uint256 projectId,
@@ -30,7 +31,7 @@ interface IJB721TiersHookProjectDeployer {
         IJBController controller
     )
         external
-        returns (uint256 rulesetId);
+        returns (uint256 rulesetId, IJB721TiersHook hook);
 
     function queueRulesetsOf(
         uint256 projectId,
@@ -39,5 +40,5 @@ interface IJB721TiersHookProjectDeployer {
         IJBController controller
     )
         external
-        returns (uint256 rulesetId);
+        returns (uint256 rulesetId, IJB721TiersHook hook);
 }
