@@ -35,7 +35,7 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
             })
         );
 
-        JB721TiersHook hook = JB721TiersHook(address(jbHookDeployer.deployHookFor(projectId, hookConfig)));
+        JB721TiersHook hook = JB721TiersHook(address(jbHookDeployer.deployHookFor(projectId, hookConfig, bytes32(0))));
 
         (uint256 currency2, uint256 decimals2, IJBPrices prices2) = hook.pricingContext();
         // Check: do the unpacked values from `pricingContext` match the values we used in the config?

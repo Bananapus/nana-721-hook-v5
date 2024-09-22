@@ -72,7 +72,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         (uint256 projectId, IJB721TiersHook _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
         // Check: is the first project's ID 1?
         assertEq(projectId, 1);
         // Check: was the hook added to the address registry?
@@ -88,7 +88,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         (uint256 projectId, IJB721TiersHook _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
 
         // Crafting the payment metadata: add the highest tier ID.
         uint16[] memory rawMetadata = new uint16[](1);
@@ -169,7 +169,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createDiscountedData(tierStartPrice, uint8(discountPercent));
         (uint256 projectId, IJB721TiersHook _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
 
         // Crafting the payment metadata: add the highest tier ID.
         uint16[] memory rawMetadata = new uint16[](1);
@@ -262,7 +262,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         (uint256 projectId, IJB721TiersHook _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
 
         // Prices of the first 5 tiers (10 * `tierId`)
         uint256 amountNeeded = 50 + 40 + 30 + 20 + 10;
@@ -326,7 +326,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         (uint256 projectId, IJB721TiersHook _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
 
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
         assertEq(address(_hook), dataHook);
@@ -361,7 +361,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         (uint256 projectId, IJB721TiersHook _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
 
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
         assertEq(address(_hook), dataHook);
@@ -395,7 +395,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         (uint256 projectId, IJB721TiersHook _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
         assertEq(address(_hook), dataHook);
 
@@ -487,7 +487,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         (uint256 projectId, IJB721TiersHook _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
 
         // Craft the metadata: buy 1 NFT from the highest tier.
         bytes memory hookMetadata;
@@ -587,7 +587,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         uint256 tier = 10;
         uint256 tierPrice = tiersHookConfig.tiersConfig.tiers[tier - 1].price;
         (uint256 projectId, IJB721TiersHook _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController);
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
 
         // Craft the metadata: buy 5 NFTs from tier 10.
         uint16[] memory rawMetadata = new uint16[](5);

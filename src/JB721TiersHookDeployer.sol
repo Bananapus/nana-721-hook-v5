@@ -61,17 +61,19 @@ contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
     /// @notice Deploys a 721 tiers hook for the specified project.
     /// @param projectId The ID of the project to deploy the hook for.
     /// @param deployTiersHookConfig The config to deploy the hook with, which determines its behavior.
+    /// @param salt A salt to use for the deterministic deployment.
     /// @return newHook The address of the newly deployed hook.
     function deployHookFor(
         uint256 projectId,
-        JBDeploy721TiersHookConfig calldata deployTiersHookConfig
+        JBDeploy721TiersHookConfig calldata deployTiersHookConfig,
+        bytes32 salt
     )
         external
         override
         returns (IJB721TiersHook newHook)
     {
         // Deploy the governance variant specified by the config.
-        newHook = IJB721TiersHook(Clones.clone(address(HOOK)));
+        newHook = IJB721TiersHook(salt == bytes32(0) ? Clones.clone(address(HOOK)) : Clones.cloneDeterministic(address(HOOK), salt));
 
         emit HookDeployed({projectId: projectId, hook: newHook, caller: msg.sender});
 
