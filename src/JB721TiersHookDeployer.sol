@@ -73,7 +73,9 @@ contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
         returns (IJB721TiersHook newHook)
     {
         // Deploy the governance variant specified by the config.
-        newHook = IJB721TiersHook(salt == bytes32(0) ? Clones.clone(address(HOOK)) : Clones.cloneDeterministic(address(HOOK), salt));
+        newHook = IJB721TiersHook(
+            salt == bytes32(0) ? Clones.clone(address(HOOK)) : Clones.cloneDeterministic(address(HOOK), salt)
+        );
 
         emit HookDeployed({projectId: projectId, hook: newHook, caller: msg.sender});
 
