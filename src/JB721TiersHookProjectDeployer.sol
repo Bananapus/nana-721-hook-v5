@@ -80,7 +80,7 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         projectId = DIRECTORY.PROJECTS().count() + 1;
 
         // Deploy the hook.
-        hook = HOOK_DEPLOYER.deployHookFor(projectId, deployTiersHookConfig, salt);
+        hook = HOOK_DEPLOYER.deployHookFor(projectId, deployTiersHookConfig, keccak256(abi.encode(msg.sender, salt)));
 
         // Launch the project.
         _launchProjectFor(owner, launchProjectConfig, hook, controller);
@@ -118,7 +118,7 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         });
 
         // Deploy the hook.
-        hook = HOOK_DEPLOYER.deployHookFor(projectId, deployTiersHookConfig, salt);
+        hook = HOOK_DEPLOYER.deployHookFor(projectId, deployTiersHookConfig, keccak256(abi.encode(msg.sender, salt)));
 
         // Transfer the hook's ownership to the project.
         JBOwnable(address(hook)).transferOwnershipToProject(projectId);
