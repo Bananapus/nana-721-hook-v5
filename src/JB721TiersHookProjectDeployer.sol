@@ -83,7 +83,12 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         hook = HOOK_DEPLOYER.deployHookFor(projectId, deployTiersHookConfig, keccak256(abi.encode(msg.sender, salt)));
 
         // Launch the project.
-        _launchProjectFor(owner, launchProjectConfig, hook, controller);
+        _launchProjectFor({
+            owner: owner,
+            launchProjectConfig: launchProjectConfig,
+            dataHook: hook,
+            controller: controller
+        });
 
         // Transfer the hook's ownership to the project.
         JBOwnable(address(hook)).transferOwnershipToProject(projectId);
@@ -118,13 +123,22 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         });
 
         // Deploy the hook.
-        hook = HOOK_DEPLOYER.deployHookFor(projectId, deployTiersHookConfig, keccak256(abi.encode(msg.sender, salt)));
+        hook = HOOK_DEPLOYER.deployHookFor({
+            projectId: projectId,
+            deployTiersHookConfig: deployTiersHookConfig,
+            salt: keccak256(abi.encode(msg.sender, salt))
+        });
 
         // Transfer the hook's ownership to the project.
         JBOwnable(address(hook)).transferOwnershipToProject(projectId);
 
         // Launch the rulesets.
-        rulesetId = _launchRulesetsFor(projectId, launchRulesetsConfig, hook, controller);
+        rulesetId = _launchRulesetsFor({
+            projectId: projectId,
+            launchRulesetsConfig: launchRulesetsConfig,
+            dataHook: hook,
+            controller: controller
+        });
     }
 
     /// @notice Queues rulesets for a project with an attached 721 tiers hook.
@@ -156,13 +170,22 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         });
 
         // Deploy the hook.
-        hook = HOOK_DEPLOYER.deployHookFor(projectId, deployTiersHookConfig, keccak256(abi.encode(msg.sender, salt)));
+        hook = HOOK_DEPLOYER.deployHookFor({
+            projectId: projectId,
+            deployTiersHookConfig: deployTiersHookConfig,
+            salt: keccak256(abi.encode(msg.sender, salt))
+        });
 
         // Transfer the hook's ownership to the project.
         JBOwnable(address(hook)).transferOwnershipToProject(projectId);
 
         // Queue the rulesets.
-        rulesetId = _queueRulesetsOf(projectId, queueRulesetsConfig, hook, controller);
+        rulesetId = _queueRulesetsOf({
+            projectId: projectId,
+            queueRulesetsConfig: queueRulesetsConfig,
+            dataHook: hook,
+            controller: controller
+        });
     }
 
     //*********************************************************************//

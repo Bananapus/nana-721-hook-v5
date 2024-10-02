@@ -68,11 +68,11 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         metadataHelper = new MetadataResolverHelper();
     }
 
-    function testLaunchProjectAndAddHookToRegistry() external {
+    function testLaunchProjectAndAddHookToRegistry(bytes32 salt) external {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         (uint256 projectId, IJB721TiersHook _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, salt);
         // Check: is the first project's ID 1?
         assertEq(projectId, 1);
         // Check: was the hook added to the address registry?
@@ -81,14 +81,14 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         assertEq(addressRegistry.deployerOf(dataHook), address(deployer.HOOK_DEPLOYER()));
     }
 
-    function testMintOnPayIfOneTierIsPassed(uint256 valueSent) external {
+    function testMintOnPayIfOneTierIsPassed(uint256 valueSent, bytes32 salt) external {
         valueSent = bound(valueSent, 10, 2000);
         // Cap the highest tier ID possible to 10.
         uint256 highestTier = valueSent <= 100 ? (valueSent / 10) : 10;
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         (uint256 projectId, IJB721TiersHook _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, salt);
 
         // Crafting the payment metadata: add the highest tier ID.
         uint16[] memory rawMetadata = new uint16[](1);
@@ -258,11 +258,11 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         }
     }
 
-    function testMintOnPayIfMultipleTiersArePassed() external {
+    function testMintOnPayIfMultipleTiersArePassed(bytes32 salt) external {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         (uint256 projectId, IJB721TiersHook _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, salt);
 
         // Prices of the first 5 tiers (10 * `tierId`)
         uint256 amountNeeded = 50 + 40 + 30 + 20 + 10;
@@ -321,12 +321,12 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         }
     }
 
-    function testNoMintOnPayWhenNotIncludingTierIds(uint256 valueSent) external {
+    function testNoMintOnPayWhenNotIncludingTierIds(uint256 valueSent, bytes32 salt) external {
         valueSent = bound(valueSent, 10, 2000);
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         (uint256 projectId, IJB721TiersHook _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, salt);
 
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
         assertEq(address(_hook), dataHook);
@@ -356,12 +356,12 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         assertEq(IJB721TiersHook(dataHook).payCreditsOf(beneficiary), valueSent);
     }
 
-    function testNoMintOnPayWhenNotIncludingMetadata(uint256 valueSent) external {
+    function testNoMintOnPayWhenNotIncludingMetadata(uint256 valueSent, bytes32 salt) external {
         valueSent = bound(valueSent, 10, 2000);
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         (uint256 projectId, IJB721TiersHook _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, salt);
 
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
         assertEq(address(_hook), dataHook);
@@ -385,7 +385,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         assertEq(IJB721TiersHook(dataHook).payCreditsOf(beneficiary), valueSent);
     }
 
-    function testMintReservedNft(uint256 valueSent) external {
+    function testMintReservedNft(uint256 valueSent, bytes32 salt) external {
         // cheapest tier is worth 10
         valueSent = bound(valueSent, 10, 20 ether);
 
@@ -395,7 +395,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         (uint256 projectId, IJB721TiersHook _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, salt);
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
         assertEq(address(_hook), dataHook);
 
@@ -479,7 +479,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
     // - Burn an NFT from that tier.
     // - Check the number of pending reserve mints available within the NFT's tier again.
     // This number should be back to 0, since the NFT was burned.
-    function testRedeemToken(uint256 valueSent) external {
+    function testRedeemToken(uint256 valueSent, bytes32 salt) external {
         valueSent = bound(valueSent, 10, 2000);
 
         // Cap the highest tier ID possible to 10.
@@ -487,7 +487,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         (uint256 projectId, IJB721TiersHook _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, salt);
 
         // Craft the metadata: buy 1 NFT from the highest tier.
         bytes memory hookMetadata;
@@ -581,13 +581,13 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
     // - Mint 5 NFTs from a tier.
     // - Check the remaining supply within that NFT's tier. (highest tier == 10, reserved percent is maximum -> 5)
     // - Burn all of the corresponding token from that tier
-    function testRedeemAll() external {
+    function testRedeemAll(bytes32 salt) external {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         uint256 tier = 10;
         uint256 tierPrice = tiersHookConfig.tiersConfig.tiers[tier - 1].price;
         (uint256 projectId, IJB721TiersHook _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, salt);
 
         // Craft the metadata: buy 5 NFTs from tier 10.
         uint16[] memory rawMetadata = new uint16[](5);
