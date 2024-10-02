@@ -76,7 +76,7 @@ contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
         newHook = IJB721TiersHook(
             salt == bytes32(0)
                 ? Clones.clone(address(HOOK))
-                : Clones.cloneDeterministic(address(HOOK), keccak256(abi.encode(msg.sender, salt)))
+                : Clones.cloneDeterministic({implementation: address(HOOK), salt: keccak256(abi.encode(msg.sender, salt))})
         );
 
         emit HookDeployed({projectId: projectId, hook: newHook, caller: msg.sender});
@@ -98,6 +98,10 @@ contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
         // Add the hook to the address registry. This contract's nonce starts at 1.
         salt == bytes32(0)
             ? ADDRESS_REGISTRY.registerAddress({deployer: address(this), nonce: ++_nonce})
-            : ADDRESS_REGISTRY.registerAddress({deployer: address(this), salt: salt, bytecode: address(newHook).code});
+            : ADDRESS_REGISTRY.registerAddress({
+                deployer: address(this),
+                salt: keccak256(abi.encode(msg.sender, salt)),
+                bytecode: address(newHook).code
+            });
     }
 }
