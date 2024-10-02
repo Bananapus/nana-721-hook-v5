@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {IJBAddressRegistry} from "@bananapus/address-registry/src/interfaces/IJBAddressRegistry.sol";
 import {JBOwnable} from "@bananapus/ownable/src/JBOwnable.sol";
-import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+import {LibClone} from "solady/src/utils/LibClone.sol";
 import {ERC2771Context} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
 import {JB721TiersHook} from "./JB721TiersHook.sol";
@@ -75,8 +75,12 @@ contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
         // Deploy the governance variant specified by the config.
         newHook = IJB721TiersHook(
             salt == bytes32(0)
-                ? Clones.clone(address(HOOK))
-                : Clones.cloneDeterministic({implementation: address(HOOK), salt: keccak256(abi.encode(msg.sender, salt))})
+                ? LibClone.clone(address(HOOK))
+                : LibClone.cloneDeterministic({
+                    value: 0,
+                    implementation: address(HOOK),
+                    salt: keccak256(abi.encode(msg.sender, salt))
+                })
         );
 
         emit HookDeployed({projectId: projectId, hook: newHook, caller: msg.sender});
@@ -101,10 +105,7 @@ contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
             : ADDRESS_REGISTRY.registerAddress({
                 deployer: address(this),
                 salt: keccak256(abi.encode(msg.sender, salt)),
-                bytecode: abi.encodePacked(
-                    type(JB721TiersHook).creationCode,
-                    abi.encode(HOOK.DIRECTORY(), HOOK.PERMISSIONS(), HOOK.RULESETS(), HOOK.STORE(), HOOK.trustedForwarder())
-                )
+                bytecode: LibClone.initCode(address(HOOK))
             });
     }
 }
