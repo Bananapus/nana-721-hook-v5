@@ -102,7 +102,7 @@ contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
                 deployer: address(this),
                 salt: keccak256(abi.encode(msg.sender, salt)),
                 bytecode: abi.encodePacked(
-                    address(HOOK).code,
+                    type(JB721TiersHook).creationCode,
                     abi.encode(HOOK.DIRECTORY(), HOOK.PERMISSIONS(), HOOK.RULESETS(), HOOK.STORE(), HOOK.trustedForwarder())
                 )
             });
