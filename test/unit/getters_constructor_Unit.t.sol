@@ -18,7 +18,14 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
         assertTrue(_isIn(tiers, hook.test_store().tiersOf(address(hook), new uint256[](0), false, 0, numberOfTiers)));
     }
 
-    function test_pricingContext_packingFunctionsAsExpected(uint32 currency, uint8 decimals, address prices, bytes32 salt) public {
+    function test_pricingContext_packingFunctionsAsExpected(
+        uint32 currency,
+        uint8 decimals,
+        address prices,
+        bytes32 salt
+    )
+        public
+    {
         JBDeploy721TiersHookConfig memory hookConfig = JBDeploy721TiersHookConfig(
             name,
             symbol,
