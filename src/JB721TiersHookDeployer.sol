@@ -99,9 +99,12 @@ contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
         // Transfer the hook's ownership to the address that called this function.
         JBOwnable(address(newHook)).transferOwnership(_msgSender());
 
+        // Increment the nonce.
+        ++_nonce;
+
         // Add the hook to the address registry. This contract's nonce starts at 1.
         salt == bytes32(0)
-            ? ADDRESS_REGISTRY.registerAddress({deployer: address(this), nonce: ++_nonce})
+            ? ADDRESS_REGISTRY.registerAddress({deployer: address(this), nonce: _nonce})
             : ADDRESS_REGISTRY.registerAddress({
                 deployer: address(this),
                 salt: keccak256(abi.encode(msg.sender, salt)),

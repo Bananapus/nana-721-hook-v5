@@ -72,11 +72,33 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         (uint256 projectId, IJB721TiersHook _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, salt);
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
         // Check: is the first project's ID 1?
         assertEq(projectId, 1);
         // Check: was the hook added to the address registry?
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
+        assertEq(address(_hook), dataHook);
+        assertEq(addressRegistry.deployerOf(dataHook), address(deployer.HOOK_DEPLOYER()));
+
+        // Laucnh another project with a salt
+        (projectId, _hook) =
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, salt);
+        // Check: is the second project's ID 2?
+        assertEq(projectId, 2);
+        // Check: was the hook added to the address registry?
+        dataHook = jbRulesets.currentOf(projectId).dataHook();
+        assertEq(address(_hook), dataHook);
+        assertEq(addressRegistry.deployerOf(dataHook), address(deployer.HOOK_DEPLOYER()));
+
+        // Laucnh another project with no salt
+        (projectId, _hook) =
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
+
+        // Check: is the third project's ID 3?
+        assertEq(projectId, 3);
+
+        // Check: was the hook added to the address registry?
+        dataHook = jbRulesets.currentOf(projectId).dataHook();
         assertEq(address(_hook), dataHook);
         assertEq(addressRegistry.deployerOf(dataHook), address(deployer.HOOK_DEPLOYER()));
     }
