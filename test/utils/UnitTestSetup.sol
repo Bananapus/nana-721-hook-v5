@@ -247,7 +247,7 @@ contract UnitTestSetup is Test {
             })
         );
 
-        hook = JB721TiersHook(address(jbHookDeployer.deployHookFor(projectId, hookConfig)));
+        hook = JB721TiersHook(address(jbHookDeployer.deployHookFor(projectId, hookConfig, bytes32(0))));
         hook.transferOwnership(owner);
 
         metadataHelper = new MetadataResolverHelper();

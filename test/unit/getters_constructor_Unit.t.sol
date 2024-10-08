@@ -18,7 +18,14 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
         assertTrue(_isIn(tiers, hook.test_store().tiersOf(address(hook), new uint256[](0), false, 0, numberOfTiers)));
     }
 
-    function test_pricingContext_packingFunctionsAsExpected(uint32 currency, uint8 decimals, address prices) public {
+    function test_pricingContext_packingFunctionsAsExpected(
+        uint32 currency,
+        uint8 decimals,
+        address prices,
+        bytes32 salt
+    )
+        public
+    {
         JBDeploy721TiersHookConfig memory hookConfig = JBDeploy721TiersHookConfig(
             name,
             symbol,
@@ -35,7 +42,7 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
             })
         );
 
-        JB721TiersHook hook = JB721TiersHook(address(jbHookDeployer.deployHookFor(projectId, hookConfig)));
+        JB721TiersHook hook = JB721TiersHook(address(jbHookDeployer.deployHookFor(projectId, hookConfig, salt)));
 
         (uint256 currency2, uint256 decimals2, IJBPrices prices2) = hook.pricingContext();
         // Check: do the unpacked values from `pricingContext` match the values we used in the config?

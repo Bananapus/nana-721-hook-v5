@@ -9,7 +9,8 @@ interface IJB721TiersHookDeployer {
 
     function deployHookFor(
         uint256 projectId,
-        JBDeploy721TiersHookConfig memory deployTiersHookConfig
+        JBDeploy721TiersHookConfig memory deployTiersHookConfig,
+        bytes32 salt
     )
         external
         returns (IJB721TiersHook hook);

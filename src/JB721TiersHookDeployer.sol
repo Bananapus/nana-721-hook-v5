@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {IJBAddressRegistry} from "@bananapus/address-registry/src/interfaces/IJBAddressRegistry.sol";
 import {JBOwnable} from "@bananapus/ownable/src/JBOwnable.sol";
-import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+import {LibClone} from "solady/src/utils/LibClone.sol";
 import {ERC2771Context} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
 import {JB721TiersHook} from "./JB721TiersHook.sol";
@@ -61,17 +61,27 @@ contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
     /// @notice Deploys a 721 tiers hook for the specified project.
     /// @param projectId The ID of the project to deploy the hook for.
     /// @param deployTiersHookConfig The config to deploy the hook with, which determines its behavior.
+    /// @param salt A salt to use for the deterministic deployment.
     /// @return newHook The address of the newly deployed hook.
     function deployHookFor(
         uint256 projectId,
-        JBDeploy721TiersHookConfig calldata deployTiersHookConfig
+        JBDeploy721TiersHookConfig calldata deployTiersHookConfig,
+        bytes32 salt
     )
         external
         override
         returns (IJB721TiersHook newHook)
     {
         // Deploy the governance variant specified by the config.
-        newHook = IJB721TiersHook(Clones.clone(address(HOOK)));
+        newHook = IJB721TiersHook(
+            salt == bytes32(0)
+                ? LibClone.clone(address(HOOK))
+                : LibClone.cloneDeterministic({
+                    value: 0,
+                    implementation: address(HOOK),
+                    salt: keccak256(abi.encode(msg.sender, salt))
+                })
+        );
 
         emit HookDeployed({projectId: projectId, hook: newHook, caller: msg.sender});
 
@@ -89,7 +99,16 @@ contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
         // Transfer the hook's ownership to the address that called this function.
         JBOwnable(address(newHook)).transferOwnership(_msgSender());
 
+        // Increment the nonce.
+        ++_nonce;
+
         // Add the hook to the address registry. This contract's nonce starts at 1.
-        ADDRESS_REGISTRY.registerAddress(address(this), ++_nonce);
+        salt == bytes32(0)
+            ? ADDRESS_REGISTRY.registerAddress({deployer: address(this), nonce: _nonce})
+            : ADDRESS_REGISTRY.registerAddress({
+                deployer: address(this),
+                salt: keccak256(abi.encode(msg.sender, salt)),
+                bytecode: LibClone.initCode(address(HOOK))
+            });
     }
 }

@@ -22,7 +22,8 @@
     "@bananapus/ownable": "^0.0.7",
     "@bananapus/permission-ids": "^0.0.12",
     "@openzeppelin/contracts": "^5.0.2",
-    "@prb/math": "^4.0.3"
+    "@prb/math": "^4.0.3",
+    "solady": "^0.0.248"
   },
   "devDependencies": {
     "@sphinx-labs/plugins": "^0.33.0"

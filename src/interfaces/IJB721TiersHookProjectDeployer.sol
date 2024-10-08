@@ -19,7 +19,8 @@ interface IJB721TiersHookProjectDeployer {
         address owner,
         JBDeploy721TiersHookConfig memory deployTiersHookConfig,
         JBLaunchProjectConfig memory launchProjectConfig,
-        IJBController controller
+        IJBController controller,
+        bytes32 salt
     )
         external
         returns (uint256 projectId, IJB721TiersHook hook);
@@ -28,7 +29,8 @@ interface IJB721TiersHookProjectDeployer {
         uint256 projectId,
         JBDeploy721TiersHookConfig memory deployTiersHookConfig,
         JBLaunchRulesetsConfig memory launchRulesetsConfig,
-        IJBController controller
+        IJBController controller,
+        bytes32 salt
     )
         external
         returns (uint256 rulesetId, IJB721TiersHook hook);
@@ -37,7 +39,8 @@ interface IJB721TiersHookProjectDeployer {
         uint256 projectId,
         JBDeploy721TiersHookConfig memory deployTiersHookConfig,
         JBQueueRulesetsConfig memory queueRulesetsConfig,
-        IJBController controller
+        IJBController controller,
+        bytes32 salt
     )
         external
         returns (uint256 rulesetId, IJB721TiersHook hook);

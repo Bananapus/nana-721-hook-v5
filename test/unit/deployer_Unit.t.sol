@@ -28,7 +28,7 @@ contract Test_ProjectDeployer_Unit is UnitTestSetup {
         );
     }
 
-    function test_launchProjectFor_shouldLaunchProject(uint256 previousProjectId) external {
+    function test_launchProjectFor_shouldLaunchProject(uint256 previousProjectId, bytes32 salt) external {
         // Include launching the protocol project (project ID 1).
         previousProjectId = bound(previousProjectId, 0, type(uint88).max - 1);
 
@@ -47,7 +47,7 @@ contract Test_ProjectDeployer_Unit is UnitTestSetup {
 
         // Launch the project.
         (uint256 projectId,) = deployer.launchProjectFor(
-            owner, deploy721TiersHookConfig, launchProjectConfig, IJBController(mockJBController)
+            owner, deploy721TiersHookConfig, launchProjectConfig, IJBController(mockJBController), salt
         );
 
         // Check: does the project have the correct project ID (the previous ID incremented by 1)?
