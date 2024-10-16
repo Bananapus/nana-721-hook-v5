@@ -1299,14 +1299,13 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                             allowSetController: false,
                             allowAddAccountingContext: false,
                             allowAddPriceFeed: false,
-                            allowCrosschainSuckerExtension: false,
                             ownerMustSendPayouts: false,
                             holdFees: false,
                             useTotalSurplusForRedemptions: false,
                             useDataHookForPay: true,
                             useDataHookForRedeem: true,
                             dataHook: address(hook),
-                            metadata: 8 // the first 3 bits are discarded, so this is 0001.
+                            metadata: 1
                         })
                     )
                 })
