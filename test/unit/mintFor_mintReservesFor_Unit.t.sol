@@ -153,14 +153,13 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                             allowSetController: false,
                             allowAddAccountingContext: false,
                             allowAddPriceFeed: false,
-                            allowCrosschainSuckerExtension: false,
                             ownerMustSendPayouts: false,
                             holdFees: false,
                             useTotalSurplusForRedemptions: false,
                             useDataHookForPay: true,
                             useDataHookForRedeem: true,
                             dataHook: address(0),
-                            metadata: 16 // the first 3 bits are discarded, so this is 0100.
+                            metadata: 2
                         })
                     )
                 })
