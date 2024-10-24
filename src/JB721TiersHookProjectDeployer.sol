@@ -119,11 +119,20 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         override
         returns (uint256 rulesetId, IJB721TiersHook hook)
     {
+        // Get the project's projects contract.
+        IJBProjects PROJECTS = DIRECTORY.PROJECTS();
+
         // Enforce permissions.
         _requirePermissionFrom({
-            account: DIRECTORY.PROJECTS().ownerOf(projectId),
+            account: PROJECTS.ownerOf(projectId),
             projectId: projectId,
             permissionId: JBPermissionIds.QUEUE_RULESETS
+        });
+
+        _requirePermissionFrom({
+            account: PROJECTS.ownerOf(projectId),
+            projectId: projectId,
+            permissionId: JBPermissionIds.SET_TERMINALS
         });
 
         // Deploy the hook.
