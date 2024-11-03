@@ -1118,7 +1118,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Get a reference to the number of NFTs minted from the tier (not counting reserve mints or burned tokens).
         uint256 numberOfNonReserveMints;
         unchecked {
-            numberOfNonReserveMints = storedTier.initialSupply - storedTier.remainingSupply - numberOfReserveMints;
+            numberOfNonReserveMints = storedTier.initialSupply - storedTier.remainingSupply - numberOfBurnedFor[hook][tierId] - numberOfReserveMints;
         }
 
         // Get the number of total available reserve 721 mints given the number of non-reserve NFTs minted divided by
