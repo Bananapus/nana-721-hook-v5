@@ -645,12 +645,13 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
         // Get the beneficiary's new NFT balance.
         uint256 nftBalance = IERC721(dataHook).balanceOf(beneficiary);
-        // Check: how many pending reserve mints are available for the tier?
-        uint256 pendingReserves = IJB721TiersHook(dataHook).STORE().numberOfPendingReservesFor(dataHook, tier);
         // Check: are the NFT balance and pending reserves correct?
         assertEq(rawMetadata.length, nftBalance);
         // Add 1 to the pending reserves check, as we round up for non-null values.
-        assertEq(pendingReserves, (nftBalance / tiersHookConfig.tiersConfig.tiers[tier - 1].reserveFrequency) + 1);
+        assertEq(
+            IJB721TiersHook(dataHook).STORE().numberOfPendingReservesFor(dataHook, tier),
+            (nftBalance / tiersHookConfig.tiersConfig.tiers[tier - 1].reserveFrequency) + 1
+        );
         // Craft the metadata to redeem the `tokenId`s.
         uint256[] memory redemptionId = new uint256[](5);
         for (uint256 i; i < rawMetadata.length; i++) {
@@ -686,8 +687,14 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         // Check: did the number of pending reserves return to 0?
         assertEq(IJB721TiersHook(dataHook).STORE().numberOfPendingReservesFor(dataHook, tier), 0);
 
+        // Craft the metadata: buy *1* NFT from tier 10.
+        uint16[] memory rawMetadata2 = new uint16[](1);
+        for (uint256 i; i < rawMetadata2.length; i++) {
+            rawMetadata2[i] = uint16(tier);
+        }
+
         // Build the metadata using the tiers to mint and the overspending flag.
-        data[0] = abi.encode(true, rawMetadata);
+        data[0] = abi.encode(true, rawMetadata2);
 
         // Pass the hook ID.
         ids[0] = metadataHelper.getId("pay", address(hook));
@@ -697,7 +704,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
         // Check: can more NFTs be minted (now that the previous ones were burned)?
         vm.prank(caller);
-        jbMultiTerminal.pay{value: tierPrice * rawMetadata.length}({
+        jbMultiTerminal.pay{value: tierPrice * rawMetadata2.length}({
             projectId: projectId,
             amount: 100,
             token: JBConstants.NATIVE_TOKEN,
@@ -709,13 +716,14 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
         // Get the new NFT balance.
         nftBalance = IERC721(dataHook).balanceOf(beneficiary);
-        // The number of pending reserves should be equal to the previously calculated figure which accounts for
-        // rounding.
-        pendingReserves = IJB721TiersHook(dataHook).STORE().numberOfPendingReservesFor(dataHook, tier);
         // Check: are the NFT balance and pending reserves correct?
-        assertEq(rawMetadata.length, nftBalance);
+        assertEq(rawMetadata2.length, nftBalance);
         // Add 1 to the pending reserves check, as we round up for non-null values.
-        assertEq(pendingReserves, (nftBalance / tiersHookConfig.tiersConfig.tiers[tier - 1].reserveFrequency) + 1);
+        // @NOTE: Is 9 reserved because we minted 5 and burned 5?
+        assertEq(
+            IJB721TiersHook(dataHook).STORE().numberOfPendingReservesFor(dataHook, tier),
+            (nftBalance / tiersHookConfig.tiersConfig.tiers[tier - 1].reserveFrequency) + 1
+        );
     }
 
     // ----- internal helpers ------
