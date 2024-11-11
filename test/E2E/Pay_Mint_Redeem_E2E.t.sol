@@ -584,19 +584,10 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         // Check: was the burn accounted for in the store?
         assertEq(IJB721TiersHook(dataHook).STORE().numberOfBurnedFor(dataHook, highestTier), 1);
 
-        // Determine whether we are rounding up or not (used to verify `numberOfPendingReservesFor` below).
-        uint256 rounding;
-        {
-            JB721Tier memory tier = IJB721TiersHook(dataHook).STORE().tierOf(dataHook, highestTier, false);
-            // `reserveTokensMinted` is 0 here
-            uint256 numberOfNonReservesMinted = tier.initialSupply - tier.remainingSupply;
-            rounding = numberOfNonReservesMinted % tier.reserveFrequency > 0 ? 1 : 0;
-        }
-
         // Check: the number of pending reserves should be equal to the calculated figure which accounts for rounding.
         assertEq(
             IJB721TiersHook(dataHook).STORE().numberOfPendingReservesFor(dataHook, highestTier),
-            (nftBalance / tiersHookConfig.tiersConfig.tiers[highestTier - 1].reserveFrequency + rounding)
+            (nftBalance / tiersHookConfig.tiersConfig.tiers[highestTier - 1].reserveFrequency + 1)
         );
     }
 
@@ -684,8 +675,11 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         assertEq(IERC721(dataHook).balanceOf(beneficiary), 0);
         // Check: were the NFT burns accounted for in the store?
         assertEq(IJB721TiersHook(dataHook).STORE().numberOfBurnedFor(dataHook, tier), 5);
-        // Check: did the number of pending reserves return to 0?
-        assertEq(IJB721TiersHook(dataHook).STORE().numberOfPendingReservesFor(dataHook, tier), 0);
+        // Check: did the number of pending reserves didnt change due to the burn.
+        assertEq(
+            IJB721TiersHook(dataHook).STORE().numberOfPendingReservesFor(dataHook, tier),
+            (nftBalance / tiersHookConfig.tiersConfig.tiers[tier - 1].reserveFrequency) + 1
+        );
 
         // Craft the metadata: buy *1* NFT from tier 10.
         uint16[] memory rawMetadata2 = new uint16[](1);
@@ -719,7 +713,6 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         // Check: are the NFT balance and pending reserves correct?
         assertEq(rawMetadata2.length, nftBalance);
         // Add 1 to the pending reserves check, as we round up for non-null values.
-        // @NOTE: Is 9 reserved because we minted 5 and burned 5?
         assertEq(
             IJB721TiersHook(dataHook).STORE().numberOfPendingReservesFor(dataHook, tier),
             (nftBalance / tiersHookConfig.tiersConfig.tiers[tier - 1].reserveFrequency) + 1
