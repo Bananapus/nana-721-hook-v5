@@ -1101,9 +1101,12 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         view
         returns (uint256)
     {
+        // Get a reference to the initial supply with burned NFTs included.
+        uint256 initialSupplyWithBurned = storedTier.initialSupply + numberOfBurnedFor[hook][tierId];
+
         // No pending reserves if no mints, no reserve frequency, or no reserve beneficiary.
         if (
-            storedTier.reserveFrequency == 0 || storedTier.initialSupply == storedTier.remainingSupply
+            storedTier.reserveFrequency == 0 || initialSupplyWithBurned == storedTier.remainingSupply
                 || reserveBeneficiaryOf(hook, tierId) == address(0)
         ) return 0;
 
@@ -1111,14 +1114,14 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         uint256 numberOfReserveMints = numberOfReservesMintedFor[hook][tierId];
 
         // If only the reserved 721 (from rounding up) has been minted so far, return 0.
-        if (storedTier.initialSupply - numberOfReserveMints == storedTier.remainingSupply) {
+        if (initialSupplyWithBurned == storedTier.remainingSupply + numberOfReserveMints) {
             return 0;
         }
 
         // Get a reference to the number of NFTs minted from the tier (not counting reserve mints or burned tokens).
         uint256 numberOfNonReserveMints;
         unchecked {
-            numberOfNonReserveMints = storedTier.initialSupply - storedTier.remainingSupply - numberOfReserveMints;
+            numberOfNonReserveMints = initialSupplyWithBurned - storedTier.remainingSupply - numberOfReserveMints;
         }
 
         // Get the number of total available reserve 721 mints given the number of non-reserve NFTs minted divided by
