@@ -5,6 +5,7 @@ import {JBPermissioned} from "@bananapus/core/src/abstract/JBPermissioned.sol";
 import {IJBController} from "@bananapus/core/src/interfaces/IJBController.sol";
 import {IJBDirectory} from "@bananapus/core/src/interfaces/IJBDirectory.sol";
 import {IJBPermissions} from "@bananapus/core/src/interfaces/IJBPermissions.sol";
+import {IJBProjects} from "@bananapus/core/src/interfaces/IJBProjects.sol";
 import {JBRulesetConfig} from "@bananapus/core/src/structs/JBRulesetConfig.sol";
 import {JBRulesetMetadata} from "@bananapus/core/src/structs/JBRulesetMetadata.sol";
 import {JBOwnable} from "@bananapus/ownable/src/JBOwnable.sol";
@@ -99,7 +100,8 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
     }
 
     /// @notice Launches rulesets for a project with an attached 721 tiers hook.
-    /// @dev Only a project's owner or an operator with the `QUEUE_RULESETS` permission can launch its rulesets.
+    /// @dev Only a project's owner or an operator with the `QUEUE_RULESETS & SET_TERMINALS` permission can launch its
+    /// rulesets.
     /// @param projectId The ID of the project that rulesets are being launched for.
     /// @param deployTiersHookConfig Configuration which dictates the behavior of the 721 tiers hook which is being
     /// deployed.
@@ -119,11 +121,20 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         override
         returns (uint256 rulesetId, IJB721TiersHook hook)
     {
+        // Get the project's projects contract.
+        IJBProjects PROJECTS = DIRECTORY.PROJECTS();
+
         // Enforce permissions.
         _requirePermissionFrom({
-            account: DIRECTORY.PROJECTS().ownerOf(projectId),
+            account: PROJECTS.ownerOf(projectId),
             projectId: projectId,
             permissionId: JBPermissionIds.QUEUE_RULESETS
+        });
+
+        _requirePermissionFrom({
+            account: PROJECTS.ownerOf(projectId),
+            projectId: projectId,
+            permissionId: JBPermissionIds.SET_TERMINALS
         });
 
         // Deploy the hook.
