@@ -418,6 +418,12 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
         assertEq(hook.firstOwnerOf(tokenId), owner);
     }
 
+    /// @notice This is a special case that was found by the fuzzer on Jango's machine, hardcoded so we can easily
+    /// replicate it.
+    function test_firstOwnerOf_shouldReturnFirstOwnerIfOwnerChanged_revertingCase() public {
+        test_firstOwnerOf_shouldReturnFirstOwnerIfOwnerChanged(address(uint160(0x625)), address(uint160(0x1E240)));
+    }
+
     function test_firstOwnerOf_shouldReturnFirstOwnerIfOwnerChanged(address newOwner, address previousOwner) public {
         // Assume that the new owner and previous owner are different and not the zero address.
         vm.assume(newOwner != previousOwner);
