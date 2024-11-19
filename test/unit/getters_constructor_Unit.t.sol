@@ -430,6 +430,11 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
         vm.assume(newOwner != address(0));
         vm.assume(previousOwner != address(0));
 
+        // Trusted forwarder is a special case, it can only be the sender if the transaction is a meta transaction.
+        // which we aren't doing here.
+        vm.assume(newOwner != trustedForwarder);
+        vm.assume(previousOwner != trustedForwarder);
+
         defaultTierConfig.allowOwnerMint = true;
         defaultTierConfig.reserveFrequency = 0;
         ForTest_JB721TiersHook hook = _initializeForTestHook(10);
