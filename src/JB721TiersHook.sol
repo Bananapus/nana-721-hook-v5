@@ -205,9 +205,6 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         // Set the contract URI if provided.
         if (bytes(contractUri).length != 0) contractURI = contractUri;
 
-        // Transfer ownership to the initializer.
-        _transferOwnership(_msgSender());
-
         // Set the token URI resolver if provided.
         if (tokenUriResolver != IJB721TokenUriResolver(address(0))) {
             _recordSetTokenUriResolver(tokenUriResolver);
