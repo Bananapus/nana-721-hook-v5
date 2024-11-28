@@ -221,7 +221,8 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         internal
     {
         // Initialize an array of ruleset configurations.
-        JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](launchProjectConfig.rulesetConfigurations.length);
+        JBRulesetConfig[] memory rulesetConfigurations =
+            new JBRulesetConfig[](launchProjectConfig.rulesetConfigurations.length);
 
         // Set the data hook to be active for pay transactions for each ruleset configuration.
         for (uint256 i; i < launchProjectConfig.rulesetConfigurations.length; i++) {
@@ -288,7 +289,8 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         returns (uint256)
     {
         // Initialize an array of ruleset configurations.
-        JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](launchRulesetsConfig.rulesetConfigurations.length);
+        JBRulesetConfig[] memory rulesetConfigurations =
+            new JBRulesetConfig[](launchRulesetsConfig.rulesetConfigurations.length);
 
         // Set the data hook to be active for pay transactions for each ruleset configuration.
         for (uint256 i; i < launchRulesetsConfig.rulesetConfigurations.length; i++) {
@@ -353,7 +355,8 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         returns (uint256)
     {
         // Initialize an array of ruleset configurations.
-        JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](queueRulesetsConfig.rulesetConfigurations.length);
+        JBRulesetConfig[] memory rulesetConfigurations =
+            new JBRulesetConfig[](queueRulesetsConfig.rulesetConfigurations.length);
 
         // Set the data hook to be active for pay transactions for each ruleset configuration.
         for (uint256 i; i < queueRulesetsConfig.rulesetConfigurations.length; i++) {
