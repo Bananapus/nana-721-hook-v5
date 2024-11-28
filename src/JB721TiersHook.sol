@@ -292,13 +292,11 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     function adjustTiers(JB721TierConfig[] calldata tiersToAdd, uint256[] calldata tierIdsToRemove) external override {
         // Enforce permissions.
         _requirePermissionFrom({account: owner(), projectId: PROJECT_ID, permissionId: JBPermissionIds.ADJUST_721_TIERS});
-        // Get a reference to the number of tiers being removed.
-        uint256 numberOfTiersToRemove = tierIdsToRemove.length;
 
         // Remove the tiers.
-        if (numberOfTiersToRemove != 0) {
+        if (tierIdsToRemove.length != 0) {
             // Emit events for each removed tier.
-            for (uint256 i; i < numberOfTiersToRemove; i++) {
+            for (uint256 i; i < tierIdsToRemove.length; i++) {
                 emit RemoveTier({tierId: tierIdsToRemove[i], caller: _msgSender()});
             }
 
@@ -307,16 +305,13 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             STORE.recordRemoveTierIds(tierIdsToRemove);
         }
 
-        // Get a reference to the number of tiers being added.
-        uint256 numberOfTiersToAdd = tiersToAdd.length;
-
         // Add the tiers.
-        if (numberOfTiersToAdd != 0) {
+        if (tiersToAdd.length != 0) {
             // Record the added tiers in the store.
             uint256[] memory tierIdsAdded = STORE.recordAddTiers(tiersToAdd);
 
             // Emit events for each added tier.
-            for (uint256 i; i < numberOfTiersToAdd; i++) {
+            for (uint256 i; i < tiersToAdd.length; i++) {
                 emit AddTier({tierId: tierIdsAdded[i], tier: tiersToAdd[i], caller: _msgSender()});
             }
         }
@@ -345,10 +340,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             isOwnerMint: true // manual mint.
         });
 
-        // Keep a reference to the number of NFTs being minted.
-        uint256 numberOfTiers = tierIds.length;
-
-        for (uint256 i; i < numberOfTiers; i++) {
+        for (uint256 i; i < tierIds.length; i++) {
             // Set the token ID.
             uint256 tokenId = tokenIds[i];
 
@@ -369,10 +361,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     /// @dev "Pending" means that the NFTs have been reserved, but have not been minted yet.
     /// @param reserveMintConfigs Contains information about how many reserved tokens to mint for each tier.
     function mintPendingReservesFor(JB721TiersMintReservesConfig[] calldata reserveMintConfigs) external override {
-        // Keep a reference to the number of tiers to mint reserves for.
-        uint256 numberOfTiers = reserveMintConfigs.length;
-
-        for (uint256 i; i < numberOfTiers; i++) {
+        for (uint256 i; i < reserveMintConfigs.length; i++) {
             // Get a reference to the params being iterated upon.
             JB721TiersMintReservesConfig memory params = reserveMintConfigs[i];
 
@@ -407,10 +396,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             permissionId: JBPermissionIds.SET_721_DISCOUNT_PERCENT
         });
 
-        // Keep a reference to the number of configs being set.
-        uint256 numberOfConfigs = configs.length;
-
-        for (uint256 i; i < numberOfConfigs; i++) {
+        for (uint256 i; i < configs.length; i++) {
             // Set the config being iterated on.
             JB721TiersSetDiscountPercentConfig memory config = configs[i];
 
@@ -554,16 +540,10 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             isOwnerMint: false // Not a manual mint
         });
 
-        // Get a reference to the number of NFTs being minted.
-        uint256 mintsLength = tokenIds.length;
-
-        // Keep a reference to the token ID being iterated on.
-        uint256 tokenId;
-
         // Loop through each token ID and mint the corresponding NFT.
-        for (uint256 i; i < mintsLength; i++) {
+        for (uint256 i; i < tokenIds.length; i++) {
             // Get a reference to the token ID being iterated on.
-            tokenId = tokenIds[i];
+            uint256 tokenId = tokenIds[i];
 
             emit Mint({
                 tokenId: tokenId,
