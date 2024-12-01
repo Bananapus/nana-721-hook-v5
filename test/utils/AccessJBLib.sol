@@ -25,12 +25,12 @@ contract AccessJBLib {
         return JBConstants.MAX_RESERVED_PERCENT;
     }
 
-    function MAX_REDEMPTION_RATE() external pure returns (uint256) {
-        return JBConstants.MAX_REDEMPTION_RATE;
+    function MAX_CASH_OUT_TAX_RATE() external pure returns (uint256) {
+        return JBConstants.MAX_CASH_OUT_TAX_RATE;
     }
 
-    function MAX_DECAY_PERCENT() external pure returns (uint256) {
-        return JBConstants.MAX_DECAY_PERCENT;
+    function MAX_WEIGHT_CUT_PERCENT() external pure returns (uint256) {
+        return JBConstants.MAX_WEIGHT_CUT_PERCENT;
     }
 
     function SPLITS_TOTAL_PERCENT() external pure returns (uint256) {

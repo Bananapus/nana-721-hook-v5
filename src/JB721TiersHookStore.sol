@@ -404,22 +404,14 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         }
     }
 
-    /// @notice The combined redemption weight of the NFTs with the provided token IDs.
-    /// @dev Redemption weight is based on 721 price.
-    /// @dev Divide this result by the `totalRedemptionWeight` to get the portion of funds that can be reclaimed by
-    /// redeeming these NFTs.
+    /// @notice The combined cash out weight of the NFTs with the provided token IDs.
+    /// @dev Cash out weight is based on 721 price.
+    /// @dev Divide this result by the `totalCashOutWeight` to get the portion of funds that can be reclaimed by
+    /// cashing out these NFTs.
     /// @param hook The 721 contract that the NFTs belong to.
-    /// @param tokenIds The token IDs of the NFTs to get the redemption weight of.
-    /// @return weight The redemption weight.
-    function redemptionWeightOf(
-        address hook,
-        uint256[] calldata tokenIds
-    )
-        public
-        view
-        override
-        returns (uint256 weight)
-    {
+    /// @param tokenIds The token IDs of the NFTs to get the cash out weight of.
+    /// @return weight The cash out weight.
+    function cashOutWeightOf(address hook, uint256[] calldata tokenIds) public view override returns (uint256 weight) {
         // Get a reference to the total number of tokens.
         uint256 numberOfTokenIds = tokenIds.length;
 
@@ -454,10 +446,10 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         return tokenId / _ONE_BILLION;
     }
 
-    /// @notice The combined redemption weight for all NFTs from the provided 721 contract.
-    /// @param hook The 721 contract to get the total redemption weight of.
-    /// @return weight The total redemption weight.
-    function totalRedemptionWeight(address hook) public view override returns (uint256 weight) {
+    /// @notice The combined cash out weight for all NFTs from the provided 721 contract.
+    /// @param hook The 721 contract to get the total cash out weight of.
+    /// @return weight The total cash out weight.
+    function totalCashOutWeight(address hook) public view override returns (uint256 weight) {
         // Keep a reference to the greatest tier ID.
         uint256 maxTierId = maxTierIdOf[hook];
 

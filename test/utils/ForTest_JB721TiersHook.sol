@@ -14,7 +14,7 @@ import {MetadataResolverHelper} from "@bananapus/core/test/helpers/MetadataResol
 
 import "@bananapus/core/src/libraries/JBConstants.sol";
 
-import "./UnitTestSetup.sol"; // Only used to get the `PAY_HOOK_ID` and `REDEEM_HOOK_ID` constants.
+import "./UnitTestSetup.sol"; // Only used to get the `PAY_HOOK_ID` and `CASH_OUT_HOOK_ID` constants.
 
 interface IJB721TiersHookStore_ForTest is IJB721TiersHookStore {
     function ForTest_dumpTiersList(address nft) external view returns (JB721Tier[] memory tiers);
@@ -39,7 +39,7 @@ contract ForTest_JB721TiersHook is JB721TiersHook {
     MetadataResolverHelper metadataHelper;
 
     uint256 constant SURPLUS = 10e18;
-    uint256 constant REDEMPTION_RATE = JBConstants.MAX_RESERVED_PERCENT; // 40%
+    uint256 constant CASH_OUT_TAX_RATE = JBConstants.MAX_CASH_OUT_TAX_RATE; // 40%
     address _trustedForwarder = address(123_456);
 
     constructor(

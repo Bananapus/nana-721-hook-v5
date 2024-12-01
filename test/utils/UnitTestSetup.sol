@@ -12,10 +12,10 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@bananapus/core/src/libraries/JBRulesetMetadataResolver.sol";
 import "@bananapus/core/src/structs/JBAccountingContext.sol";
 import "@bananapus/core/src/structs/JBTokenAmount.sol";
-import "@bananapus/core/src/structs/JBAfterRedeemRecordedContext.sol";
 import "@bananapus/core/src/structs/JBAfterPayRecordedContext.sol";
-import "@bananapus/core/src/structs/JBAfterRedeemRecordedContext.sol";
-import "@bananapus/core/src/structs/JBRedeemHookSpecification.sol";
+import "@bananapus/core/src/structs/JBAfterCashOutRecordedContext.sol";
+import "@bananapus/core/src/structs/JBAfterCashOutRecordedContext.sol";
+import "@bananapus/core/src/structs/JBCashOutHookSpecification.sol";
 import "@bananapus/core/src/structs/JBFundAccessLimitGroup.sol";
 import "@bananapus/core/src/interfaces/IJBTerminal.sol";
 import "@bananapus/core/src/interfaces/IJBRulesetApprovalHook.sol";
@@ -50,7 +50,7 @@ contract UnitTestSetup is Test {
 
     uint256 constant SURPLUS = 10e18;
 
-    uint256 constant REDEMPTION_RATE = 4000; // 40%
+    uint256 constant CASH_OUT_TAX_RATE = 6000; // 60%
 
     address constant trustedForwarder = address(123_456);
 
@@ -181,12 +181,12 @@ contract UnitTestSetup is Test {
                     start: uint48(block.timestamp),
                     duration: 600,
                     weight: 10e18,
-                    decayPercent: 0,
+                    weightCutPercent: 0,
                     approvalHook: IJBRulesetApprovalHook(address(0)),
                     metadata: JBRulesetMetadataResolver.packRulesetMetadata(
                         JBRulesetMetadata({
                             reservedPercent: 5000, //50%
-                            redemptionRate: 5000, //50%
+                            cashOutTaxRate: 6000, //60%
                             baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
                             pausePay: false,
                             pauseCreditTransfers: false,
@@ -199,9 +199,9 @@ contract UnitTestSetup is Test {
                             allowAddPriceFeed: false,
                             ownerMustSendPayouts: false,
                             holdFees: false,
-                            useTotalSurplusForRedemptions: false,
+                            useTotalSurplusForCashOuts: false,
                             useDataHookForPay: true,
-                            useDataHookForRedeem: true,
+                            useDataHookForCashOut: true,
                             dataHook: address(0),
                             metadata: 0x00
                         })
@@ -268,12 +268,12 @@ contract UnitTestSetup is Test {
         return JBConstants.MAX_RESERVED_PERCENT;
     }
 
-    function MAX_REDEMPTION_RATE() internal pure returns (uint256) {
-        return JBConstants.MAX_REDEMPTION_RATE;
+    function MAX_CASH_OUT_TAX_RATE() internal pure returns (uint256) {
+        return JBConstants.MAX_CASH_OUT_TAX_RATE;
     }
 
-    function MAX_DECAY_PERCENT() internal pure returns (uint256) {
-        return JBConstants.MAX_DECAY_PERCENT;
+    function MAX_WEIGHT_CUT_PERCENT() internal pure returns (uint256) {
+        return JBConstants.MAX_WEIGHT_CUT_PERCENT;
     }
 
     function SPLITS_TOTAL_PERCENT() internal pure returns (uint256) {
@@ -711,7 +711,7 @@ contract UnitTestSetup is Test {
 
         metadata = JBPayDataHookRulesetMetadata({
             reservedPercent: 5000, //50%
-            redemptionRate: 5000, //50%
+            cashOutTaxRate: 5000, //50%
             baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
             pausePay: false,
             pauseCreditTransfers: false,
@@ -723,8 +723,8 @@ contract UnitTestSetup is Test {
             allowAddAccountingContext: false,
             allowAddPriceFeed: false,
             holdFees: false,
-            useTotalSurplusForRedemptions: false,
-            useDataHookForRedeem: false,
+            useTotalSurplusForCashOuts: false,
+            useDataHookForCashOut: false,
             metadata: 0x00
         });
 
@@ -732,7 +732,7 @@ contract UnitTestSetup is Test {
         rulesetConfigurations[0].mustStartAtOrAfter = 0;
         rulesetConfigurations[0].duration = 14;
         rulesetConfigurations[0].weight = 10 ** 18;
-        rulesetConfigurations[0].decayPercent = 450_000_000;
+        rulesetConfigurations[0].weightCutPercent = 450_000_000;
         rulesetConfigurations[0].approvalHook = IJBRulesetApprovalHook(address(0));
         rulesetConfigurations[0].metadata = metadata;
         rulesetConfigurations[0].fundAccessLimitGroups = fundAccessLimitGroups;

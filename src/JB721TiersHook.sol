@@ -8,7 +8,7 @@ import {IJBRulesets} from "@bananapus/core/src/interfaces/IJBRulesets.sol";
 import {JBMetadataResolver} from "@bananapus/core/src/libraries/JBMetadataResolver.sol";
 import {JBRulesetMetadataResolver} from "@bananapus/core/src/libraries/JBRulesetMetadataResolver.sol";
 import {JBAfterPayRecordedContext} from "@bananapus/core/src/structs/JBAfterPayRecordedContext.sol";
-import {JBBeforeRedeemRecordedContext} from "@bananapus/core/src/structs/JBBeforeRedeemRecordedContext.sol";
+import {JBBeforeCashOutRecordedContext} from "@bananapus/core/src/structs/JBBeforeCashOutRecordedContext.sol";
 import {JBRuleset} from "@bananapus/core/src/structs/JBRuleset.sol";
 import {JBOwnable} from "@bananapus/ownable/src/JBOwnable.sol";
 import {JBPermissionIds} from "@bananapus/permission-ids/src/JBPermissionIds.sol";
@@ -32,7 +32,7 @@ import {JB721TiersMintReservesConfig} from "./structs/JB721TiersMintReservesConf
 /// @title JB721TiersHook
 /// @notice A Juicebox project can use this hook to sell tiered ERC-721 NFTs with different prices and metadata. When
 /// the project is paid, the hook may mint NFTs to the payer, depending on the hook's setup, the amount paid, and
-/// information specified by the payer. The project's owner can enable NFT redemptions through this hook, allowing
+/// information specified by the payer. The project's owner can enable NFT cash outs through this hook, allowing
 /// holders to burn their NFTs to reclaim funds from the project (in proportion to the NFT's price).
 contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook {
     //*********************************************************************//
@@ -65,7 +65,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     string public override contractURI;
 
     /// @notice If an address pays more than the price of the NFT they received, the extra amount is stored as credits
-    /// which can be redeemed to mint NFTs.
+    /// which can be cashed out to mint NFTs.
     /// @custom:param addr The address to get the NFT credits balance of.
     /// @return The amount of credits the address has.
     mapping(address addr => uint256) public override payCreditsOf;
@@ -224,14 +224,14 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         _transferOwnership(_msgSender());
     }
 
-    /// @notice The combined redemption weight of the NFTs with the specified token IDs.
-    /// @dev An NFT's redemption weight is its price.
-    /// @dev To get their relative redemption weight, divide the result by the `totalRedemptionWeight(...)`.
-    /// @param tokenIds The token IDs of the NFTs to get the cumulative redemption weight of.
-    /// @return weight The redemption weight of the tokenIds.
-    function redemptionWeightOf(
+    /// @notice The combined cash out weight of the NFTs with the specified token IDs.
+    /// @dev An NFT's cash out weight is its price.
+    /// @dev To get their relative cash out weight, divide the result by the `totalCashOutWeight(...)`.
+    /// @param tokenIds The token IDs of the NFTs to get the cumulative cash out weight of.
+    /// @return weight The cash out weight of the tokenIds.
+    function cashOutWeightOf(
         uint256[] memory tokenIds,
-        JBBeforeRedeemRecordedContext calldata
+        JBBeforeCashOutRecordedContext calldata
     )
         public
         view
@@ -239,7 +239,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         override
         returns (uint256)
     {
-        return STORE.redemptionWeightOf(address(this), tokenIds);
+        return STORE.cashOutWeightOf(address(this), tokenIds);
     }
 
     /// @notice Indicates if this contract adheres to the specified interface.
@@ -266,17 +266,17 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         return JBIpfsDecoder.decode(baseURI, STORE.encodedTierIPFSUriOf(address(this), tokenId));
     }
 
-    /// @notice The combined redemption weight of all outstanding NFTs.
-    /// @dev An NFT's redemption weight is its price.
-    /// @return weight The total redemption weight.
-    function totalRedemptionWeight(JBBeforeRedeemRecordedContext calldata)
+    /// @notice The combined cash out weight of all outstanding NFTs.
+    /// @dev An NFT's cash out weight is its price.
+    /// @return weight The total cash out weight.
+    function totalCashOutWeight(JBBeforeCashOutRecordedContext calldata)
         public
         view
         virtual
         override
         returns (uint256)
     {
-        return STORE.totalRedemptionWeight(address(this));
+        return STORE.totalCashOutWeight(address(this));
     }
 
     //*********************************************************************//
@@ -522,7 +522,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         return RULESETS.currentOf(projectId);
     }
 
-    /// @notice A function which gets called after NFTs have been redeemed and recorded by the terminal.
+    /// @notice A function which gets called after NFTs have been cashed out and recorded by the terminal.
     /// @param tokenIds The token IDs of the NFTs that were burned.
     function _didBurn(uint256[] memory tokenIds) internal virtual override {
         // Add to burned counter.

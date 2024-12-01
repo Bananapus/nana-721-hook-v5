@@ -340,7 +340,7 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
         assertEq(hook.tokenURI(tokenId), string(abi.encodePacked(baseUri, theoreticHashes[1])));
     }
 
-    function test_redemptionWeightOf_returnsCorrectWeightAsCumSumOfPrices(
+    function test_cashOutWeightOf_returnsCorrectWeightAsCumSumOfPrices(
         uint256 numberOfTiers,
         uint256 firstTier,
         uint256 lastTier
@@ -358,7 +358,7 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
         uint256 maxNumberOfTiers = (numberOfTiers * (numberOfTiers + 1)) / 2;
 
         // Initialize an array `tierToGetWeightOf` to store the token IDs for each tier,
-        // which will later be used to calculate the redemption weight.
+        // which will later be used to calculate the cash out weight.
         uint256[] memory tierToGetWeightOf = new uint256[](maxNumberOfTiers);
         uint256 iterator;
         uint256 theoreticalWeight;
@@ -375,11 +375,11 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
             }
         }
 
-        // Check: does the redemption weight match the expected value?
-        assertEq(hook.test_store().redemptionWeightOf(address(hook), tierToGetWeightOf), theoreticalWeight);
+        // Check: does the cash out weight match the expected value?
+        assertEq(hook.test_store().cashOutWeightOf(address(hook), tierToGetWeightOf), theoreticalWeight);
     }
 
-    function test_totalRedemptionWeight_returnsCorrectTotalWeightAsCumSumOfPrices(uint256 numberOfTiers) public {
+    function test_totalCashOutWeight_returnsCorrectTotalWeightAsCumSumOfPrices(uint256 numberOfTiers) public {
         numberOfTiers = bound(numberOfTiers, 0, 30);
 
         ForTest_JB721TiersHook hook = _initializeForTestHook(numberOfTiers);
@@ -405,8 +405,8 @@ contract Test_Getters_Constructor_Unit is UnitTestSetup {
             // Calculate the theoretical weight for the current tier. 10 the price multiplier.
             theoreticalWeight += (10 * i - 5 * i) * i * 10;
         }
-        // Check: does the total redemption weight match the theoretical weight calculated?
-        assertEq(hook.test_store().totalRedemptionWeight(address(hook)), theoreticalWeight);
+        // Check: does the total cash out weight match the theoretical weight calculated?
+        assertEq(hook.test_store().totalCashOutWeight(address(hook)), theoreticalWeight);
     }
 
     function test_firstOwnerOf_shouldReturnCurrentOwnerIfFirstOwner(uint256 tokenId, address owner) public {
