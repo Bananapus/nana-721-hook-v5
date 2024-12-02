@@ -16,7 +16,7 @@ import "@bananapus/core/src/JBERC20.sol";
 import "@bananapus/core/src/JBTokens.sol";
 
 import "@bananapus/core/src/structs/JBAfterPayRecordedContext.sol";
-import "@bananapus/core/src/structs/JBAfterRedeemRecordedContext.sol";
+import "@bananapus/core/src/structs/JBAfterCashOutRecordedContext.sol";
 import "@bananapus/core/src/structs/JBFee.sol";
 import "@bananapus/core/src/structs/JBFundAccessLimitGroup.sol";
 import "@bananapus/core/src/structs/JBRuleset.sol";
@@ -24,7 +24,7 @@ import "@bananapus/core/src/structs/JBRulesetConfig.sol";
 import "@bananapus/core/src/structs/JBRulesetMetadata.sol";
 import "@bananapus/core/src/structs/JBPermissionsData.sol";
 import "@bananapus/core/src/structs/JBBeforePayRecordedContext.sol";
-import "@bananapus/core/src/structs/JBBeforeRedeemRecordedContext.sol";
+import "@bananapus/core/src/structs/JBBeforeCashOutRecordedContext.sol";
 import "@bananapus/core/src/structs/JBSplit.sol";
 
 import "@bananapus/core/src/interfaces/IJBTerminal.sol";
@@ -126,7 +126,14 @@ contract TestBaseWorkflow is Test {
         accessJBLib = new AccessJBLib();
 
         jbMultiTerminal = new JBMultiTerminal(
-            jbFeelessAddresses, jbPermissions, jbProjects, jbSplits, jbTerminalStore, IPermit2(address(0)), address(0)
+            jbFeelessAddresses,
+            jbPermissions,
+            jbProjects,
+            jbSplits,
+            jbTerminalStore,
+            jbTokens,
+            IPermit2(address(0)),
+            address(0)
         );
         vm.label(address(jbMultiTerminal), "JBMultiTerminal");
 

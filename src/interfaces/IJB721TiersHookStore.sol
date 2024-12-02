@@ -19,7 +19,7 @@ interface IJB721TiersHookStore {
     function numberOfBurnedFor(address hook, uint256 tierId) external view returns (uint256);
     function numberOfPendingReservesFor(address hook, uint256 tierId) external view returns (uint256);
     function numberOfReservesMintedFor(address hook, uint256 tierId) external view returns (uint256);
-    function redemptionWeightOf(address hook, uint256[] calldata tokenIds) external view returns (uint256 weight);
+    function cashOutWeightOf(address hook, uint256[] calldata tokenIds) external view returns (uint256 weight);
     function reserveBeneficiaryOf(address hook, uint256 tierId) external view returns (address);
     function tierBalanceOf(address hook, address owner, uint256 tier) external view returns (uint256);
     function tierIdOfToken(uint256 tokenId) external pure returns (uint256);
@@ -46,7 +46,7 @@ interface IJB721TiersHookStore {
 
     function tierVotingUnitsOf(address hook, address account, uint256 tierId) external view returns (uint256 units);
     function tokenUriResolverOf(address hook) external view returns (IJB721TokenUriResolver);
-    function totalRedemptionWeight(address hook) external view returns (uint256 weight);
+    function totalCashOutWeight(address hook) external view returns (uint256 weight);
     function totalSupplyOf(address hook) external view returns (uint256);
     function votingUnitsOf(address hook, address account) external view returns (uint256 units);
 

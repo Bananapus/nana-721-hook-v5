@@ -137,12 +137,12 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     start: uint48(block.timestamp),
                     duration: 600,
                     weight: 10e18,
-                    decayPercent: 0,
+                    weightCutPercent: 0,
                     approvalHook: IJBRulesetApprovalHook(address(0)),
                     metadata: JBRulesetMetadataResolver.packRulesetMetadata(
                         JBRulesetMetadata({
                             reservedPercent: 5000, //50%
-                            redemptionRate: 5000, //50%
+                            cashOutTaxRate: 5000, //50%
                             baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
                             pausePay: false,
                             pauseCreditTransfers: false,
@@ -155,9 +155,9 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                             allowAddPriceFeed: false,
                             ownerMustSendPayouts: false,
                             holdFees: false,
-                            useTotalSurplusForRedemptions: false,
+                            useTotalSurplusForCashOuts: false,
                             useDataHookForPay: true,
-                            useDataHookForRedeem: true,
+                            useDataHookForCashOut: true,
                             dataHook: address(0),
                             metadata: 2
                         })

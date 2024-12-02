@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {IJBCashOutHook} from "@bananapus/core/src/interfaces/IJBCashOutHook.sol";
 import {IJBDirectory} from "@bananapus/core/src/interfaces/IJBDirectory.sol";
 import {IJBPayHook} from "@bananapus/core/src/interfaces/IJBPayHook.sol";
-import {IJBRedeemHook} from "@bananapus/core/src/interfaces/IJBRedeemHook.sol";
 import {IJBRulesetDataHook} from "@bananapus/core/src/interfaces/IJBRulesetDataHook.sol";
 import {IJBTerminal} from "@bananapus/core/src/interfaces/IJBTerminal.sol";
 import {JBConstants} from "@bananapus/core/src/libraries/JBConstants.sol";
 import {JBMetadataResolver} from "@bananapus/core/src/libraries/JBMetadataResolver.sol";
 import {JBAfterPayRecordedContext} from "@bananapus/core/src/structs/JBAfterPayRecordedContext.sol";
-import {JBAfterRedeemRecordedContext} from "@bananapus/core/src/structs/JBAfterRedeemRecordedContext.sol";
+import {JBAfterCashOutRecordedContext} from "@bananapus/core/src/structs/JBAfterCashOutRecordedContext.sol";
 import {JBBeforePayRecordedContext} from "@bananapus/core/src/structs/JBBeforePayRecordedContext.sol";
-import {JBBeforeRedeemRecordedContext} from "@bananapus/core/src/structs/JBBeforeRedeemRecordedContext.sol";
+import {JBBeforeCashOutRecordedContext} from "@bananapus/core/src/structs/JBBeforeCashOutRecordedContext.sol";
+import {JBCashOutHookSpecification} from "@bananapus/core/src/structs/JBCashOutHookSpecification.sol";
 import {JBPayHookSpecification} from "@bananapus/core/src/structs/JBPayHookSpecification.sol";
-import {JBRedeemHookSpecification} from "@bananapus/core/src/structs/JBRedeemHookSpecification.sol";
 import {IERC2981} from "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {mulDiv} from "@prb/math/src/Common.sol";
@@ -23,18 +23,18 @@ import {IJB721Hook} from "../interfaces/IJB721Hook.sol";
 
 /// @title JB721Hook
 /// @notice When a project which uses this hook is paid, this hook may mint NFTs to the payer, depending on this hook's
-/// setup, the amount paid, and information specified by the payer. The project's owner can enable NFT redemptions
+/// setup, the amount paid, and information specified by the payer. The project's owner can enable NFT cash outs.
 /// through this hook, allowing the NFT holders to burn their NFTs to reclaim funds from the project (in proportion to
 /// the NFT's price).
-abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHook, IJBRedeemHook {
+abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHook, IJBCashOutHook {
     //*********************************************************************//
     // --------------------------- custom errors ------------------------- //
     //*********************************************************************//
 
     error JB721Hook_InvalidPay();
-    error JB721Hook_InvalidRedeem();
+    error JB721Hook_InvalidCashOut();
     error JB721Hook_UnauthorizedToken(uint256 tokenId, address holder);
-    error JB721Hook_UnexpectedTokenRedeemed();
+    error JB721Hook_UnexpectedTokenCashedOut();
 
     //*********************************************************************//
     // --------------- public immutable stored properties ---------------- //
@@ -89,53 +89,53 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         hookSpecifications[0] = JBPayHookSpecification({hook: this, amount: 0, metadata: bytes("")});
     }
 
-    /// @notice The data calculated before a redemption is recorded in the terminal store. This data is provided to the
-    /// terminal's `redeemTokensOf(...)` transaction.
-    /// @dev Sets this contract as the redeem hook. Part of `IJBRulesetDataHook`.
-    /// @dev This function is used for NFT redemptions, and will only be called if the project's ruleset has
-    /// `useDataHookForRedeem` set to `true`.
-    /// @param context The redemption context passed to this contract by the `redeemTokensOf(...)` function.
-    /// @return redemptionRate The redemption rate influencing the reclaim amount.
-    /// @return redeemCount The amount of tokens that should be considered redeemed.
+    /// @notice The data calculated before a cash out is recorded in the terminal store. This data is provided to the
+    /// terminal's `cashOutTokensOf(...)` transaction.
+    /// @dev Sets this contract as the cash out hook. Part of `IJBRulesetDataHook`.
+    /// @dev This function is used for NFT cash outs, and will only be called if the project's ruleset has
+    /// `useDataHookForCashOut` set to `true`.
+    /// @param context The cash out context passed to this contract by the `cashOutTokensOf(...)` function.
+    /// @return cashOutTaxRate The cash out tax rate influencing the reclaim amount.
+    /// @return cashOutCount The amount of tokens that should be considered cashed out.
     /// @return totalSupply The total amount of tokens that are considered to be existing.
-    /// @return hookSpecifications The amount and data to send to redeem hooks (this contract) instead of returning to
+    /// @return hookSpecifications The amount and data to send to cash out hooks (this contract) instead of returning to
     /// the beneficiary.
-    function beforeRedeemRecordedWith(JBBeforeRedeemRecordedContext calldata context)
+    function beforeCashOutRecordedWith(JBBeforeCashOutRecordedContext calldata context)
         public
         view
         virtual
         override
         returns (
-            uint256 redemptionRate,
-            uint256 redeemCount,
+            uint256 cashOutTaxRate,
+            uint256 cashOutCount,
             uint256 totalSupply,
-            JBRedeemHookSpecification[] memory hookSpecifications
+            JBCashOutHookSpecification[] memory hookSpecifications
         )
     {
-        // Make sure (fungible) project tokens aren't also being redeemed.
-        if (context.redeemCount > 0) revert JB721Hook_UnexpectedTokenRedeemed();
+        // Make sure (fungible) project tokens aren't also being cashed out.
+        if (context.cashOutCount > 0) revert JB721Hook_UnexpectedTokenCashedOut();
 
-        // Fetch the redeem hook metadata using the corresponding metadata ID.
+        // Fetch the cash out hook metadata using the corresponding metadata ID.
         (bool metadataExists, bytes memory metadata) =
-            JBMetadataResolver.getDataFor(JBMetadataResolver.getId("redeem", METADATA_ID_TARGET), context.metadata);
+            JBMetadataResolver.getDataFor(JBMetadataResolver.getId("cashOut", METADATA_ID_TARGET), context.metadata);
 
-        // Use this contract as the only redeem hook.
-        hookSpecifications = new JBRedeemHookSpecification[](1);
-        hookSpecifications[0] = JBRedeemHookSpecification(this, 0, bytes(""));
+        // Use this contract as the only cash out hook.
+        hookSpecifications = new JBCashOutHookSpecification[](1);
+        hookSpecifications[0] = JBCashOutHookSpecification(this, 0, bytes(""));
 
         uint256[] memory decodedTokenIds;
 
         // Decode the metadata.
         if (metadataExists) decodedTokenIds = abi.decode(metadata, (uint256[]));
 
-        // Use the redemption weight of the provided 721s.
-        redeemCount = redemptionWeightOf(decodedTokenIds, context);
+        // Use the cash out weight of the provided 721s.
+        cashOutCount = cashOutWeightOf(decodedTokenIds, context);
 
-        // Use the total redemption weight of the 721s.
-        totalSupply = totalRedemptionWeight(context);
+        // Use the total cash out weight of the 721s.
+        totalSupply = totalCashOutWeight(context);
 
-        // Use the redemption rate from the context.
-        redemptionRate = context.redemptionRate;
+        // Use the cash out tax rate from the context.
+        cashOutTaxRate = context.cashOutTaxRate;
     }
 
     /// @notice Required by the IJBRulesetDataHook interfaces. Return false to not leak any permissions.
@@ -147,14 +147,14 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     // -------------------------- public views --------------------------- //
     //*********************************************************************//
 
-    /// @notice Returns the cumulative redemption weight of the specified token IDs relative to the
-    /// `totalRedemptionWeight`.
-    /// @param tokenIds The NFT token IDs to calculate the cumulative redemption weight of.
-    /// @param context The redemption context passed to this contract by the `redeemTokensOf(...)` function.
-    /// @return The cumulative redemption weight of the specified token IDs.
-    function redemptionWeightOf(
+    /// @notice Returns the cumulative cash out weight of the specified token IDs relative to the
+    /// `totalCashOutWeight`.
+    /// @param tokenIds The NFT token IDs to calculate the cumulative cash out weight of.
+    /// @param context The cash out context passed to this contract by the `cashOutTokensOf(...)` function.
+    /// @return The cumulative cash out weight of the specified token IDs.
+    function cashOutWeightOf(
         uint256[] memory tokenIds,
-        JBBeforeRedeemRecordedContext calldata context
+        JBBeforeCashOutRecordedContext calldata context
     )
         public
         view
@@ -171,14 +171,14 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     /// @param _interfaceId The ID of the interface to check for adherence to.
     function supportsInterface(bytes4 _interfaceId) public view virtual override(ERC721, IERC165) returns (bool) {
         return _interfaceId == type(IJB721Hook).interfaceId || _interfaceId == type(IJBRulesetDataHook).interfaceId
-            || _interfaceId == type(IJBPayHook).interfaceId || _interfaceId == type(IJBRedeemHook).interfaceId
+            || _interfaceId == type(IJBPayHook).interfaceId || _interfaceId == type(IJBCashOutHook).interfaceId
             || _interfaceId == type(IERC2981).interfaceId || super.supportsInterface(_interfaceId);
     }
 
-    /// @notice Calculates the cumulative redemption weight of all NFT token IDs.
-    /// @param context The redemption context passed to this contract by the `redeemTokensOf(...)` function.
-    /// @return The total cumulative redemption weight of all NFT token IDs.
-    function totalRedemptionWeight(JBBeforeRedeemRecordedContext calldata context)
+    /// @notice Calculates the cumulative cash out weight of all NFT token IDs.
+    /// @param context The cash out context passed to this contract by the `cashOutTokensOf(...)` function.
+    /// @return The total cumulative cash out weight of all NFT token IDs.
+    function totalCashOutWeight(JBBeforeCashOutRecordedContext calldata context)
         public
         view
         virtual
@@ -224,12 +224,17 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         _processPayment(context);
     }
 
-    /// @notice Burns the specified NFTs upon token holder redemption, reclaiming funds from the project's balance for
-    /// `context.beneficiary`. Part of `IJBRedeemHook`.
+    /// @notice Burns the specified NFTs upon token holder cash out, reclaiming funds from the project's balance for
+    /// `context.beneficiary`. Part of `IJBCashOutHook`.
     /// @dev Reverts if the calling contract is not one of the project's terminals.
-    /// @param context The redemption context passed in by the terminal.
+    /// @param context The cash out context passed in by the terminal.
     // slither-disable-next-line locked-ether
-    function afterRedeemRecordedWith(JBAfterRedeemRecordedContext calldata context) external payable virtual override {
+    function afterCashOutRecordedWith(JBAfterCashOutRecordedContext calldata context)
+        external
+        payable
+        virtual
+        override
+    {
         // Keep a reference to the project ID.
         uint256 projectId = PROJECT_ID;
 
@@ -238,11 +243,11 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         if (
             msg.value != 0 || !DIRECTORY.isTerminalOf(projectId, IJBTerminal(msg.sender))
                 || context.projectId != projectId
-        ) revert JB721Hook_InvalidRedeem();
+        ) revert JB721Hook_InvalidCashOut();
 
-        // Fetch the redeem hook metadata using the corresponding metadata ID.
+        // Fetch the cash out hook metadata using the corresponding metadata ID.
         (bool metadataExists, bytes memory metadata) = JBMetadataResolver.getDataFor(
-            JBMetadataResolver.getId("redeem", METADATA_ID_TARGET), context.redeemerMetadata
+            JBMetadataResolver.getId("cashOut", METADATA_ID_TARGET), context.cashOutMetadata
         );
 
         uint256[] memory decodedTokenIds;
@@ -270,7 +275,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
     // ---------------------- internal transactions ---------------------- //
     //*********************************************************************//
 
-    /// @notice Executes after NFTs have been burned via redemption.
+    /// @notice Executes after NFTs have been burned via cash out.
     /// @param tokenIds The token IDs of the NFTs that were burned.
     function _didBurn(uint256[] memory tokenIds) internal virtual;
 

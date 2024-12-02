@@ -501,7 +501,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
     // - Burn an NFT from that tier.
     // - Check the number of pending reserve mints available within the NFT's tier again.
     // This number should be back to 0, since the NFT was burned.
-    function testRedeemToken(uint256 valueSent, bytes32 salt) external {
+    function testCashOutToken(uint256 valueSent, bytes32 salt) external {
         valueSent = bound(valueSent, 10, 2000);
 
         // Cap the highest tier ID possible to 10.
@@ -553,15 +553,15 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
             // Get the token ID of the NFT that was minted.
             uint256 tokenId = _generateTokenId(highestTier, 1);
 
-            // Craft the metadata: redeem the `tokenId` which was minted.
-            uint256[] memory redemptionId = new uint256[](1);
-            redemptionId[0] = tokenId;
+            // Craft the metadata: cash out the `tokenId` which was minted.
+            uint256[] memory cashOutId = new uint256[](1);
+            cashOutId[0] = tokenId;
 
-            // Build the metadata with the tiers to redeem.
-            data[0] = abi.encode(redemptionId);
+            // Build the metadata with the tiers to cash out.
+            data[0] = abi.encode(cashOutId);
 
             // Pass the hook ID.
-            ids[0] = metadataHelper.getId("redeem", address(hook));
+            ids[0] = metadataHelper.getId("cashOut", address(hook));
 
             // Generate the metadata.
             hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -570,13 +570,13 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         // Check: was the beneficiary's NFT balance decreased by 1?
         assertEq(IERC721(dataHook).balanceOf(beneficiary), 1);
 
-        // Redeem the NFT.
+        // Cash out the NFT.
         vm.prank(beneficiary);
-        jbMultiTerminal.redeemTokensOf({
+        jbMultiTerminal.cashOutTokensOf({
             holder: beneficiary,
             projectId: projectId,
             tokenToReclaim: JBConstants.NATIVE_TOKEN,
-            redeemCount: 0,
+            cashOutCount: 0,
             minTokensReclaimed: 0,
             beneficiary: payable(beneficiary),
             metadata: hookMetadata
@@ -628,8 +628,8 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
     // - Mint 5 NFTs from a tier.
     // - Check the remaining supply within that NFT's tier. (highest tier == 10, reserved percent is maximum -> 5)
-    // - Burn all of the corresponding token from that tier
-    function testRedeemAll(bytes32 salt) external {
+    // - Cash out all of the corresponding token from that tier
+    function testCashOutAll(bytes32 salt) external {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         uint256 tier = 10;
@@ -678,29 +678,29 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
             IJB721TiersHook(dataHook).STORE().numberOfPendingReservesFor(dataHook, tier),
             (nftBalance / tiersHookConfig.tiersConfig.tiers[tier - 1].reserveFrequency) + 1
         );
-        // Craft the metadata to redeem the `tokenId`s.
-        uint256[] memory redemptionId = new uint256[](5);
+        // Craft the metadata to cash out the `tokenId`s.
+        uint256[] memory cashOutId = new uint256[](5);
         for (uint256 i; i < rawMetadata.length; i++) {
             uint256 tokenId = _generateTokenId(tier, i + 1);
-            redemptionId[i] = tokenId;
+            cashOutId[i] = tokenId;
         }
 
-        // Build the metadata with the tiers to redeem.
-        data[0] = abi.encode(redemptionId);
+        // Build the metadata with the tiers to cash out.
+        data[0] = abi.encode(cashOutId);
 
         // Pass the hook ID.
-        ids[0] = metadataHelper.getId("redeem", address(hook));
+        ids[0] = metadataHelper.getId("cashOut", address(hook));
 
         // Generate the metadata.
         hookMetadata = metadataHelper.createMetadata(ids, data);
 
-        // Redeem the NFTs.
+        // Cash out the NFTs.
         vm.prank(beneficiary);
-        jbMultiTerminal.redeemTokensOf({
+        jbMultiTerminal.cashOutTokensOf({
             holder: beneficiary,
             projectId: projectId,
             tokenToReclaim: JBConstants.NATIVE_TOKEN,
-            redeemCount: 0,
+            cashOutCount: 0,
             minTokensReclaimed: 0,
             beneficiary: payable(beneficiary),
             metadata: hookMetadata
@@ -803,7 +803,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
         JBPayDataHookRulesetMetadata memory metadata = JBPayDataHookRulesetMetadata({
             reservedPercent: 5000, //50%
-            redemptionRate: 5000, //50%
+            cashOutTaxRate: 5000, //50%
             baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
             pausePay: false,
             pauseCreditTransfers: false,
@@ -815,8 +815,8 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
             allowAddAccountingContext: false,
             allowAddPriceFeed: false,
             holdFees: false,
-            useTotalSurplusForRedemptions: false,
-            useDataHookForRedeem: true,
+            useTotalSurplusForCashOuts: false,
+            useDataHookForCashOut: true,
             metadata: 0x00
         });
 
@@ -825,7 +825,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         rulesetConfigurations[0].mustStartAtOrAfter = 0;
         rulesetConfigurations[0].duration = 14;
         rulesetConfigurations[0].weight = 1000 * 10 ** 18;
-        rulesetConfigurations[0].decayPercent = 450_000_000;
+        rulesetConfigurations[0].weightCutPercent = 450_000_000;
         rulesetConfigurations[0].approvalHook = IJBRulesetApprovalHook(address(0));
         rulesetConfigurations[0].metadata = metadata;
 
@@ -896,7 +896,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
 
         JBPayDataHookRulesetMetadata memory metadata = JBPayDataHookRulesetMetadata({
             reservedPercent: 5000, //50%
-            redemptionRate: 5000, //50%
+            cashOutTaxRate: 5000, //50%
             baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
             pausePay: false,
             pauseCreditTransfers: false,
@@ -908,8 +908,8 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
             allowAddAccountingContext: false,
             allowAddPriceFeed: false,
             holdFees: false,
-            useTotalSurplusForRedemptions: false,
-            useDataHookForRedeem: true,
+            useTotalSurplusForCashOuts: false,
+            useDataHookForCashOut: true,
             metadata: 0x00
         });
 
@@ -918,7 +918,7 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         rulesetConfigurations[0].mustStartAtOrAfter = 0;
         rulesetConfigurations[0].duration = 14;
         rulesetConfigurations[0].weight = 1000 * 10 ** 18;
-        rulesetConfigurations[0].decayPercent = 450_000_000;
+        rulesetConfigurations[0].weightCutPercent = 450_000_000;
         rulesetConfigurations[0].approvalHook = IJBRulesetApprovalHook(address(0));
         rulesetConfigurations[0].metadata = metadata;
 

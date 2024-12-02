@@ -3,10 +3,10 @@ pragma solidity 0.8.23;
 
 import "../utils/UnitTestSetup.sol";
 
-contract Test_redeem_Unit is UnitTestSetup {
+contract Test_cashOut_Unit is UnitTestSetup {
     using stdStorage for StdStorage;
 
-    function test_beforeRedeemContext_returnsCorrectAmount() public {
+    function test_beforeCashOutContext_returnsCorrectAmount() public {
         uint256 weight;
         uint256 totalWeight;
         ForTest_JB721TiersHook hook = _initializeForTestHook(10);
@@ -30,7 +30,7 @@ contract Test_redeem_Unit is UnitTestSetup {
             totalWeight += (10 * i - 5 * i) * i * 10;
         }
 
-        // Redeem as if the beneficiary has 1 NFT from each of the first five tiers.
+        // Cash out as if the beneficiary has 1 NFT from each of the first five tiers.
         uint256[] memory tokenList = new uint256[](5);
         for (uint256 i; i < 5; i++) {
             uint256 tokenId = _generateTokenId(i + 1, 1);
@@ -39,23 +39,23 @@ contract Test_redeem_Unit is UnitTestSetup {
             weight += (i + 1) * 10;
         }
 
-        // Build the metadata with the tiers to redeem.
+        // Build the metadata with the tiers to cash out.
         bytes[] memory data = new bytes[](1);
         data[0] = abi.encode(tokenList);
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = metadataHelper.getId("redeem", address(hookOrigin));
+        ids[0] = metadataHelper.getId("cashOut", address(hookOrigin));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
-        (uint256 redemptionRate,,, JBRedeemHookSpecification[] memory returnedHook) = hook.beforeRedeemRecordedWith(
-            JBBeforeRedeemRecordedContext({
+        (uint256 cashOutTaxRate,,, JBCashOutHookSpecification[] memory returnedHook) = hook.beforeCashOutRecordedWith(
+            JBBeforeCashOutRecordedContext({
                 terminal: address(0),
                 holder: beneficiary,
                 projectId: projectId,
                 rulesetId: 0,
-                redeemCount: 0,
+                cashOutCount: 0,
                 totalSupply: 0,
                 surplus: JBTokenAmount({
                     token: address(0),
@@ -64,23 +64,23 @@ contract Test_redeem_Unit is UnitTestSetup {
                     currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
                 }),
                 useTotalSurplus: true,
-                redemptionRate: REDEMPTION_RATE,
+                cashOutTaxRate: CASH_OUT_TAX_RATE,
                 metadata: hookMetadata
             })
         );
 
         // Check: does the reclaim amount match the expected value?
-        assertEq(redemptionRate, REDEMPTION_RATE);
+        assertEq(cashOutTaxRate, CASH_OUT_TAX_RATE);
         // Check: does the returned hook address match the expected value?
         assertEq(address(returnedHook[0].hook), address(hook));
     }
 
-    function test_beforeRedeemContext_returnsZeroAmountIfReserveFrequencyIsZero() public {
+    function test_beforeCashOutContext_returnsZeroAmountIfReserveFrequencyIsZero() public {
         uint256 surplus = 10e18;
-        uint256 redemptionRate = 0;
+        uint256 cashOutTaxRate = 0;
         uint256 weight;
         uint256 totalWeight;
-        JBRedeemHookSpecification[] memory returnedHook;
+        JBCashOutHookSpecification[] memory returnedHook;
 
         ForTest_JB721TiersHook hook = _initializeForTestHook(10);
 
@@ -103,7 +103,7 @@ contract Test_redeem_Unit is UnitTestSetup {
             totalWeight += (10 * i - 5 * i) * i * 10;
         }
 
-        // Redeem as if the beneficiary has 1 NFT from each of the first five tiers.
+        // Cash out as if the beneficiary has 1 NFT from each of the first five tiers.
         uint256[] memory tokenList = new uint256[](5);
         for (uint256 i; i < 5; i++) {
             hook.ForTest_setOwnerOf(i + 1, beneficiary);
@@ -111,13 +111,13 @@ contract Test_redeem_Unit is UnitTestSetup {
             weight += (i + 1) * (i + 1) * 10;
         }
 
-        (redemptionRate,,, returnedHook) = hook.beforeRedeemRecordedWith(
-            JBBeforeRedeemRecordedContext({
+        (cashOutTaxRate,,, returnedHook) = hook.beforeCashOutRecordedWith(
+            JBBeforeCashOutRecordedContext({
                 terminal: address(0),
                 holder: beneficiary,
                 projectId: projectId,
                 rulesetId: 0,
-                redeemCount: 0,
+                cashOutCount: 0,
                 totalSupply: 0,
                 surplus: JBTokenAmount({
                     token: address(0),
@@ -126,18 +126,18 @@ contract Test_redeem_Unit is UnitTestSetup {
                     currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
                 }),
                 useTotalSurplus: true,
-                redemptionRate: redemptionRate,
+                cashOutTaxRate: cashOutTaxRate,
                 metadata: abi.encode(bytes32(0), type(IJB721Hook).interfaceId, tokenList)
             })
         );
 
-        // Check: is the redemption rate zero?
-        assertEq(redemptionRate, 0);
+        // Check: is the cash out tax rate zero?
+        assertEq(cashOutTaxRate, 0);
         // Check: does the returned hook address match the expected value?
         assertEq(address(returnedHook[0].hook), address(hook));
     }
 
-    function test_beforeRedeemContext_returnsPartOfOverflowOwnedIfRedemptionRateIsMaximum() public {
+    function test_beforeCashOutContext_returnsPartOfOverflowOwnedIfCashOutTaxRateIsMaximum() public {
         uint256 weight;
         uint256 totalWeight;
 
@@ -162,7 +162,7 @@ contract Test_redeem_Unit is UnitTestSetup {
             totalWeight += (10 * i - 5 * i) * i * 10;
         }
 
-        // Redeem as if the beneficiary has 1 NFT from each of the first five tiers.
+        // Cash out as if the beneficiary has 1 NFT from each of the first five tiers.
         uint256[] memory tokenList = new uint256[](5);
         for (uint256 i; i < 5; i++) {
             hook.ForTest_setOwnerOf(_generateTokenId(i + 1, 1), beneficiary);
@@ -170,23 +170,23 @@ contract Test_redeem_Unit is UnitTestSetup {
             weight += (i + 1) * 10;
         }
 
-        // Build the metadata with the tiers to redeem.
+        // Build the metadata with the tiers to cash out.
         bytes[] memory data = new bytes[](1);
         data[0] = abi.encode(tokenList);
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = metadataHelper.getId("redeem", address(hookOrigin));
+        ids[0] = metadataHelper.getId("cashOut", address(hookOrigin));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
 
-        JBBeforeRedeemRecordedContext memory beforeRedeemContext = JBBeforeRedeemRecordedContext({
+        JBBeforeCashOutRecordedContext memory beforeCashOutContext = JBBeforeCashOutRecordedContext({
             terminal: address(0),
             holder: beneficiary,
             projectId: projectId,
             rulesetId: 0,
-            redeemCount: 0,
+            cashOutCount: 0,
             totalSupply: 0,
             surplus: JBTokenAmount({
                 token: address(0),
@@ -195,32 +195,32 @@ contract Test_redeem_Unit is UnitTestSetup {
                 currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
             }),
             useTotalSurplus: true,
-            redemptionRate: JBConstants.MAX_REDEMPTION_RATE,
+            cashOutTaxRate: JBConstants.MAX_CASH_OUT_TAX_RATE,
             metadata: hookMetadata
         });
 
-        (uint256 redemptionRate,,, JBRedeemHookSpecification[] memory returnedHook) =
-            hook.beforeRedeemRecordedWith(beforeRedeemContext);
+        (uint256 cashOutTaxRate,,, JBCashOutHookSpecification[] memory returnedHook) =
+            hook.beforeCashOutRecordedWith(beforeCashOutContext);
 
-        // Check: does the redemption rate match the expected value?
-        assertEq(redemptionRate, JBConstants.MAX_REDEMPTION_RATE);
+        // Check: does the cash out tax rate match the expected value?
+        assertEq(cashOutTaxRate, JBConstants.MAX_CASH_OUT_TAX_RATE);
         // Check: does the returned hook address match the expected value?
         assertEq(address(returnedHook[0].hook), address(hook));
     }
 
-    function test_beforeRedeemContext_revertIfNonZeroTokenCount(uint256 tokenCount) public {
+    function test_beforeCashOutContext_revertIfNonZeroTokenCount(uint256 tokenCount) public {
         vm.assume(tokenCount > 0);
 
         // Expect a revert on account of the token count being non-zero while the total supply is zero.
-        vm.expectRevert(abi.encodeWithSelector(JB721Hook.JB721Hook_UnexpectedTokenRedeemed.selector));
+        vm.expectRevert(abi.encodeWithSelector(JB721Hook.JB721Hook_UnexpectedTokenCashedOut.selector));
 
-        hook.beforeRedeemRecordedWith(
-            JBBeforeRedeemRecordedContext({
+        hook.beforeCashOutRecordedWith(
+            JBBeforeCashOutRecordedContext({
                 terminal: address(0),
                 holder: beneficiary,
                 projectId: projectId,
                 rulesetId: 0,
-                redeemCount: tokenCount,
+                cashOutCount: tokenCount,
                 totalSupply: 0,
                 surplus: JBTokenAmount({
                     token: address(0),
@@ -229,13 +229,13 @@ contract Test_redeem_Unit is UnitTestSetup {
                     currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
                 }),
                 useTotalSurplus: true,
-                redemptionRate: 100,
+                cashOutTaxRate: 100,
                 metadata: new bytes(0)
             })
         );
     }
 
-    function test_afterRedeemRecordedWith_burnRedeemedNft(uint256 numberOfNfts) public {
+    function test_afterCashOutRecordedWith_burnCashOutNft(uint256 numberOfNfts) public {
         ForTest_JB721TiersHook hook = _initializeForTestHook(5);
 
         // Has to all fit in tier 1 (excluding reserve mints).
@@ -270,7 +270,7 @@ contract Test_redeem_Unit is UnitTestSetup {
             hookMetadata = metadataHelper.createMetadata(ids, data);
 
             // Mint the NFTs. Otherwise, the voting balance is not incremented,
-            // which leads to an underflow upon redemption.
+            // which leads to an underflow upon cash out.
             vm.prank(mockTerminalAddress);
             JBAfterPayRecordedContext memory afterPayContext = JBAfterPayRecordedContext({
                 payer: beneficiary,
@@ -290,7 +290,7 @@ contract Test_redeem_Unit is UnitTestSetup {
                 }), // 0
                 // Forward to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: beneficiary,
                 hookMetadata: new bytes(0),
                 payerMetadata: hookMetadata
@@ -304,24 +304,24 @@ contract Test_redeem_Unit is UnitTestSetup {
             assertEq(hook.balanceOf(beneficiary), i + 1);
         }
 
-        // Build the metadata with the tiers to redeem.
+        // Build the metadata with the tiers to cash out.
         data = new bytes[](1);
         data[0] = abi.encode(tokenList);
 
         // Pass the hook ID.
         ids = new bytes4[](1);
-        ids[0] = metadataHelper.getId("redeem", address(hook));
+        ids[0] = metadataHelper.getId("cashOut", address(hook));
 
         // Generate the metadata.
         hookMetadata = metadataHelper.createMetadata(ids, data);
 
         vm.prank(mockTerminalAddress);
-        hook.afterRedeemRecordedWith(
-            JBAfterRedeemRecordedContext({
+        hook.afterCashOutRecordedWith(
+            JBAfterCashOutRecordedContext({
                 holder: beneficiary,
                 projectId: projectId,
                 rulesetId: 1,
-                redeemCount: 0,
+                cashOutCount: 0,
                 reclaimedAmount: JBTokenAmount({
                     token: address(0),
                     value: 0,
@@ -334,10 +334,10 @@ contract Test_redeem_Unit is UnitTestSetup {
                     decimals: 18,
                     currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
                 }), // 0, forwarded to the hook.
-                redemptionRate: 5000,
+                cashOutTaxRate: 5000,
                 beneficiary: payable(beneficiary),
                 hookMetadata: bytes(""),
-                redeemerMetadata: hookMetadata
+                cashOutMetadata: hookMetadata
             })
         );
 
@@ -348,7 +348,7 @@ contract Test_redeem_Unit is UnitTestSetup {
         assertEq(hook.test_store().numberOfBurnedFor(address(hook), 1), numberOfNfts);
     }
 
-    function test_afterRedeemRecordedWith_revertIfNotCorrectProjectId(uint8 wrongProjectId) public {
+    function test_afterCashOutRecordedWith_revertIfNotCorrectProjectId(uint8 wrongProjectId) public {
         vm.assume(wrongProjectId != projectId);
 
         uint256[] memory tokenList = new uint256[](1);
@@ -362,15 +362,15 @@ contract Test_redeem_Unit is UnitTestSetup {
         );
 
         // Expect to revert on account of the project ID being incorrect.
-        vm.expectRevert(abi.encodeWithSelector(JB721Hook.JB721Hook_InvalidRedeem.selector));
+        vm.expectRevert(abi.encodeWithSelector(JB721Hook.JB721Hook_InvalidCashOut.selector));
 
         vm.prank(mockTerminalAddress);
-        hook.afterRedeemRecordedWith(
-            JBAfterRedeemRecordedContext({
+        hook.afterCashOutRecordedWith(
+            JBAfterCashOutRecordedContext({
                 holder: beneficiary,
                 projectId: wrongProjectId,
                 rulesetId: 1,
-                redeemCount: 0,
+                cashOutCount: 0,
                 reclaimedAmount: JBTokenAmount({
                     token: address(0),
                     value: 0,
@@ -383,15 +383,15 @@ contract Test_redeem_Unit is UnitTestSetup {
                     decimals: 18,
                     currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
                 }), // 0, forwarded to the hook.
-                redemptionRate: 5000,
+                cashOutTaxRate: 5000,
                 beneficiary: payable(beneficiary),
                 hookMetadata: bytes(""),
-                redeemerMetadata: abi.encode(type(IJB721TiersHook).interfaceId, tokenList)
+                cashOutMetadata: abi.encode(type(IJB721TiersHook).interfaceId, tokenList)
             })
         );
     }
 
-    function test_afterRedeemRecordedWith_revertIfCallerIsNotATerminalOfTheProject() public {
+    function test_afterCashOutRecordedWith_revertIfCallerIsNotATerminalOfTheProject() public {
         uint256[] memory tokenList = new uint256[](1);
         tokenList[0] = 1;
 
@@ -403,15 +403,15 @@ contract Test_redeem_Unit is UnitTestSetup {
         );
 
         // Expect to revert on account of the caller not being a terminal of the project.
-        vm.expectRevert(abi.encodeWithSelector(JB721Hook.JB721Hook_InvalidRedeem.selector));
+        vm.expectRevert(abi.encodeWithSelector(JB721Hook.JB721Hook_InvalidCashOut.selector));
 
         vm.prank(mockTerminalAddress);
-        hook.afterRedeemRecordedWith(
-            JBAfterRedeemRecordedContext({
+        hook.afterCashOutRecordedWith(
+            JBAfterCashOutRecordedContext({
                 holder: beneficiary,
                 projectId: projectId,
                 rulesetId: 1,
-                redeemCount: 0,
+                cashOutCount: 0,
                 reclaimedAmount: JBTokenAmount({
                     token: address(0),
                     value: 0,
@@ -424,15 +424,15 @@ contract Test_redeem_Unit is UnitTestSetup {
                     decimals: 18,
                     currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
                 }), // 0, forwarded to the hook.
-                redemptionRate: 5000,
+                cashOutTaxRate: 5000,
                 beneficiary: payable(beneficiary),
                 hookMetadata: bytes(""),
-                redeemerMetadata: abi.encode(type(IJB721TiersHook).interfaceId, tokenList)
+                cashOutMetadata: abi.encode(type(IJB721TiersHook).interfaceId, tokenList)
             })
         );
     }
 
-    function test_afterRedeemRecordedWith_revertIfWrongHolder(address wrongHolder, uint8 tokenId) public {
+    function test_afterCashOutRecordedWith_revertIfWrongHolder(address wrongHolder, uint8 tokenId) public {
         vm.assume(beneficiary != wrongHolder);
         vm.assume(tokenId != 0);
 
@@ -443,13 +443,13 @@ contract Test_redeem_Unit is UnitTestSetup {
         uint256[] memory tokenList = new uint256[](1);
         tokenList[0] = tokenId;
 
-        // Build the metadata with the tiers to redeem.
+        // Build the metadata with the tiers to cash out.
         bytes[] memory data = new bytes[](1);
         data[0] = abi.encode(tokenList);
 
         // Pass the hook ID.
         bytes4[] memory ids = new bytes4[](1);
-        ids[0] = metadataHelper.getId("redeem", address(hook));
+        ids[0] = metadataHelper.getId("cashOut", address(hook));
 
         // Generate the metadata.
         bytes memory hookMetadata = metadataHelper.createMetadata(ids, data);
@@ -464,12 +464,12 @@ contract Test_redeem_Unit is UnitTestSetup {
         vm.expectRevert(abi.encodeWithSelector(JB721Hook.JB721Hook_UnauthorizedToken.selector, tokenId, wrongHolder));
 
         vm.prank(mockTerminalAddress);
-        hook.afterRedeemRecordedWith(
-            JBAfterRedeemRecordedContext({
+        hook.afterCashOutRecordedWith(
+            JBAfterCashOutRecordedContext({
                 holder: wrongHolder,
                 projectId: projectId,
                 rulesetId: 1,
-                redeemCount: 0,
+                cashOutCount: 0,
                 reclaimedAmount: JBTokenAmount({
                     token: address(0),
                     value: 0,
@@ -482,10 +482,10 @@ contract Test_redeem_Unit is UnitTestSetup {
                     decimals: 18,
                     currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
                 }), // 0, forwarded to the hook.
-                redemptionRate: 5000,
+                cashOutTaxRate: 5000,
                 beneficiary: payable(wrongHolder),
                 hookMetadata: bytes(""),
-                redeemerMetadata: hookMetadata
+                cashOutMetadata: hookMetadata
             })
         );
     }

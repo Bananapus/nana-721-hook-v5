@@ -63,7 +63,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
             }), // 0,
                 // forwarded to the hook.
             weight: 10 ** 18,
-            projectTokenCount: 0,
+            newlyIssuedTokenCount: 0,
             beneficiary: beneficiary,
             hookMetadata: bytes(""),
             payerMetadata: hookMetadata
@@ -130,7 +130,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 }), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: msg.sender,
                 hookMetadata: new bytes(0),
                 payerMetadata: new bytes(0)
@@ -169,7 +169,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 }), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: msg.sender,
                 hookMetadata: new bytes(0),
                 payerMetadata: new bytes(0)
@@ -227,7 +227,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 }), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: msg.sender,
                 hookMetadata: new bytes(0),
                 payerMetadata: hookMetadata
@@ -279,7 +279,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 }), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: msg.sender,
                 hookMetadata: new bytes(0),
                 payerMetadata: metadata
@@ -342,7 +342,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 }), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: beneficiary,
                 hookMetadata: new bytes(0),
                 payerMetadata: hookMetadata
@@ -410,7 +410,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 }), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: beneficiary,
                 hookMetadata: new bytes(0),
                 payerMetadata: hookMetadata
@@ -463,7 +463,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 }), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: beneficiary,
                 hookMetadata: new bytes(0),
                 payerMetadata: hookMetadata
@@ -538,7 +538,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 }), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: beneficiary,
                 hookMetadata: new bytes(0),
                 payerMetadata: hookMetadata
@@ -569,7 +569,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 }), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: beneficiary,
                 hookMetadata: new bytes(0),
                 payerMetadata: hookMetadata
@@ -657,7 +657,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 }), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: msg.sender,
                 hookMetadata: new bytes(0),
                 payerMetadata: hookMetadata
@@ -729,7 +729,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 }), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: msg.sender,
                 hookMetadata: new bytes(0),
                 payerMetadata: hookMetadata
@@ -795,7 +795,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 }), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: msg.sender,
                 hookMetadata: new bytes(0),
                 payerMetadata: hookMetadata
@@ -861,7 +861,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 }), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: msg.sender,
                 hookMetadata: new bytes(0),
                 payerMetadata: hookMetadata
@@ -928,7 +928,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                         currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
                     }), // 0, forwarded to the hook.
                     weight: 10 ** 18,
-                    projectTokenCount: 0,
+                    newlyIssuedTokenCount: 0,
                     beneficiary: msg.sender,
                     hookMetadata: new bytes(0),
                     payerMetadata: hookMetadata
@@ -982,7 +982,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 }), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: msg.sender,
                 hookMetadata: new bytes(0),
                 payerMetadata: new bytes(0)
@@ -1011,7 +1011,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 forwardedAmount: JBTokenAmount(JBConstants.NATIVE_TOKEN, 0, 18, uint32(uint160(JBConstants.NATIVE_TOKEN))), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: msg.sender,
                 hookMetadata: new bytes(0),
                 payerMetadata: new bytes(0)
@@ -1077,7 +1077,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 }), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: beneficiary,
                 hookMetadata: new bytes(0),
                 payerMetadata: hookMetadata
@@ -1126,7 +1126,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 }), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: beneficiary,
                 hookMetadata: new bytes(0),
                 payerMetadata: hookMetadata
@@ -1181,7 +1181,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 }), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: beneficiary,
                 hookMetadata: new bytes(0),
                 payerMetadata: hookMetadata
@@ -1250,7 +1250,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 }), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: beneficiary,
                 hookMetadata: new bytes(0),
                 payerMetadata: metadata
@@ -1283,12 +1283,12 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                     start: uint48(block.timestamp),
                     duration: 600,
                     weight: 10e18,
-                    decayPercent: 0,
+                    weightCutPercent: 0,
                     approvalHook: IJBRulesetApprovalHook(address(0)),
                     metadata: JBRulesetMetadataResolver.packRulesetMetadata(
                         JBRulesetMetadata({
                             reservedPercent: 5000, //50%
-                            redemptionRate: 5000, //50%
+                            cashOutTaxRate: 5000, //50%
                             baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
                             pausePay: false,
                             pauseCreditTransfers: false,
@@ -1301,9 +1301,9 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                             allowAddPriceFeed: false,
                             ownerMustSendPayouts: false,
                             holdFees: false,
-                            useTotalSurplusForRedemptions: false,
+                            useTotalSurplusForCashOuts: false,
                             useDataHookForPay: true,
-                            useDataHookForRedeem: true,
+                            useDataHookForCashOut: true,
                             dataHook: address(hook),
                             metadata: 1
                         })
@@ -1349,7 +1349,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 }), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: msg.sender,
                 hookMetadata: new bytes(0),
                 payerMetadata: hookMetadata
@@ -1415,7 +1415,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 }), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: msg.sender,
                 hookMetadata: new bytes(0),
                 payerMetadata: hookMetadata
@@ -1429,8 +1429,9 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
         assertEq(IERC721(hook).ownerOf(tokenId), beneficiary);
     }
 
-    // Redeem an NFT, even if transfers are paused in the ruleset metadata. This should bypass the call to `JBRulesets`.
-    function test_afterRedeemRecordedWith_redeemEvenIfTransfersPausedInRuleset() public {
+    // Cash out an NFT, even if transfers are paused in the ruleset metadata. This should bypass the call to
+    // `JBRulesets`.
+    function test_afterCashOutRecordedWith_cashOutEvenIfTransfersPausedInRuleset() public {
         address holder = address(bytes20(keccak256("holder")));
 
         JB721TiersHook hook = _initHookDefaultTiers(10);
@@ -1462,7 +1463,7 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
             hookMetadata = metadataHelper.createMetadata(ids, data);
         }
 
-        // Mint the NFTs. Otherwise, the voting balance is not incremented which leads to an underflow upon redemption.
+        // Mint the NFTs. Otherwise, the voting balance is not incremented which leads to an underflow upon cash outs.
         vm.prank(mockTerminalAddress);
         hook.afterPayRecordedWith(
             JBAfterPayRecordedContext({
@@ -1483,18 +1484,18 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                 }), // 0,
                     // forwarded to the hook.
                 weight: 10 ** 18,
-                projectTokenCount: 0,
+                newlyIssuedTokenCount: 0,
                 beneficiary: holder,
                 hookMetadata: new bytes(0),
                 payerMetadata: hookMetadata
             })
         );
 
-        uint256[] memory tokenToRedeem = new uint256[](1);
-        tokenToRedeem[0] = _generateTokenId(1, 1);
+        uint256[] memory tokenToCashOut = new uint256[](1);
+        tokenToCashOut[0] = _generateTokenId(1, 1);
 
-        // Build the metadata with the tiers to redeem.
-        data[0] = abi.encode(tokenToRedeem);
+        // Build the metadata with the tiers to cash out.
+        data[0] = abi.encode(tokenToCashOut);
 
         // Pass the hook ID.
         ids[0] = metadataHelper.getId("pay", address(hookOrigin));
@@ -1503,12 +1504,12 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
         hookMetadata = metadataHelper.createMetadata(ids, data);
 
         vm.prank(mockTerminalAddress);
-        hook.afterRedeemRecordedWith(
-            JBAfterRedeemRecordedContext({
+        hook.afterCashOutRecordedWith(
+            JBAfterCashOutRecordedContext({
                 holder: holder,
                 projectId: projectId,
                 rulesetId: 1,
-                redeemCount: 0,
+                cashOutCount: 0,
                 reclaimedAmount: JBTokenAmount({
                     token: address(0),
                     value: 0,
@@ -1521,10 +1522,10 @@ contract Test_afterPayRecorded_Unit is UnitTestSetup {
                     decimals: 18,
                     currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
                 }), // 0, forwarded to the hook.
-                redemptionRate: 5000,
+                cashOutTaxRate: 5000,
                 beneficiary: payable(holder),
                 hookMetadata: bytes(""),
-                redeemerMetadata: hookMetadata
+                cashOutMetadata: hookMetadata
             })
         );
 
