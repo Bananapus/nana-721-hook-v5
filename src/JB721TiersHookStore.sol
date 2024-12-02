@@ -412,11 +412,8 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @param tokenIds The token IDs of the NFTs to get the cash out weight of.
     /// @return weight The cash out weight.
     function cashOutWeightOf(address hook, uint256[] calldata tokenIds) public view override returns (uint256 weight) {
-        // Get a reference to the total number of tokens.
-        uint256 numberOfTokenIds = tokenIds.length;
-
         // Add each 721's price (from its tier) to the weight.
-        for (uint256 i; i < numberOfTokenIds; i++) {
+        for (uint256 i; i < tokenIds.length; i++) {
             weight += _storedTierOf[hook][tierIdOfToken(tokenIds[i])].price;
         }
     }
@@ -523,19 +520,16 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Keep a reference to the current greatest tier ID.
         uint256 currentMaxTierIdOf = maxTierIdOf[msg.sender];
 
-        // Get a reference to the number of tiers to add.
-        uint256 numberOfNewTiers = tiersToAdd.length;
-
         // Make sure the max number of tiers won't be exceeded.
-        if (currentMaxTierIdOf + numberOfNewTiers > type(uint16).max) {
-            revert JB721TiersHookStore_MaxTiersExceeded(currentMaxTierIdOf + numberOfNewTiers, type(uint16).max);
+        if (currentMaxTierIdOf + tiersToAdd.length > type(uint16).max) {
+            revert JB721TiersHookStore_MaxTiersExceeded(currentMaxTierIdOf + tiersToAdd.length, type(uint16).max);
         }
 
         // Keep a reference to the current last sorted tier ID (sorted by price).
         uint256 currentLastSortedTierId = _lastSortedTierIdOf(msg.sender);
 
         // Initialize an array for the new tier IDs to be returned.
-        tierIds = new uint256[](numberOfNewTiers);
+        tierIds = new uint256[](tiersToAdd.length);
 
         // Keep a reference to the first sorted tier ID, to use when sorting new tiers if needed.
         // There's no need for sorting if there are no current tiers.
@@ -547,7 +541,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Keep a reference to the 721 contract's flags.
         JB721TiersHookFlags memory flags = _flagsOf[msg.sender];
 
-        for (uint256 i; i < numberOfNewTiers; i++) {
+        for (uint256 i; i < tiersToAdd.length; i++) {
             // Set the tier being iterated upon.
             JB721TierConfig memory tierToAdd = tiersToAdd[i];
 
@@ -725,17 +719,14 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         }
 
         // Update the maximum tier ID to include the new tiers.
-        maxTierIdOf[msg.sender] = currentMaxTierIdOf + numberOfNewTiers;
+        maxTierIdOf[msg.sender] = currentMaxTierIdOf + tiersToAdd.length;
     }
 
     /// @notice Records 721 burns.
     /// @param tokenIds The token IDs of the NFTs to burn.
     function recordBurn(uint256[] calldata tokenIds) external override {
-        // Get a reference to the number of token IDs provided.
-        uint256 numberOfTokenIds = tokenIds.length;
-
         // Iterate through all token IDs to increment the burn count.
-        for (uint256 i; i < numberOfTokenIds; i++) {
+        for (uint256 i; i < tokenIds.length; i++) {
             // Set the 721's token ID.
             uint256 tokenId = tokenIds[i];
 

@@ -255,11 +255,8 @@ abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHoo
         // Decode the metadata.
         if (metadataExists) decodedTokenIds = abi.decode(metadata, (uint256[]));
 
-        // Get a reference to the number of NFT token IDs to check the owner of.
-        uint256 numberOfTokenIds = decodedTokenIds.length;
-
         // Iterate through the NFTs, burning them if the owner is correct.
-        for (uint256 i; i < numberOfTokenIds; i++) {
+        for (uint256 i; i < decodedTokenIds.length; i++) {
             // Set the current NFT's token ID.
             uint256 tokenId = decodedTokenIds[i];
 
