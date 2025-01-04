@@ -163,7 +163,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     /// @param tokenUriResolver An optional contract responsible for resolving the token URI for each NFT's token ID.
     /// @param contractUri A URI where this contract's metadata can be found.
     /// @param tiersConfig The NFT tiers and pricing context to initialize the hook with. The tiers must be sorted by
-    /// price (from least to greatest).
+    /// category (from least to greatest).
     /// @param flags A set of additional options which dictate how the hook behaves.
     function initialize(
         uint256 projectId,
