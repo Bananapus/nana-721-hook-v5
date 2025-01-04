@@ -1132,7 +1132,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         }
     }
 
-    /// @notice Pack three bools into a single uint8.
+    /// @notice Pack five bools into a single uint8.
     /// @param allowOwnerMint Whether or not owner minting is allowed in new tiers.
     /// @param transfersPausable Whether or not 721 transfers can be paused.
     /// @param useVotingUnits Whether or not custom voting unit amounts are allowed in new tiers.
@@ -1159,7 +1159,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         }
     }
 
-    /// @notice Unpack three bools from a single uint8.
+    /// @notice Unpack five bools from a single uint8.
     /// @param packed The packed bools.
     /// @param allowOwnerMint Whether or not owner minting is allowed in new tiers.
     /// @param transfersPausable Whether or not 721 transfers can be paused.
