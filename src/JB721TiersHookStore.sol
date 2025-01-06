@@ -1114,14 +1114,6 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Round up.
         if (numberOfNonReserveMints % storedTier.reserveFrequency > 0) ++totalNumberOfAvailableReserveMints;
 
-        // Fill out the remaining supply with reserve NFTs if needed.
-        if (
-            (storedTier.initialSupply % storedTier.reserveFrequency) + totalNumberOfAvailableReserveMints
-                > storedTier.initialSupply
-        ) {
-            totalNumberOfAvailableReserveMints = storedTier.remainingSupply;
-        }
-
         // Make sure there are more available reserve mints than actual reserve mints.
         // This condition becomes possible if some NFTs have been burned.
         if (numberOfReserveMints > totalNumberOfAvailableReserveMints) return 0;
