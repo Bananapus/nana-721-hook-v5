@@ -14,6 +14,7 @@ import {JBOwnable} from "@bananapus/ownable/src/JBOwnable.sol";
 import {JBPermissionIds} from "@bananapus/permission-ids/src/JBPermissionIds.sol";
 import {ERC2771Context} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {mulDiv} from "@prb/math/src/Common.sol";
 
 import {JB721Hook} from "./abstract/JB721Hook.sol";
@@ -245,7 +246,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     /// @notice Indicates if this contract adheres to the specified interface.
     /// @dev See {IERC165-supportsInterface}.
     /// @param interfaceId The ID of the interface to check for adherence to.
-    function supportsInterface(bytes4 interfaceId) public view override returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view override(IERC165, JB721Hook) returns (bool) {
         return interfaceId == type(IJB721TiersHook).interfaceId || super.supportsInterface(interfaceId);
     }
 

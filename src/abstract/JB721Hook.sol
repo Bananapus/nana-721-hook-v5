@@ -26,7 +26,7 @@ import {IJB721Hook} from "../interfaces/IJB721Hook.sol";
 /// setup, the amount paid, and information specified by the payer. The project's owner can enable NFT cash outs.
 /// through this hook, allowing the NFT holders to burn their NFTs to reclaim funds from the project (in proportion to
 /// the NFT's price).
-abstract contract JB721Hook is ERC721, IJB721Hook, IJBRulesetDataHook, IJBPayHook, IJBCashOutHook {
+abstract contract JB721Hook is ERC721, IJB721Hook {
     //*********************************************************************//
     // --------------------------- custom errors ------------------------- //
     //*********************************************************************//
