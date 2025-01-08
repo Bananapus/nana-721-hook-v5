@@ -107,7 +107,7 @@ contract DeployScript is Script, Sphinx {
 
             projectDeployer = !_projectDeployerIsdeployed
                 ? new JB721TiersHookProjectDeployer{salt: PROJECT_DEPLOYER_SALT}(
-                    core.directory, core.permissions, hookDeployer
+                    core.directory, core.permissions, hookDeployer, TRUSTED_FORWARDER
                 )
                 : JB721TiersHookProjectDeployer(_projectDeployer);
         }

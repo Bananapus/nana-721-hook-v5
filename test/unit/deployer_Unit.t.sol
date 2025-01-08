@@ -24,7 +24,7 @@ contract Test_ProjectDeployer_Unit is UnitTestSetup {
         super.setUp();
 
         deployer = new JB721TiersHookProjectDeployer(
-            IJBDirectory(mockJBDirectory), IJBPermissions(mockJBPermissions), jbHookDeployer
+            IJBDirectory(mockJBDirectory), IJBPermissions(mockJBPermissions), jbHookDeployer, address(0)
         );
     }
 
