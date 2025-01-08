@@ -102,7 +102,7 @@ contract DeployScript is Script, Sphinx {
             (address _projectDeployer, bool _projectDeployerIsdeployed) = _isDeployed(
                 PROJECT_DEPLOYER_SALT,
                 type(JB721TiersHookProjectDeployer).creationCode,
-                abi.encode(core.directory, core.permissions, hookDeployer)
+                abi.encode(core.directory, core.permissions, hookDeployer, TRUSTED_FORWARDER)
             );
 
             projectDeployer = !_projectDeployerIsdeployed
