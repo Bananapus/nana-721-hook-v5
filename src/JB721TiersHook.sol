@@ -247,7 +247,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     /// @dev See {IERC165-supportsInterface}.
     /// @param interfaceId The ID of the interface to check for adherence to.
     function supportsInterface(bytes4 interfaceId) public view override(IERC165, JB721Hook) returns (bool) {
-        return interfaceId == type(IJB721TiersHook).interfaceId || super.supportsInterface(interfaceId);
+        return interfaceId == type(IJB721TiersHook).interfaceId || JB721Hook.supportsInterface(interfaceId);
     }
 
     /// @notice The metadata URI of the NFT with the specified token ID.
