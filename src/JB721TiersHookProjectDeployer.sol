@@ -10,6 +10,8 @@ import {JBRulesetConfig} from "@bananapus/core/src/structs/JBRulesetConfig.sol";
 import {JBRulesetMetadata} from "@bananapus/core/src/structs/JBRulesetMetadata.sol";
 import {JBOwnable} from "@bananapus/ownable/src/JBOwnable.sol";
 import {JBPermissionIds} from "@bananapus/permission-ids/src/JBPermissionIds.sol";
+import {ERC2771Context} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
 import {IJB721TiersHookDeployer} from "./interfaces/IJB721TiersHookDeployer.sol";
 import {IJB721TiersHookProjectDeployer} from "./interfaces/IJB721TiersHookProjectDeployer.sol";
@@ -23,7 +25,7 @@ import {JBPayDataHookRulesetConfig} from "./structs/JBPayDataHookRulesetConfig.s
 /// @title JB721TiersHookProjectDeployer
 /// @notice Deploys a project and a 721 tiers hook for it. Can be used to queue rulesets for the project if given
 /// `JBPermissionIds.QUEUE_RULESETS`.
-contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProjectDeployer {
+contract JB721TiersHookProjectDeployer is ERC2771Context, JBPermissioned, IJB721TiersHookProjectDeployer {
     //*********************************************************************//
     // --------------- public immutable stored properties ---------------- //
     //*********************************************************************//
@@ -44,9 +46,11 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
     constructor(
         IJBDirectory directory,
         IJBPermissions permissions,
-        IJB721TiersHookDeployer hookDeployer
+        IJB721TiersHookDeployer hookDeployer,
+        address trustedForwarder
     )
         JBPermissioned(permissions)
+        ERC2771Context(trustedForwarder)
     {
         DIRECTORY = directory;
         HOOK_DEPLOYER = hookDeployer;
@@ -84,7 +88,7 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         hook = HOOK_DEPLOYER.deployHookFor({
             projectId: projectId,
             deployTiersHookConfig: deployTiersHookConfig,
-            salt: salt == bytes32(0) ? bytes32(0) : keccak256(abi.encode(msg.sender, salt))
+            salt: salt == bytes32(0) ? bytes32(0) : keccak256(abi.encode(_msgSender(), salt))
         });
 
         // Launch the project.
@@ -141,7 +145,7 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         hook = HOOK_DEPLOYER.deployHookFor({
             projectId: projectId,
             deployTiersHookConfig: deployTiersHookConfig,
-            salt: salt == bytes32(0) ? bytes32(0) : keccak256(abi.encode(msg.sender, salt))
+            salt: salt == bytes32(0) ? bytes32(0) : keccak256(abi.encode(_msgSender(), salt))
         });
 
         // Transfer the hook's ownership to the project.
@@ -188,7 +192,7 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
         hook = HOOK_DEPLOYER.deployHookFor({
             projectId: projectId,
             deployTiersHookConfig: deployTiersHookConfig,
-            salt: salt == bytes32(0) ? bytes32(0) : keccak256(abi.encode(msg.sender, salt))
+            salt: salt == bytes32(0) ? bytes32(0) : keccak256(abi.encode(_msgSender(), salt))
         });
 
         // Transfer the hook's ownership to the project.
@@ -402,5 +406,22 @@ contract JB721TiersHookProjectDeployer is JBPermissioned, IJB721TiersHookProject
             rulesetConfigurations: rulesetConfigurations,
             memo: queueRulesetsConfig.memo
         });
+    }
+
+    /// @notice The calldata. Preferred to use over `msg.data`.
+    /// @return calldata The `msg.data` of this call.
+    function _msgData() internal view override(ERC2771Context, Context) returns (bytes calldata) {
+        return ERC2771Context._msgData();
+    }
+
+    /// @notice The message's sender. Preferred to use over `msg.sender`.
+    /// @return sender The address which sent this call.
+    function _msgSender() internal view override(ERC2771Context, Context) returns (address sender) {
+        return ERC2771Context._msgSender();
+    }
+
+    /// @dev ERC-2771 specifies the context as being a single address (20 bytes).
+    function _contextSuffixLength() internal view virtual override(ERC2771Context, Context) returns (uint256) {
+        return ERC2771Context._contextSuffixLength();
     }
 }
