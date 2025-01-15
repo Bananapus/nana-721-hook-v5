@@ -57,6 +57,97 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
         }
     }
 
+    // Todo case: initial 10, rr 3, minted 6, what happens? mint the reserves till there's no remaining. then if all users burn, what happens?
+    function test_mintPendingReservesFor_mintOddReservedTokens() public {
+        uint256 initialSupply = 10; // The number of NFTs available for each tier.
+        uint256 totalMinted = 6; // The number of NFTs already minted for each tier (out of `initialSupply`).
+        uint256 reserveFrequency = 3; // The frequency at which NFTs are reserved (3/10 = 30%).
+
+        ForTest_JB721TiersHook hook = _initializeForTestHook(1);
+
+        // Initialize `numberOfTiers` tiers.
+        hook.test_store().ForTest_setTier(
+            address(hook),
+            1,
+            JBStored721Tier({
+                price: uint104(10),
+                remainingSupply: uint32(initialSupply),
+                initialSupply: uint32(initialSupply),
+                votingUnits: uint16(0),
+                reserveFrequency: uint16(reserveFrequency),
+                category: uint24(100),
+                discountPercent: uint8(0),
+                packedBools: hook.test_store().ForTest_packBools(true, false, true, false, false)
+            })
+        );
+
+        uint16[] memory tiersToMint = new uint16[](totalMinted);
+        for (uint256 i; i < totalMinted; i++) {
+            tiersToMint[i] = 1;
+        }
+        // Mint the 7th.
+        vm.prank(owner);
+        hook.mintFor(tiersToMint, beneficiary);
+
+        JB721TiersMintReservesConfig[] memory reservesToMint = new JB721TiersMintReservesConfig[](1);
+
+        // Iterate through the tiers, calculating how many reserve NFTs should be mintable.
+        uint256 mintable = hook.test_store().numberOfPendingReservesFor(address(hook), 1);
+        assertEq(mintable, 2, "Tier 1 should have 2 reserve NFTs mintable.");
+
+       // Mint 6 NFTs, 2 from each tier.
+        tiersToMint = new uint16[](1);
+        tiersToMint[0] = 1;
+
+        // Mint the 7th.
+        vm.prank(owner);
+        hook.mintFor(tiersToMint, beneficiary);
+
+        mintable = hook.test_store().numberOfPendingReservesFor(address(hook), 1);
+        assertEq(mintable, 3, "Tier 1 should have 3 reserve NFTs mintable.");
+        reservesToMint[0] = JB721TiersMintReservesConfig({tierId: uint32(1), count: uint16(mintable)});
+
+        // Revert when minting the 8th.
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_InsufficientSupplyRemaining.selector));
+        vm.prank(owner);
+        hook.mintFor(tiersToMint, beneficiary);
+
+        // // Mint the pending reserve NFTs.
+        vm.prank(owner);
+        hook.mintPendingReservesFor(reservesToMint);
+
+        // Check: does the reserve beneficiary has the correct number of NFTs?
+        assertEq(hook.balanceOf(reserveBeneficiary), 3);
+        assertEq(hook.balanceOf(beneficiary), 7);
+
+        mintable = hook.test_store().numberOfPendingReservesFor(address(hook), 1);
+        assertEq(mintable, 0, "Tier 1 should have 0 reserve NFTs mintable.");
+
+        // Burn them all.
+        uint256[] memory tokenIdsToBurn = new uint256[](initialSupply);
+        for (uint256 i; i < initialSupply; i++) {
+            tokenIdsToBurn[i] = 1000000000 + 1 + i;
+        }
+        vm.prank(address(hook));
+        hook.burn(tokenIdsToBurn);
+
+        // Check: does the reserve beneficiary have the correct number of NFTs?
+        assertEq(hook.balanceOf(reserveBeneficiary), 0);
+        assertEq(hook.balanceOf(beneficiary), 0);
+
+        mintable = hook.test_store().numberOfPendingReservesFor(address(hook), 1);
+        assertEq(mintable, 0, "Tier 1 should have 0 reserve NFTs mintable.");
+
+        JB721Tier memory tier = hook.STORE().tierOf(address(hook), 1, false);
+        assertEq(tier.remainingSupply, 0, "Tier 1 should have 0 remaining supply.");
+
+        // Revert when minting the next.
+        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_InsufficientSupplyRemaining.selector));
+        vm.prank(owner);
+        hook.mintFor(tiersToMint, beneficiary);
+        mintable = hook.test_store().numberOfPendingReservesFor(address(hook), 1);
+    }
+
     function test_mintPendingReservesFor_mintMultipleReservedTokens() public {
         uint256 initialSupply = 200; // The number of NFTs available for each tier.
         uint256 totalMinted = 120; // The number of NFTs already minted for each tier (out of `initialSupply`).
