@@ -81,42 +81,42 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
             })
         );
 
+        // Mint the initial tiers.
         uint16[] memory tiersToMint = new uint16[](totalMinted);
         for (uint256 i; i < totalMinted; i++) {
             tiersToMint[i] = 1;
         }
-        // Mint the 7th.
         vm.prank(owner);
         hook.mintFor(tiersToMint, beneficiary);
-
-        JB721TiersMintReservesConfig[] memory reservesToMint = new JB721TiersMintReservesConfig[](1);
 
         // Iterate through the tiers, calculating how many reserve NFTs should be mintable.
         uint256 mintable = hook.test_store().numberOfPendingReservesFor(address(hook), 1);
         assertEq(mintable, 2, "Tier 1 should have 2 reserve NFTs mintable.");
 
-       // Mint 6 NFTs, 2 from each tier.
+        // Mint the next tier
         tiersToMint = new uint16[](1);
         tiersToMint[0] = 1;
-
-        // Mint the 7th.
         vm.prank(owner);
         hook.mintFor(tiersToMint, beneficiary);
 
+        // Should have one more reserved.
         mintable = hook.test_store().numberOfPendingReservesFor(address(hook), 1);
         assertEq(mintable, 3, "Tier 1 should have 3 reserve NFTs mintable.");
-        reservesToMint[0] = JB721TiersMintReservesConfig({tierId: uint32(1), count: uint16(mintable)});
 
-        // Revert when minting the 8th.
+        // Revert when minting the next.
         vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_InsufficientSupplyRemaining.selector));
         vm.prank(owner);
         hook.mintFor(tiersToMint, beneficiary);
 
-        // // Mint the pending reserve NFTs.
+        // Package reserves to mint.
+        JB721TiersMintReservesConfig[] memory reservesToMint = new JB721TiersMintReservesConfig[](1);
+        reservesToMint[0] = JB721TiersMintReservesConfig({tierId: uint32(1), count: uint16(mintable)});
+
+        // Mint the pending reserve NFTs.
         vm.prank(owner);
         hook.mintPendingReservesFor(reservesToMint);
 
-        // Check: does the reserve beneficiary has the correct number of NFTs?
+        // Check: does the reserve beneficiary and beneficiary have the correct number of NFTs?
         assertEq(hook.balanceOf(reserveBeneficiary), 3);
         assertEq(hook.balanceOf(beneficiary), 7);
 
@@ -131,13 +131,15 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
         vm.prank(address(hook));
         hook.burn(tokenIdsToBurn);
 
-        // Check: does the reserve beneficiary have the correct number of NFTs?
+        // Check: does the reserve beneficiary and beneficiary have the correct number of NFTs?
         assertEq(hook.balanceOf(reserveBeneficiary), 0);
         assertEq(hook.balanceOf(beneficiary), 0);
 
+        // No pending reserves still.
         mintable = hook.test_store().numberOfPendingReservesFor(address(hook), 1);
         assertEq(mintable, 0, "Tier 1 should have 0 reserve NFTs mintable.");
 
+        // No remaining supply still.
         JB721Tier memory tier = hook.STORE().tierOf(address(hook), 1, false);
         assertEq(tier.remainingSupply, 0, "Tier 1 should have 0 remaining supply.");
 
@@ -145,7 +147,6 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
         vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_InsufficientSupplyRemaining.selector));
         vm.prank(owner);
         hook.mintFor(tiersToMint, beneficiary);
-        mintable = hook.test_store().numberOfPendingReservesFor(address(hook), 1);
     }
 
     function test_mintPendingReservesFor_mintMultipleReservedTokens() public {
