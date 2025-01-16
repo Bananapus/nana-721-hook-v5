@@ -813,10 +813,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             // Mint the 721.
             unchecked {
                 // Keep a reference to its token ID.
-                tokenIds[i] = _generateTokenId(
-                    tierId,
-                    storedTier.initialSupply - --storedTier.remainingSupply + numberOfBurnedFor[msg.sender][tierId]
-                );
+                tokenIds[i] = _generateTokenId(tierId, storedTier.initialSupply - --storedTier.remainingSupply);
                 leftoverAmount = leftoverAmount - price;
             }
         }
@@ -852,14 +849,9 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Initialize an array for the token IDs to be returned.
         tokenIds = new uint256[](count);
 
-        // Keep a reference to the number of NFTs burned within the tier.
-        uint256 numberOfBurnedFromTier = numberOfBurnedFor[msg.sender][tierId];
-
         for (uint256 i; i < count; i++) {
             // Generate the NFTs.
-            tokenIds[i] = _generateTokenId(
-                tierId, storedTier.initialSupply - --storedTier.remainingSupply + numberOfBurnedFromTier
-            );
+            tokenIds[i] = _generateTokenId(tierId, storedTier.initialSupply - --storedTier.remainingSupply);
         }
     }
 
