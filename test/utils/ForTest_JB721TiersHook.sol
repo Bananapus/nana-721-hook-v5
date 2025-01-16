@@ -82,6 +82,13 @@ contract ForTest_JB721TiersHook is JB721TiersHook {
     function ForTest_setOwnerOf(uint256 tokenId, address owner) public {
         _owners[tokenId] = owner;
     }
+
+    function burn(uint256[] memory tokenIds) public {
+        for (uint256 i; i < tokenIds.length; i++) {
+            _burn(tokenIds[i]);
+        }
+        STORE.recordBurn(tokenIds);
+    }
 }
 
 // A customized 721 tiers hook store for testing purposes.
