@@ -10,6 +10,7 @@ interface IJB721TiersHookStore {
     event CleanTiers(address indexed hook, address caller);
 
     function balanceOf(address hook, address owner) external view returns (uint256);
+    function cashOutWeightOf(address hook, uint256[] calldata tokenIds) external view returns (uint256 weight);
     function defaultReserveBeneficiaryOf(address hook) external view returns (address);
     function encodedIPFSUriOf(address hook, uint256 tierId) external view returns (bytes32);
     function encodedTierIPFSUriOf(address hook, uint256 tokenId) external view returns (bytes32);
@@ -19,7 +20,6 @@ interface IJB721TiersHookStore {
     function numberOfBurnedFor(address hook, uint256 tierId) external view returns (uint256);
     function numberOfPendingReservesFor(address hook, uint256 tierId) external view returns (uint256);
     function numberOfReservesMintedFor(address hook, uint256 tierId) external view returns (uint256);
-    function cashOutWeightOf(address hook, uint256[] calldata tokenIds) external view returns (uint256 weight);
     function reserveBeneficiaryOf(address hook, uint256 tierId) external view returns (address);
     function tierBalanceOf(address hook, address owner, uint256 tier) external view returns (uint256);
     function tierIdOfToken(uint256 tokenId) external pure returns (uint256);

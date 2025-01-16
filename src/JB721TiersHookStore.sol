@@ -27,14 +27,14 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     error JB721TiersHookStore_CantRemoveTier();
     error JB721TiersHookStore_DiscountPercentExceedsBounds(uint256 percent, uint256 limit);
     error JB721TiersHookStore_DiscountPercentIncreaseNotAllowed(uint256 percent, uint256 storedPercent);
-    error JB721TiersHookStore_PriceExceedsAmount(uint256 price, uint256 leftoverAmount);
     error JB721TiersHookStore_InsufficientPendingReserves(uint256 count, uint256 numberOfPendingReserves);
+    error JB721TiersHookStore_InsufficientSupplyRemaining();
     error JB721TiersHookStore_InvalidCategorySortOrder(uint256 tierCategory, uint256 previousTierCategory);
     error JB721TiersHookStore_InvalidQuantity(uint256 quantity, uint256 limit);
-    error JB721TiersHookStore_MaxTiersExceeded(uint256 numberOfTiers, uint256 limit);
-    error JB721TiersHookStore_InsufficientSupplyRemaining();
-    error JB721TiersHookStore_ReserveFrequencyNotAllowed();
     error JB721TiersHookStore_ManualMintingNotAllowed();
+    error JB721TiersHookStore_MaxTiersExceeded(uint256 numberOfTiers, uint256 limit);
+    error JB721TiersHookStore_PriceExceedsAmount(uint256 price, uint256 leftoverAmount);
+    error JB721TiersHookStore_ReserveFrequencyNotAllowed();
     error JB721TiersHookStore_TierRemoved(uint256 tierId);
     error JB721TiersHookStore_UnrecognizedTier();
     error JB721TiersHookStore_VotingUnitsNotAllowed();
@@ -461,6 +461,234 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
                     (storedTier.initialSupply - (storedTier.remainingSupply + numberOfBurnedFor[hook][i]))
                         + _numberOfPendingReservesFor(hook, i, storedTier)
                 );
+        }
+    }
+
+    //*********************************************************************//
+    // -------------------------- internal views ------------------------- //
+    //*********************************************************************//
+
+    /// @notice Get the first tier ID from an 721 contract (when sorted by price) within a provided category.
+    /// @param hook The 721 contract to get the first sorted tier ID of.
+    /// @param category The category to get the first sorted tier ID within. Send 0 for the first ID across all tiers,
+    /// which might not be in the 0th category if the 0th category does not exist.
+    /// @return id The first sorted tier ID within the provided category.
+    function _firstSortedTierIdOf(address hook, uint256 category) internal view returns (uint256 id) {
+        id = category == 0 ? _tierIdAfter[hook][0] : _startingTierIdOfCategory[hook][category];
+        // Start at the first tier ID if nothing is specified.
+        if (id == 0) id = 1;
+    }
+
+    /// @notice Generate a token ID for an 721 given a tier ID and a token number within that tier.
+    /// @param tierId The ID of the tier to generate a token ID for.
+    /// @param tokenNumber The token number of the 721 within the tier.
+    /// @return The token ID of the 721.
+    function _generateTokenId(uint256 tierId, uint256 tokenNumber) internal pure returns (uint256) {
+        return (tierId * _ONE_BILLION) + tokenNumber;
+    }
+
+    /// @notice Returns the tier corresponding to the stored tier provided.
+    /// @dev Translate `JBStored721Tier` to `JB721Tier`.
+    /// @param hook The 721 contract to get the tier from.
+    /// @param tierId The ID of the tier to get.
+    /// @param storedTier The stored tier to get the corresponding tier for.
+    /// @param includeResolvedUri If set to `true`, if the contract has a token URI resolver, its content will be
+    /// resolved and included.
+    /// @return tier The tier as a `JB721Tier` struct.
+    function _getTierFrom(
+        address hook,
+        uint256 tierId,
+        JBStored721Tier memory storedTier,
+        bool includeResolvedUri
+    )
+        internal
+        view
+        returns (JB721Tier memory)
+    {
+        // Get a reference to the reserve beneficiary.
+        address reserveBeneficiary = reserveBeneficiaryOf(hook, tierId);
+
+        (
+            bool allowOwnerMint,
+            bool transfersPausable,
+            bool useVotingUnits,
+            bool cannotBeRemoved,
+            bool cannotIncreaseDiscountPercent
+        ) = _unpackBools(storedTier.packedBools);
+
+        // slither-disable-next-line calls-loop
+        return JB721Tier({
+            id: uint32(tierId),
+            price: storedTier.price,
+            remainingSupply: storedTier.remainingSupply,
+            initialSupply: storedTier.initialSupply,
+            votingUnits: useVotingUnits ? storedTier.votingUnits : storedTier.price,
+            // No reserve frequency if there is no reserve beneficiary.
+            reserveFrequency: reserveBeneficiary == address(0) ? 0 : storedTier.reserveFrequency,
+            reserveBeneficiary: reserveBeneficiary,
+            encodedIPFSUri: encodedIPFSUriOf[hook][tierId],
+            category: storedTier.category,
+            discountPercent: storedTier.discountPercent,
+            allowOwnerMint: allowOwnerMint,
+            transfersPausable: transfersPausable,
+            cannotBeRemoved: cannotBeRemoved,
+            cannotIncreaseDiscountPercent: cannotIncreaseDiscountPercent,
+            resolvedUri: !includeResolvedUri || tokenUriResolverOf[hook] == IJB721TokenUriResolver(address(0))
+                ? ""
+                : tokenUriResolverOf[hook].tokenUriOf(hook, _generateTokenId(tierId, 0))
+        });
+    }
+
+    /// @notice Check whether a tier has been removed while refreshing the relevant bitmap word if needed.
+    /// @param hook The 721 contract to check for removals on.
+    /// @param tierId The ID of the tier to check the removal status of.
+    /// @param bitmapWord The bitmap word to use.
+    /// @return A boolean which is `true` if the tier has been removed.
+    function _isTierRemovedWithRefresh(
+        address hook,
+        uint256 tierId,
+        JBBitmapWord memory bitmapWord
+    )
+        internal
+        view
+        returns (bool)
+    {
+        // If the current tier ID is outside current bitmap word (depth), refresh the bitmap word.
+        if (bitmapWord.refreshBitmapNeeded(tierId) || (bitmapWord.currentWord == 0 && bitmapWord.currentDepth == 0)) {
+            bitmapWord = _removedTiersBitmapWordOf[hook].readId(tierId);
+        }
+
+        return bitmapWord.isTierIdRemoved(tierId);
+    }
+
+    /// @notice The last sorted tier ID from an 721 contract (when sorted by price).
+    /// @param hook The 721 contract to get the last sorted tier ID of.
+    /// @return id The last sorted tier ID.
+    function _lastSortedTierIdOf(address hook) internal view returns (uint256 id) {
+        id = _lastTrackedSortedTierIdOf[hook];
+        // Use the maximum tier ID if nothing is specified.
+        if (id == 0) id = maxTierIdOf[hook];
+    }
+
+    /// @notice Get the tier ID which comes after the provided one when sorted by price.
+    /// @param hook The 721 contract to get the next sorted tier ID from.
+    /// @param id The tier ID to get the next sorted tier ID relative to.
+    /// @param max The maximum tier ID.
+    /// @return The next sorted tier ID.
+    function _nextSortedTierIdOf(address hook, uint256 id, uint256 max) internal view returns (uint256) {
+        // If this is the last tier (maximum), return zero.
+        if (id == max) return 0;
+
+        // If a tier ID is saved to come after the provided ID, return it.
+        uint256 storedNext = _tierIdAfter[hook][id];
+
+        if (storedNext != 0) return storedNext;
+
+        // Otherwise, increment the provided tier ID.
+        return id + 1;
+    }
+
+    /// @notice Get the number of pending reserve NFTs for the specified tier ID.
+    /// @param hook The 721 contract that the tier belongs to.
+    /// @param tierId The ID of the tier to get the number of pending reserve NFTs for.
+    /// @param storedTier The stored tier to get the number of pending reserve NFTs for.
+    /// @return numberReservedTokensOutstanding The number of pending reserve NFTs for the tier.
+    function _numberOfPendingReservesFor(
+        address hook,
+        uint256 tierId,
+        JBStored721Tier memory storedTier
+    )
+        internal
+        view
+        returns (uint256)
+    {
+        // Get a reference to the initial supply with burned NFTs included.
+        uint256 initialSupply = storedTier.initialSupply;
+
+        // No pending reserves if no mints, no reserve frequency, or no reserve beneficiary.
+        if (
+            storedTier.reserveFrequency == 0 || initialSupply == storedTier.remainingSupply
+                || reserveBeneficiaryOf(hook, tierId) == address(0)
+        ) return 0;
+
+        // The number of reserve NFTs which have already been minted from the tier.
+        uint256 numberOfReserveMints = numberOfReservesMintedFor[hook][tierId];
+
+        // If only the reserved 721 (from rounding up) has been minted so far, return 0.
+        if (initialSupply == storedTier.remainingSupply + numberOfReserveMints) {
+            return 0;
+        }
+
+        // Get a reference to the number of NFTs minted from the tier (not counting reserve mints or burned tokens).
+        uint256 numberOfNonReserveMints;
+        unchecked {
+            numberOfNonReserveMints = initialSupply - storedTier.remainingSupply - numberOfReserveMints;
+        }
+
+        // Get the number of total available reserve 721 mints given the number of non-reserve NFTs minted divided by
+        // the reserve frequency. This will round down.
+        uint256 totalNumberOfAvailableReserveMints = numberOfNonReserveMints / storedTier.reserveFrequency;
+
+        // Round up.
+        if (numberOfNonReserveMints % storedTier.reserveFrequency > 0) ++totalNumberOfAvailableReserveMints;
+
+        // Return the difference between the number of available reserve mints and the amount already minted.
+        unchecked {
+            return totalNumberOfAvailableReserveMints - numberOfReserveMints;
+        }
+    }
+
+    /// @notice Pack five bools into a single uint8.
+    /// @param allowOwnerMint Whether or not owner minting is allowed in new tiers.
+    /// @param transfersPausable Whether or not 721 transfers can be paused.
+    /// @param useVotingUnits Whether or not custom voting unit amounts are allowed in new tiers.
+    /// @param cannotBeRemoved Whether or not attempts to remove the tier will revert.
+    /// @param cannotIncreaseDiscountPercent Whether or not attempts to increase the discount percent will revert.
+    /// @return packed The packed bools.
+    function _packBools(
+        bool allowOwnerMint,
+        bool transfersPausable,
+        bool useVotingUnits,
+        bool cannotBeRemoved,
+        bool cannotIncreaseDiscountPercent
+    )
+        internal
+        pure
+        returns (uint8 packed)
+    {
+        assembly {
+            packed := or(allowOwnerMint, packed)
+            packed := or(shl(0x1, transfersPausable), packed)
+            packed := or(shl(0x2, useVotingUnits), packed)
+            packed := or(shl(0x3, cannotBeRemoved), packed)
+            packed := or(shl(0x4, cannotIncreaseDiscountPercent), packed)
+        }
+    }
+
+    /// @notice Unpack five bools from a single uint8.
+    /// @param packed The packed bools.
+    /// @param allowOwnerMint Whether or not owner minting is allowed in new tiers.
+    /// @param transfersPausable Whether or not 721 transfers can be paused.
+    /// @param useVotingUnits Whether or not custom voting unit amounts are allowed in new tiers.
+    /// @param cannotBeRemoved Whether or not the tier can be removed once added.
+    /// @param cannotIncreaseDiscountPercent Whether or not the discount percent cannot be increased.
+    function _unpackBools(uint8 packed)
+        internal
+        pure
+        returns (
+            bool allowOwnerMint,
+            bool transfersPausable,
+            bool useVotingUnits,
+            bool cannotBeRemoved,
+            bool cannotIncreaseDiscountPercent
+        )
+    {
+        assembly {
+            allowOwnerMint := iszero(iszero(and(0x1, packed)))
+            transfersPausable := iszero(iszero(and(0x2, packed)))
+            useVotingUnits := iszero(iszero(and(0x4, packed)))
+            cannotBeRemoved := iszero(iszero(and(0x8, packed)))
+            cannotIncreaseDiscountPercent := iszero(iszero(and(0x10, packed)))
         }
     }
 
@@ -932,234 +1160,6 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
                 // then increase the tier balance for the receiver.
                 ++tierBalanceOf[msg.sender][to][tierId];
             }
-        }
-    }
-
-    //*********************************************************************//
-    // ------------------------ internal functions ----------------------- //
-    //*********************************************************************//
-
-    /// @notice Get the first tier ID from an 721 contract (when sorted by price) within a provided category.
-    /// @param hook The 721 contract to get the first sorted tier ID of.
-    /// @param category The category to get the first sorted tier ID within. Send 0 for the first ID across all tiers,
-    /// which might not be in the 0th category if the 0th category does not exist.
-    /// @return id The first sorted tier ID within the provided category.
-    function _firstSortedTierIdOf(address hook, uint256 category) internal view returns (uint256 id) {
-        id = category == 0 ? _tierIdAfter[hook][0] : _startingTierIdOfCategory[hook][category];
-        // Start at the first tier ID if nothing is specified.
-        if (id == 0) id = 1;
-    }
-
-    /// @notice Generate a token ID for an 721 given a tier ID and a token number within that tier.
-    /// @param tierId The ID of the tier to generate a token ID for.
-    /// @param tokenNumber The token number of the 721 within the tier.
-    /// @return The token ID of the 721.
-    function _generateTokenId(uint256 tierId, uint256 tokenNumber) internal pure returns (uint256) {
-        return (tierId * _ONE_BILLION) + tokenNumber;
-    }
-
-    /// @notice Returns the tier corresponding to the stored tier provided.
-    /// @dev Translate `JBStored721Tier` to `JB721Tier`.
-    /// @param hook The 721 contract to get the tier from.
-    /// @param tierId The ID of the tier to get.
-    /// @param storedTier The stored tier to get the corresponding tier for.
-    /// @param includeResolvedUri If set to `true`, if the contract has a token URI resolver, its content will be
-    /// resolved and included.
-    /// @return tier The tier as a `JB721Tier` struct.
-    function _getTierFrom(
-        address hook,
-        uint256 tierId,
-        JBStored721Tier memory storedTier,
-        bool includeResolvedUri
-    )
-        internal
-        view
-        returns (JB721Tier memory)
-    {
-        // Get a reference to the reserve beneficiary.
-        address reserveBeneficiary = reserveBeneficiaryOf(hook, tierId);
-
-        (
-            bool allowOwnerMint,
-            bool transfersPausable,
-            bool useVotingUnits,
-            bool cannotBeRemoved,
-            bool cannotIncreaseDiscountPercent
-        ) = _unpackBools(storedTier.packedBools);
-
-        // slither-disable-next-line calls-loop
-        return JB721Tier({
-            id: uint32(tierId),
-            price: storedTier.price,
-            remainingSupply: storedTier.remainingSupply,
-            initialSupply: storedTier.initialSupply,
-            votingUnits: useVotingUnits ? storedTier.votingUnits : storedTier.price,
-            // No reserve frequency if there is no reserve beneficiary.
-            reserveFrequency: reserveBeneficiary == address(0) ? 0 : storedTier.reserveFrequency,
-            reserveBeneficiary: reserveBeneficiary,
-            encodedIPFSUri: encodedIPFSUriOf[hook][tierId],
-            category: storedTier.category,
-            discountPercent: storedTier.discountPercent,
-            allowOwnerMint: allowOwnerMint,
-            transfersPausable: transfersPausable,
-            cannotBeRemoved: cannotBeRemoved,
-            cannotIncreaseDiscountPercent: cannotIncreaseDiscountPercent,
-            resolvedUri: !includeResolvedUri || tokenUriResolverOf[hook] == IJB721TokenUriResolver(address(0))
-                ? ""
-                : tokenUriResolverOf[hook].tokenUriOf(hook, _generateTokenId(tierId, 0))
-        });
-    }
-
-    /// @notice Check whether a tier has been removed while refreshing the relevant bitmap word if needed.
-    /// @param hook The 721 contract to check for removals on.
-    /// @param tierId The ID of the tier to check the removal status of.
-    /// @param bitmapWord The bitmap word to use.
-    /// @return A boolean which is `true` if the tier has been removed.
-    function _isTierRemovedWithRefresh(
-        address hook,
-        uint256 tierId,
-        JBBitmapWord memory bitmapWord
-    )
-        internal
-        view
-        returns (bool)
-    {
-        // If the current tier ID is outside current bitmap word (depth), refresh the bitmap word.
-        if (bitmapWord.refreshBitmapNeeded(tierId) || (bitmapWord.currentWord == 0 && bitmapWord.currentDepth == 0)) {
-            bitmapWord = _removedTiersBitmapWordOf[hook].readId(tierId);
-        }
-
-        return bitmapWord.isTierIdRemoved(tierId);
-    }
-
-    /// @notice The last sorted tier ID from an 721 contract (when sorted by price).
-    /// @param hook The 721 contract to get the last sorted tier ID of.
-    /// @return id The last sorted tier ID.
-    function _lastSortedTierIdOf(address hook) internal view returns (uint256 id) {
-        id = _lastTrackedSortedTierIdOf[hook];
-        // Use the maximum tier ID if nothing is specified.
-        if (id == 0) id = maxTierIdOf[hook];
-    }
-
-    /// @notice Get the tier ID which comes after the provided one when sorted by price.
-    /// @param hook The 721 contract to get the next sorted tier ID from.
-    /// @param id The tier ID to get the next sorted tier ID relative to.
-    /// @param max The maximum tier ID.
-    /// @return The next sorted tier ID.
-    function _nextSortedTierIdOf(address hook, uint256 id, uint256 max) internal view returns (uint256) {
-        // If this is the last tier (maximum), return zero.
-        if (id == max) return 0;
-
-        // If a tier ID is saved to come after the provided ID, return it.
-        uint256 storedNext = _tierIdAfter[hook][id];
-
-        if (storedNext != 0) return storedNext;
-
-        // Otherwise, increment the provided tier ID.
-        return id + 1;
-    }
-
-    /// @notice Get the number of pending reserve NFTs for the specified tier ID.
-    /// @param hook The 721 contract that the tier belongs to.
-    /// @param tierId The ID of the tier to get the number of pending reserve NFTs for.
-    /// @param storedTier The stored tier to get the number of pending reserve NFTs for.
-    /// @return numberReservedTokensOutstanding The number of pending reserve NFTs for the tier.
-    function _numberOfPendingReservesFor(
-        address hook,
-        uint256 tierId,
-        JBStored721Tier memory storedTier
-    )
-        internal
-        view
-        returns (uint256)
-    {
-        // Get a reference to the initial supply with burned NFTs included.
-        uint256 initialSupply = storedTier.initialSupply;
-
-        // No pending reserves if no mints, no reserve frequency, or no reserve beneficiary.
-        if (
-            storedTier.reserveFrequency == 0 || initialSupply == storedTier.remainingSupply
-                || reserveBeneficiaryOf(hook, tierId) == address(0)
-        ) return 0;
-
-        // The number of reserve NFTs which have already been minted from the tier.
-        uint256 numberOfReserveMints = numberOfReservesMintedFor[hook][tierId];
-
-        // If only the reserved 721 (from rounding up) has been minted so far, return 0.
-        if (initialSupply == storedTier.remainingSupply + numberOfReserveMints) {
-            return 0;
-        }
-
-        // Get a reference to the number of NFTs minted from the tier (not counting reserve mints or burned tokens).
-        uint256 numberOfNonReserveMints;
-        unchecked {
-            numberOfNonReserveMints = initialSupply - storedTier.remainingSupply - numberOfReserveMints;
-        }
-
-        // Get the number of total available reserve 721 mints given the number of non-reserve NFTs minted divided by
-        // the reserve frequency. This will round down.
-        uint256 totalNumberOfAvailableReserveMints = numberOfNonReserveMints / storedTier.reserveFrequency;
-
-        // Round up.
-        if (numberOfNonReserveMints % storedTier.reserveFrequency > 0) ++totalNumberOfAvailableReserveMints;
-
-        // Return the difference between the number of available reserve mints and the amount already minted.
-        unchecked {
-            return totalNumberOfAvailableReserveMints - numberOfReserveMints;
-        }
-    }
-
-    /// @notice Pack five bools into a single uint8.
-    /// @param allowOwnerMint Whether or not owner minting is allowed in new tiers.
-    /// @param transfersPausable Whether or not 721 transfers can be paused.
-    /// @param useVotingUnits Whether or not custom voting unit amounts are allowed in new tiers.
-    /// @param cannotBeRemoved Whether or not attempts to remove the tier will revert.
-    /// @param cannotIncreaseDiscountPercent Whether or not attempts to increase the discount percent will revert.
-    /// @return packed The packed bools.
-    function _packBools(
-        bool allowOwnerMint,
-        bool transfersPausable,
-        bool useVotingUnits,
-        bool cannotBeRemoved,
-        bool cannotIncreaseDiscountPercent
-    )
-        internal
-        pure
-        returns (uint8 packed)
-    {
-        assembly {
-            packed := or(allowOwnerMint, packed)
-            packed := or(shl(0x1, transfersPausable), packed)
-            packed := or(shl(0x2, useVotingUnits), packed)
-            packed := or(shl(0x3, cannotBeRemoved), packed)
-            packed := or(shl(0x4, cannotIncreaseDiscountPercent), packed)
-        }
-    }
-
-    /// @notice Unpack five bools from a single uint8.
-    /// @param packed The packed bools.
-    /// @param allowOwnerMint Whether or not owner minting is allowed in new tiers.
-    /// @param transfersPausable Whether or not 721 transfers can be paused.
-    /// @param useVotingUnits Whether or not custom voting unit amounts are allowed in new tiers.
-    /// @param cannotBeRemoved Whether or not the tier can be removed once added.
-    /// @param cannotIncreaseDiscountPercent Whether or not the discount percent cannot be increased.
-    function _unpackBools(uint8 packed)
-        internal
-        pure
-        returns (
-            bool allowOwnerMint,
-            bool transfersPausable,
-            bool useVotingUnits,
-            bool cannotBeRemoved,
-            bool cannotIncreaseDiscountPercent
-        )
-    {
-        assembly {
-            allowOwnerMint := iszero(iszero(and(0x1, packed)))
-            transfersPausable := iszero(iszero(and(0x2, packed)))
-            useVotingUnits := iszero(iszero(and(0x4, packed)))
-            cannotBeRemoved := iszero(iszero(and(0x8, packed)))
-            cannotIncreaseDiscountPercent := iszero(iszero(and(0x10, packed)))
         }
     }
 }
