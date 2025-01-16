@@ -57,7 +57,8 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
         }
     }
 
-    // Todo case: initial 10, rr 3, minted 6, what happens? mint the reserves till there's no remaining. then if all users burn, what happens?
+    // Todo case: initial 10, rr 3, minted 6, what happens? mint the reserves till there's no remaining. then if all
+    // users burn, what happens?
     function test_mintPendingReservesFor_mintOddReservedTokens() public {
         uint256 initialSupply = 10; // The number of NFTs available for each tier.
         uint256 totalMinted = 6; // The number of NFTs already minted for each tier (out of `initialSupply`).
@@ -104,7 +105,9 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
         assertEq(mintable, 3, "Tier 1 should have 3 reserve NFTs mintable.");
 
         // Revert when minting the next.
-        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_InsufficientSupplyRemaining.selector));
+        vm.expectRevert(
+            abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_InsufficientSupplyRemaining.selector)
+        );
         vm.prank(owner);
         hook.mintFor(tiersToMint, beneficiary);
 
@@ -126,7 +129,7 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
         // Burn them all.
         uint256[] memory tokenIdsToBurn = new uint256[](initialSupply);
         for (uint256 i; i < initialSupply; i++) {
-            tokenIdsToBurn[i] = 1000000000 + 1 + i;
+            tokenIdsToBurn[i] = 1_000_000_000 + 1 + i;
         }
         vm.prank(address(hook));
         hook.burn(tokenIdsToBurn);
@@ -144,7 +147,9 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
         assertEq(tier.remainingSupply, 0, "Tier 1 should have 0 remaining supply.");
 
         // Revert when minting the next.
-        vm.expectRevert(abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_InsufficientSupplyRemaining.selector));
+        vm.expectRevert(
+            abi.encodeWithSelector(JB721TiersHookStore.JB721TiersHookStore_InsufficientSupplyRemaining.selector)
+        );
         vm.prank(owner);
         hook.mintFor(tiersToMint, beneficiary);
     }
