@@ -281,6 +281,35 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     }
 
     //*********************************************************************//
+    // -------------------------- internal views ------------------------- //
+    //*********************************************************************//
+
+    /// @dev ERC-2771 specifies the context as being a single address (20 bytes).
+    function _contextSuffixLength() internal view virtual override(ERC2771Context, Context) returns (uint256) {
+        return super._contextSuffixLength();
+    }
+
+    /// @notice The project's current ruleset.
+    /// @param projectId The ID of the project to check.
+    /// @return The project's current ruleset.
+    function _currentRulesetOf(uint256 projectId) internal view returns (JBRuleset memory) {
+        // slither-disable-next-line calls-loop
+        return RULESETS.currentOf(projectId);
+    }
+
+    /// @notice Returns the calldata, prefered to use over `msg.data`
+    /// @return calldata the `msg.data` of this call
+    function _msgData() internal view override(ERC2771Context, Context) returns (bytes calldata) {
+        return ERC2771Context._msgData();
+    }
+
+    /// @notice Returns the sender, prefered to use over `msg.sender`
+    /// @return sender the sender address of this call.
+    function _msgSender() internal view override(ERC2771Context, Context) returns (address sender) {
+        return ERC2771Context._msgSender();
+    }
+
+    //*********************************************************************//
     // ---------------------- external transactions ---------------------- //
     //*********************************************************************//
 
@@ -496,19 +525,6 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     // ------------------------ internal functions ----------------------- //
     //*********************************************************************//
 
-    /// @dev ERC-2771 specifies the context as being a single address (20 bytes).
-    function _contextSuffixLength() internal view virtual override(ERC2771Context, Context) returns (uint256) {
-        return super._contextSuffixLength();
-    }
-
-    /// @notice The project's current ruleset.
-    /// @param projectId The ID of the project to check.
-    /// @return The project's current ruleset.
-    function _currentRulesetOf(uint256 projectId) internal view returns (JBRuleset memory) {
-        // slither-disable-next-line calls-loop
-        return RULESETS.currentOf(projectId);
-    }
-
     /// @notice A function which gets called after NFTs have been cashed out and recorded by the terminal.
     /// @param tokenIds The token IDs of the NFTs that were burned.
     function _didBurn(uint256[] memory tokenIds) internal virtual override {
@@ -558,18 +574,6 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             // slither-disable-next-line reentrancy-events
             _mint(beneficiary, tokenId);
         }
-    }
-
-    /// @notice Returns the calldata, prefered to use over `msg.data`
-    /// @return calldata the `msg.data` of this call
-    function _msgData() internal view override(ERC2771Context, Context) returns (bytes calldata) {
-        return ERC2771Context._msgData();
-    }
-
-    /// @notice Returns the sender, prefered to use over `msg.sender`
-    /// @return sender the sender address of this call.
-    function _msgSender() internal view override(ERC2771Context, Context) returns (address sender) {
-        return ERC2771Context._msgSender();
     }
 
     /// @notice Process a payment, minting NFTs and updating credits as necessary.
