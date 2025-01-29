@@ -40,7 +40,9 @@ contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer {
     //*********************************************************************//
 
     /// @param hook Reference copy of a hook.
+    /// @param store The contract that stores and manages data for this contract's NFTs.
     /// @param addressRegistry A registry which stores references to contracts and their deployers.
+    /// @param trustedForwarder The trusted forwarder for the ERC2771Context.
     constructor(
         JB721TiersHook hook,
         IJB721TiersHookStore store,
