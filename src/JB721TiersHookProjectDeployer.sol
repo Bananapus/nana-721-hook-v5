@@ -43,6 +43,7 @@ contract JB721TiersHookProjectDeployer is ERC2771Context, JBPermissioned, IJB721
     /// @param directory The directory of terminals and controllers for projects.
     /// @param permissions A contract storing permissions.
     /// @param hookDeployer The 721 tiers hook deployer.
+    /// @param trustedForwarder The trusted forwarder for the ERC2771Context.
     constructor(
         IJBDirectory directory,
         IJBPermissions permissions,
