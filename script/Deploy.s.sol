@@ -19,7 +19,7 @@ contract DeployScript is Script, Sphinx {
     AddressRegistryDeployment registry;
 
     /// @notice The address that is allowed to forward calls to the terminal and controller on a users behalf.
-    address private constant TRUSTED_FORWARDER = 0xB2b5841DBeF766d4b521221732F9B618fCf34A87;
+    address private TRUSTED_FORWARDER;
 
     /// @notice the salts that are used to deploy the contracts.
     bytes32 HOOK_SALT = "JB721TiersHook";
@@ -40,6 +40,9 @@ contract DeployScript is Script, Sphinx {
         core = CoreDeploymentLib.getDeployment(
             vm.envOr("NANA_CORE_DEPLOYMENT_PATH", string("node_modules/@bananapus/core/deployments/"))
         );
+
+        // We use the same trusted forwarder as the core deployment.
+        TRUSTED_FORWARDER = core.controller.trustedForwarder();
 
         registry = AddressRegistryDeploymentLib.getDeployment(
             vm.envOr(
