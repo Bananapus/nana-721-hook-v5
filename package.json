@@ -1,6 +1,6 @@
 {
   "name": "@bananapus/721-hook",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -18,12 +18,12 @@
   },
   "dependencies": {
     "@bananapus/address-registry": "^0.0.7",
-    "@bananapus/core": "^0.0.43",
+    "@bananapus/core": "^0.0.45",
     "@bananapus/ownable": "^0.0.8",
     "@bananapus/permission-ids": "^0.0.17",
     "@openzeppelin/contracts": "^5.2.0",
     "@prb/math": "^4.1.0",
-    "solady": "^0.1.5"
+    "solady": "^0.1.6"
   },
   "devDependencies": {
     "@sphinx-labs/plugins": "^0.33.1"
