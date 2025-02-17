@@ -55,9 +55,8 @@ library Hook721DeploymentLib {
             _getDeploymentAddress(path, "nana-721-hook", network_name, "JB721TiersHookProjectDeployer")
         );
 
-        deployment.store = IJB721TiersHookStore(
-            _getDeploymentAddress(path, "nana-721-hook", network_name, "JB721TiersHookStore")
-        );
+        deployment.store =
+            IJB721TiersHookStore(_getDeploymentAddress(path, "nana-721-hook", network_name, "JB721TiersHookStore"));
     }
 
     /// @notice Get the address of a contract that was deployed by the Deploy script.
