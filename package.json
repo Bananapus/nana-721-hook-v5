@@ -1,6 +1,6 @@
 {
   "name": "@bananapus/721-hook",
-  "version": "0.0.32",
+  "version": "1.0.0",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -14,16 +14,16 @@
     "coverage": "forge coverage --report lcov --report summary",
     "deploy:mainnets": "source ./.env && npx sphinx propose ./script/Deploy.s.sol --networks mainnets",
     "deploy:testnets": "source ./.env && npx sphinx propose ./script/Deploy.s.sol --networks testnets",
-    "artifacts": "source ./.env && npx sphinx artifacts --org-id 'ea165b21-7cdc-4d7b-be59-ecdd4c26bee4' --project-name 'nana-721-hook-testnet'"
+    "artifacts": "source ./.env && npx sphinx artifacts --org-id 'ea165b21-7cdc-4d7b-be59-ecdd4c26bee4' --project-name 'nana-721-hook'"
   },
   "dependencies": {
-    "@bananapus/address-registry": "^0.0.7",
-    "@bananapus/core": "^0.0.45",
-    "@bananapus/ownable": "^0.0.8",
+    "@bananapus/address-registry": "^1.0.0",
+    "@bananapus/core": "^1.0.0",
+    "@bananapus/ownable": "^0.0.9",
     "@bananapus/permission-ids": "^0.0.17",
     "@openzeppelin/contracts": "^5.2.0",
     "@prb/math": "^4.1.0",
-    "solady": "^0.1.6"
+    "solady": "^0.1.8"
   },
   "devDependencies": {
     "@sphinx-labs/plugins": "^0.33.1"
