@@ -14,6 +14,7 @@ import {JBBeforePayRecordedContext} from "@bananapus/core-v5/src/structs/JBBefor
 import {JBBeforeCashOutRecordedContext} from "@bananapus/core-v5/src/structs/JBBeforeCashOutRecordedContext.sol";
 import {JBCashOutHookSpecification} from "@bananapus/core-v5/src/structs/JBCashOutHookSpecification.sol";
 import {JBPayHookSpecification} from "@bananapus/core-v5/src/structs/JBPayHookSpecification.sol";
+import {JBRuleset} from "@bananapus/core-v5/src/structs/JBRuleset.sol";
 import {IERC2981} from "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {mulDiv} from "@prb/math/src/Common.sol";
@@ -139,7 +140,7 @@ abstract contract JB721Hook is ERC721, IJB721Hook {
     }
 
     /// @notice Required by the IJBRulesetDataHook interfaces. Return false to not leak any permissions.
-    function hasMintPermissionFor(uint256, address) external pure returns (bool) {
+    function hasMintPermissionFor(uint256, JBRuleset memory, address) external pure returns (bool) {
         return false;
     }
 

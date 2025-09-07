@@ -77,16 +77,16 @@ contract TestBaseWorkflow is Test {
     // Deploys and initializes contracts for testing.
     function setUp() public virtual {
         // ---- Set up project ---- //
-        jbPermissions = new JBPermissions();
+        jbPermissions = new JBPermissions(address(0));
         vm.label(address(jbPermissions), "JBPermissions");
 
-        jbProjects = new JBProjects(projectOwner, address(0));
+        jbProjects = new JBProjects(projectOwner, address(0), address(0));
         vm.label(address(jbProjects), "JBProjects");
 
         jbDirectory = new JBDirectory(jbPermissions, jbProjects, projectOwner);
         vm.label(address(jbDirectory), "JBDirectory");
 
-        jbPrices = new JBPrices(jbDirectory, jbPermissions, jbProjects, projectOwner);
+        jbPrices = new JBPrices(jbDirectory, jbPermissions, jbProjects, projectOwner, address(0));
         vm.label(address(jbPrices), "JBPrices");
 
         jbRulesets = new JBRulesets(jbDirectory);
@@ -113,6 +113,7 @@ contract TestBaseWorkflow is Test {
             jbRulesets,
             jbSplits,
             jbTokens,
+            address(0),
             address(0)
         );
         vm.label(address(jbController), "JBController");
