@@ -1,37 +1,37 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import "@bananapus/core/src/JBController.sol";
-import "@bananapus/core/src/JBDirectory.sol";
-import "@bananapus/core/src/JBMultiTerminal.sol";
-import "@bananapus/core/src/JBFundAccessLimits.sol";
-import "@bananapus/core/src/JBFeelessAddresses.sol";
-import "@bananapus/core/src/JBTerminalStore.sol";
-import "@bananapus/core/src/JBRulesets.sol";
-import "@bananapus/core/src/JBPermissions.sol";
-import "@bananapus/core/src/JBPrices.sol";
-import {JBProjects} from "@bananapus/core/src/JBProjects.sol";
-import "@bananapus/core/src/JBSplits.sol";
-import "@bananapus/core/src/JBERC20.sol";
-import "@bananapus/core/src/JBTokens.sol";
+import "@bananapus/core-v5/src/JBController.sol";
+import "@bananapus/core-v5/src/JBDirectory.sol";
+import "@bananapus/core-v5/src/JBMultiTerminal.sol";
+import "@bananapus/core-v5/src/JBFundAccessLimits.sol";
+import "@bananapus/core-v5/src/JBFeelessAddresses.sol";
+import "@bananapus/core-v5/src/JBTerminalStore.sol";
+import "@bananapus/core-v5/src/JBRulesets.sol";
+import "@bananapus/core-v5/src/JBPermissions.sol";
+import "@bananapus/core-v5/src/JBPrices.sol";
+import {JBProjects} from "@bananapus/core-v5/src/JBProjects.sol";
+import "@bananapus/core-v5/src/JBSplits.sol";
+import "@bananapus/core-v5/src/JBERC20.sol";
+import "@bananapus/core-v5/src/JBTokens.sol";
 
-import "@bananapus/core/src/structs/JBAfterPayRecordedContext.sol";
-import "@bananapus/core/src/structs/JBAfterCashOutRecordedContext.sol";
-import "@bananapus/core/src/structs/JBFee.sol";
-import "@bananapus/core/src/structs/JBFundAccessLimitGroup.sol";
-import "@bananapus/core/src/structs/JBRuleset.sol";
-import "@bananapus/core/src/structs/JBRulesetConfig.sol";
-import "@bananapus/core/src/structs/JBRulesetMetadata.sol";
-import "@bananapus/core/src/structs/JBPermissionsData.sol";
-import "@bananapus/core/src/structs/JBBeforePayRecordedContext.sol";
-import "@bananapus/core/src/structs/JBBeforeCashOutRecordedContext.sol";
-import "@bananapus/core/src/structs/JBSplit.sol";
+import "@bananapus/core-v5/src/structs/JBAfterPayRecordedContext.sol";
+import "@bananapus/core-v5/src/structs/JBAfterCashOutRecordedContext.sol";
+import "@bananapus/core-v5/src/structs/JBFee.sol";
+import "@bananapus/core-v5/src/structs/JBFundAccessLimitGroup.sol";
+import "@bananapus/core-v5/src/structs/JBRuleset.sol";
+import "@bananapus/core-v5/src/structs/JBRulesetConfig.sol";
+import "@bananapus/core-v5/src/structs/JBRulesetMetadata.sol";
+import "@bananapus/core-v5/src/structs/JBPermissionsData.sol";
+import "@bananapus/core-v5/src/structs/JBBeforePayRecordedContext.sol";
+import "@bananapus/core-v5/src/structs/JBBeforeCashOutRecordedContext.sol";
+import "@bananapus/core-v5/src/structs/JBSplit.sol";
 
-import "@bananapus/core/src/interfaces/IJBTerminal.sol";
-import "@bananapus/core/src/interfaces/IJBToken.sol";
+import "@bananapus/core-v5/src/interfaces/IJBTerminal.sol";
+import "@bananapus/core-v5/src/interfaces/IJBToken.sol";
 
-import "@bananapus/permission-ids/src/JBPermissionIds.sol";
-import "@bananapus/core/src/libraries/JBRulesetMetadataResolver.sol";
+import "@bananapus/permission-ids-v5/src/JBPermissionIds.sol";
+import "@bananapus/core-v5/src/libraries/JBRulesetMetadataResolver.sol";
 
 import {mulDiv} from "@prb/math/src/Common.sol";
 
@@ -77,16 +77,16 @@ contract TestBaseWorkflow is Test {
     // Deploys and initializes contracts for testing.
     function setUp() public virtual {
         // ---- Set up project ---- //
-        jbPermissions = new JBPermissions();
+        jbPermissions = new JBPermissions(address(0));
         vm.label(address(jbPermissions), "JBPermissions");
 
-        jbProjects = new JBProjects(projectOwner, address(0));
+        jbProjects = new JBProjects(projectOwner, address(0), address(0));
         vm.label(address(jbProjects), "JBProjects");
 
         jbDirectory = new JBDirectory(jbPermissions, jbProjects, projectOwner);
         vm.label(address(jbDirectory), "JBDirectory");
 
-        jbPrices = new JBPrices(jbDirectory, jbPermissions, jbProjects, projectOwner);
+        jbPrices = new JBPrices(jbDirectory, jbPermissions, jbProjects, projectOwner, address(0));
         vm.label(address(jbPrices), "JBPrices");
 
         jbRulesets = new JBRulesets(jbDirectory);
@@ -113,6 +113,7 @@ contract TestBaseWorkflow is Test {
             jbRulesets,
             jbSplits,
             jbTokens,
+            address(0),
             address(0)
         );
         vm.label(address(jbController), "JBController");
