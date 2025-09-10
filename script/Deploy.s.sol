@@ -46,7 +46,8 @@ contract DeployScript is Script, Sphinx {
 
         registry = AddressRegistryDeploymentLib.getDeployment(
             vm.envOr(
-                "NANA_ADDRESS_REGISTRY_DEPLOYMENT_PATH", string("node_modules/@bananapus/address-registry-v5/deployments/")
+                "NANA_ADDRESS_REGISTRY_DEPLOYMENT_PATH",
+                string("node_modules/@bananapus/address-registry-v5/deployments/")
             )
         );
         // Perform the deployment transactions.
