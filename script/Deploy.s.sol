@@ -22,10 +22,10 @@ contract DeployScript is Script, Sphinx {
     address private TRUSTED_FORWARDER;
 
     /// @notice the salts that are used to deploy the contracts.
-    bytes32 HOOK_SALT = "JB721TiersHook";
-    bytes32 HOOK_DEPLOYER_SALT = "JB721TiersHookDeployer";
-    bytes32 HOOK_STORE_SALT = "JB721TiersHookStore";
-    bytes32 PROJECT_DEPLOYER_SALT = "JB721TiersHookProjectDeployer";
+    bytes32 HOOK_SALT = "JB721TiersHook_";
+    bytes32 HOOK_DEPLOYER_SALT = "JB721TiersHookDeployer_";
+    bytes32 HOOK_STORE_SALT = "JB721TiersHookStore_";
+    bytes32 PROJECT_DEPLOYER_SALT = "JB721TiersHookProjectDeployer_";
 
     function configureSphinx() public override {
         // TODO: Update to contain JB Emergency Developers
