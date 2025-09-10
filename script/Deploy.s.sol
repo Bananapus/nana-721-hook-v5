@@ -29,7 +29,7 @@ contract DeployScript is Script, Sphinx {
 
     function configureSphinx() public override {
         // TODO: Update to contain JB Emergency Developers
-        sphinxConfig.projectName = "nana-721-hook";
+        sphinxConfig.projectName = "nana-721-hook-v5";
         sphinxConfig.mainnets = ["ethereum", "optimism", "base", "arbitrum"];
         sphinxConfig.testnets = ["ethereum_sepolia", "optimism_sepolia", "base_sepolia", "arbitrum_sepolia"];
     }
@@ -38,15 +38,15 @@ contract DeployScript is Script, Sphinx {
         // Get the deployment addresses for the nana CORE for this chain.
         // We want to do this outside of the `sphinx` modifier.
         core = CoreDeploymentLib.getDeployment(
-            vm.envOr("NANA_CORE_DEPLOYMENT_PATH", string("node_modules/@bananapus/core/deployments/"))
+            vm.envOr("NANA_CORE_DEPLOYMENT_PATH", string("node_modules/@bananapus/core-v5/deployments/"))
         );
 
         // We use the same trusted forwarder as the core deployment.
-        TRUSTED_FORWARDER = core.controller.trustedForwarder();
+        TRUSTED_FORWARDER = core.permissions.trustedForwarder();
 
         registry = AddressRegistryDeploymentLib.getDeployment(
             vm.envOr(
-                "NANA_ADDRESS_REGISTRY_DEPLOYMENT_PATH", string("node_modules/@bananapus/address-registry/deployments/")
+                "NANA_ADDRESS_REGISTRY_DEPLOYMENT_PATH", string("node_modules/@bananapus/address-registry-v5/deployments/")
             )
         );
         // Perform the deployment transactions.
