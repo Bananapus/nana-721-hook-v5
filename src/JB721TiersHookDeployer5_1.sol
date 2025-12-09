@@ -12,9 +12,9 @@ import {IJB721TiersHook5_1} from "./interfaces/IJB721TiersHook5_1.sol";
 import {IJB721TiersHookStore} from "./interfaces/IJB721TiersHookStore.sol";
 import {JBDeploy721TiersHookConfig} from "./structs/JBDeploy721TiersHookConfig.sol";
 
-/// @title JB721TiersHookDeployer
+/// @title JB721TiersHookDeployer5_1
 /// @notice Deploys a `JB721TiersHook5_1` for an existing project.
-contract JB721TiersHookDeployer is ERC2771Context, IJB721TiersHookDeployer5_1 {
+contract JB721TiersHookDeployer5_1 is ERC2771Context, IJB721TiersHookDeployer5_1 {
     //*********************************************************************//
     // --------------- public immutable stored properties ---------------- //
     //*********************************************************************//

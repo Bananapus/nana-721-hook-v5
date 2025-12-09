@@ -3,13 +3,17 @@ pragma solidity 0.8.23;
 
 import "forge-std/Test.sol";
 import "../utils/ForTest_JB721TiersHook.sol";
+import "../utils/ForTest_JB721TiersHook5_1.sol";
 
 import "../../src/JB721TiersHookDeployer.sol";
 import "../../src/JB721TiersHook.sol";
 import "../../src/JB721TiersHookStore.sol";
+import "../../src/JB721TiersHookDeployer5_1.sol";
+import "../../src/JB721TiersHook5_1.sol";
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@bananapus/core-v5/src/libraries/JBRulesetMetadataResolver.sol";
+import "@bananapus/core-v5/src/structs/JBRulesetMetadata.sol";
 import "@bananapus/core-v5/src/structs/JBAccountingContext.sol";
 import "@bananapus/core-v5/src/structs/JBTokenAmount.sol";
 import "@bananapus/core-v5/src/structs/JBAfterPayRecordedContext.sol";
@@ -19,6 +23,7 @@ import "@bananapus/core-v5/src/structs/JBCashOutHookSpecification.sol";
 import "@bananapus/core-v5/src/structs/JBFundAccessLimitGroup.sol";
 import "@bananapus/core-v5/src/interfaces/IJBTerminal.sol";
 import "@bananapus/core-v5/src/interfaces/IJBRulesetApprovalHook.sol";
+import "@bananapus/core-v5/src/interfaces/IJBController.sol";
 
 import "../../src/structs/JBLaunchProjectConfig.sol";
 import "../../src/structs/JBPayDataHookRulesetMetadata.sol";
@@ -89,8 +94,11 @@ contract UnitTestSetup is Test {
     JB721TiersHookStore store;
     JB721TiersHook hook;
     JB721TiersHook hookOrigin;
+    JB721TiersHook5_1 hook5_1;
+    JB721TiersHook5_1 hookOrigin5_1;
     JBAddressRegistry addressRegistry;
     JB721TiersHookDeployer jbHookDeployer;
+    JB721TiersHookDeployer5_1 jbHookDeployer5_1;
     MetadataResolverHelper metadataHelper;
 
     address hook_i = address(bytes20(keccak256("hook_implementation")));
@@ -214,6 +222,50 @@ contract UnitTestSetup is Test {
         vm.mockCall(
             mockJBDirectory, abi.encodeWithSelector(IJBPermissioned.PERMISSIONS.selector), abi.encode(mockJBPermissions)
         );
+        // Mock controllerOf for 5_1 versions
+        vm.mockCall(
+            mockJBDirectory,
+            abi.encodeWithSelector(IJBDirectory.controllerOf.selector, projectId),
+            abi.encode(IJBController(mockJBController))
+        );
+        // Mock currentRulesetOf for 5_1 versions
+        JBRulesetMetadata memory rulesetMetadata = JBRulesetMetadata({
+            reservedPercent: 5000, //50%
+            cashOutTaxRate: 6000, //60%
+            baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
+            pausePay: false,
+            pauseCreditTransfers: false,
+            allowOwnerMinting: true,
+            allowSetCustomToken: false,
+            allowTerminalMigration: false,
+            allowSetTerminals: false,
+            allowSetController: false,
+            allowAddAccountingContext: false,
+            allowAddPriceFeed: false,
+            ownerMustSendPayouts: false,
+            holdFees: false,
+            useTotalSurplusForCashOuts: false,
+            useDataHookForPay: true,
+            useDataHookForCashOut: true,
+            dataHook: address(0),
+            metadata: 0x00
+        });
+        JBRuleset memory ruleset = JBRuleset({
+            cycleNumber: 1,
+            id: uint48(block.timestamp),
+            basedOnId: 0,
+            start: uint48(block.timestamp),
+            duration: 600,
+            weight: 10e18,
+            weightCutPercent: 0,
+            approvalHook: IJBRulesetApprovalHook(address(0)),
+            metadata: JBRulesetMetadataResolver.packRulesetMetadata(rulesetMetadata)
+        });
+        vm.mockCall(
+            mockJBController,
+            abi.encodeCall(IJBController.currentRulesetOf, projectId),
+            abi.encode(ruleset, rulesetMetadata)
+        );
 
         store = new JB721TiersHookStore();
         hookOrigin = new JB721TiersHook(
@@ -223,8 +275,15 @@ contract UnitTestSetup is Test {
             IJB721TiersHookStore(store),
             trustedForwarder
         );
+        hookOrigin5_1 = new JB721TiersHook5_1(
+            IJBDirectory(mockJBDirectory),
+            IJBPermissions(mockJBPermissions),
+            IJB721TiersHookStore(store),
+            trustedForwarder
+        );
         addressRegistry = new JBAddressRegistry();
         jbHookDeployer = new JB721TiersHookDeployer(hookOrigin, store, addressRegistry, trustedForwarder);
+        jbHookDeployer5_1 = new JB721TiersHookDeployer5_1(hookOrigin5_1, store, addressRegistry, trustedForwarder);
         JBDeploy721TiersHookConfig memory hookConfig = JBDeploy721TiersHookConfig(
             name,
             symbol,
@@ -247,6 +306,7 @@ contract UnitTestSetup is Test {
         );
 
         hook = JB721TiersHook(address(jbHookDeployer.deployHookFor(projectId, hookConfig, bytes32(0))));
+        hook5_1 = JB721TiersHook5_1(address(jbHookDeployer5_1.deployHookFor(projectId, hookConfig, bytes32(0))));
         hook.transferOwnership(owner);
 
         metadataHelper = new MetadataResolverHelper();
@@ -552,6 +612,38 @@ contract UnitTestSetup is Test {
         return newNumberOfTiers;
     }
 
+    // Add the specified tiers to the hook, and remove the specified number of tiers from the hook. Uses `adjustTiers` (5_1 version).
+    function _addDeleteTiers5_1(
+        JB721TiersHook5_1 tiersHook,
+        uint256 currentNumberOfTiers,
+        uint256 numberOfTiersToRemove,
+        JB721TierConfig[] memory tiersToAdd
+    )
+        internal
+        returns (uint256)
+    {
+        uint256 newNumberOfTiers = currentNumberOfTiers;
+        uint256[] memory tiersToRemove = new uint256[](numberOfTiersToRemove);
+
+        for (uint256 i; i < numberOfTiersToRemove && newNumberOfTiers != 0; i++) {
+            tiersToRemove[i] = currentNumberOfTiers - i - 1;
+            newNumberOfTiers--;
+        }
+
+        newNumberOfTiers += tiersToAdd.length;
+
+        vm.startPrank(owner);
+        tiersHook.adjustTiers(tiersToAdd, tiersToRemove);
+        tiersHook.STORE().cleanTiers(address(tiersHook));
+        vm.stopPrank();
+
+        JB721Tier[] memory storedTiers =
+            tiersHook.STORE().tiersOf(address(tiersHook), new uint256[](0), false, 0, newNumberOfTiers);
+        assertEq(storedTiers.length, newNumberOfTiers);
+
+        return newNumberOfTiers;
+    }
+
     // Initialize a hook with tiers that use the default tier config.
     // Use default pricing context (native token, 18 decimals, and 0 address as oracle).
     // Don't prevent overspending.
@@ -653,6 +745,154 @@ contract UnitTestSetup is Test {
 
         // Transfer the hook's ownership to owner.
         tiersHook.transferOwnership(owner);
+    }
+
+    // Initialize a hook with tiers that use the default tier config (5_1 version).
+    // Use default pricing context (native token, 18 decimals, and 0 address as oracle).
+    // Don't prevent overspending.
+    function _initHookDefaultTiers5_1(uint256 initialNumberOfTiers) internal returns (JB721TiersHook5_1) {
+        return _initHookDefaultTiers5_1(
+            initialNumberOfTiers, false, uint32(uint160(JBConstants.NATIVE_TOKEN)), 18, address(0)
+        );
+    }
+
+    // Initialize a hook with tiers that use the default tier config (5_1 version).
+    // Use default pricing context (native token, 18 decimals, and 0 address as oracle).
+    function _initHookDefaultTiers5_1(
+        uint256 initialNumberOfTiers,
+        bool preventOverspending
+    )
+        internal
+        returns (JB721TiersHook5_1)
+    {
+        return _initHookDefaultTiers5_1(
+            initialNumberOfTiers, preventOverspending, uint32(uint160(JBConstants.NATIVE_TOKEN)), 18, address(0)
+        );
+    }
+
+    // Initialize a hook with tiers that use the default tier config (5_1 version).
+    function _initHookDefaultTiers5_1(
+        uint256 initialNumberOfTiers,
+        bool preventOverspending,
+        uint32 currency,
+        uint8 decimals,
+        address oracle
+    )
+        internal
+        returns (JB721TiersHook5_1 tiersHook)
+    {
+        // Initialize first tiers to add.
+        (JB721TierConfig[] memory tierConfigs,) = _createTiers(defaultTierConfig, initialNumberOfTiers);
+
+        // Deploy the hook.
+        vm.etch(hook_i, address(hookOrigin5_1).code);
+        tiersHook = JB721TiersHook5_1(hook_i);
+
+        // Initialize the hook's flags and init config in memory (for stack's sake).
+        JB721TiersHookFlags memory flags = JB721TiersHookFlags({
+            preventOverspending: preventOverspending,
+            noNewTiersWithReserves: false,
+            noNewTiersWithVotes: false,
+            noNewTiersWithOwnerMinting: false
+        });
+
+        JB721InitTiersConfig memory initConfig = JB721InitTiersConfig({
+            tiers: tierConfigs,
+            currency: currency,
+            decimals: decimals,
+            prices: IJBPrices(oracle)
+        });
+
+        tiersHook.initialize(
+            projectId,
+            name,
+            symbol,
+            baseUri,
+            IJB721TokenUriResolver(mockTokenUriResolver),
+            contractUri,
+            initConfig,
+            flags
+        );
+
+        // Transfer ownership to owner.
+        tiersHook.transferOwnership(owner);
+    }
+
+    // Initialize a 721 tiers hook specialized for testing purposes (5_1 version).
+    function _initializeForTestHook5_1(uint256 initialNumberOfTiers) internal returns (ForTest_JB721TiersHook5_1 tiersHook) {
+        // Initialize first tiers to add.
+        (JB721TierConfig[] memory tierConfigs,) = _createTiers(defaultTierConfig, initialNumberOfTiers);
+
+        // Deploy the ForTest hook store.
+        ForTest_JB721TiersHookStore hookStore = new ForTest_JB721TiersHookStore();
+
+        // Deploy the ForTest hook.
+        tiersHook = new ForTest_JB721TiersHook5_1(
+            projectId,
+            IJBDirectory(mockJBDirectory),
+            name,
+            symbol,
+            baseUri,
+            IJB721TokenUriResolver(mockTokenUriResolver),
+            contractUri,
+            tierConfigs,
+            IJB721TiersHookStore(address(hookStore)),
+            JB721TiersHookFlags({
+                preventOverspending: false,
+                noNewTiersWithReserves: false,
+                noNewTiersWithVotes: false,
+                noNewTiersWithOwnerMinting: true
+            })
+        );
+
+        // Transfer the hook's ownership to owner.
+        tiersHook.transferOwnership(owner);
+    }
+
+    // Helper function to set up default ruleset mocks for 5_1 versions
+    function _setupDefaultRulesetMocks5_1() internal {
+        vm.mockCall(
+            mockJBDirectory,
+            abi.encodeWithSelector(IJBDirectory.controllerOf.selector, projectId),
+            abi.encode(IJBController(mockJBController))
+        );
+        JBRulesetMetadata memory rulesetMetadata = JBRulesetMetadata({
+            reservedPercent: 5000,
+            cashOutTaxRate: 6000,
+            baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
+            pausePay: false,
+            pauseCreditTransfers: false,
+            allowOwnerMinting: true,
+            allowSetCustomToken: false,
+            allowTerminalMigration: false,
+            allowSetTerminals: false,
+            allowSetController: false,
+            allowAddAccountingContext: false,
+            allowAddPriceFeed: false,
+            ownerMustSendPayouts: false,
+            holdFees: false,
+            useTotalSurplusForCashOuts: false,
+            useDataHookForPay: true,
+            useDataHookForCashOut: true,
+            dataHook: address(0),
+            metadata: 0x00
+        });
+        JBRuleset memory ruleset = JBRuleset({
+            cycleNumber: 1,
+            id: uint48(block.timestamp),
+            basedOnId: 0,
+            start: uint48(block.timestamp),
+            duration: 600,
+            weight: 10e18,
+            weightCutPercent: 0,
+            approvalHook: IJBRulesetApprovalHook(address(0)),
+            metadata: JBRulesetMetadataResolver.packRulesetMetadata(rulesetMetadata)
+        });
+        vm.mockCall(
+            mockJBController,
+            abi.encodeCall(IJBController.currentRulesetOf, projectId),
+            abi.encode(ruleset, rulesetMetadata)
+        );
     }
 
     // Create a default `JBDeploy712TiersHookConfig` and `JBLaunchProjectConfig` to quickly bootstrap a 721 tiers hook
