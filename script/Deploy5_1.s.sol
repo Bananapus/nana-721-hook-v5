@@ -80,8 +80,8 @@ contract DeployScript is Script, Sphinx {
 
             // Deploy it if it has not been deployed yet.
             hook = !_hookIsDeployed
-                ? new JB721TiersHook5_1{salt: HOOK_SALT}(
-                    core.directory, core.permissions, store, TRUSTED_FORWARDER
+                ? new JB721TiersHook{salt: HOOK_SALT}(
+                    core.directory, core.permissions, core.rulesets5_1, store, TRUSTED_FORWARDER
                 )
                 : JB721TiersHook5_1(_hook);
         }

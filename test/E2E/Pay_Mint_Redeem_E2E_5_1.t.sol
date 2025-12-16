@@ -21,7 +21,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
     address reserveBeneficiary = address(bytes20(keccak256("reserveBeneficiary")));
     address trustedForwarder = address(123_456);
 
-    JB721TiersHook5_1 hook;
+    JB721TiersHook hook;
 
     MetadataResolverHelper metadataHelper;
 
@@ -59,9 +59,9 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
     function setUp() public override {
         super.setUp();
         store = new JB721TiersHookStore();
-        hook = new JB721TiersHook5_1(jbDirectory, jbPermissions, store, trustedForwarder);
+        hook = new JB721TiersHook(jbDirectory, jbPermissions, jbRulesets5_1, store, trustedForwarder);
         addressRegistry = new JBAddressRegistry();
-        JB721TiersHookDeployer5_1 hookDeployer = new JB721TiersHookDeployer5_1(hook, store, addressRegistry, trustedForwarder);
+        JB721TiersHookDeployer hookDeployer = new JB721TiersHookDeployer(hook, store, addressRegistry, trustedForwarder);
         deployer = new JB721TiersHookProjectDeployer5_1(
             IJBDirectory(jbDirectory), IJBPermissions(jbPermissions), hookDeployer, address(0)
         );
@@ -73,7 +73,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         (uint256 projectId, IJB721TiersHook5_1 _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController5_1, bytes32(0));
         // Check: is the first project's ID 1?
         assertEq(projectId, 1);
         // Check: was the hook added to the address registry?
@@ -83,7 +83,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
 
         // Laucnh another project with a salt
         (projectId, _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, salt);
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController5_1, salt);
         // Check: is the second project's ID 2?
         assertEq(projectId, 2);
         // Check: was the hook added to the address registry?
@@ -93,7 +93,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
 
         // Laucnh another project with no salt
         (projectId, _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController5_1, bytes32(0));
 
         // Check: is the third project's ID 3?
         assertEq(projectId, 3);
@@ -111,7 +111,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         (uint256 projectId, IJB721TiersHook5_1 _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, salt);
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController5_1, salt);
 
         // Crafting the payment metadata: add the highest tier ID.
         uint16[] memory rawMetadata = new uint16[](1);
@@ -137,12 +137,12 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
             highestTier,
             beneficiary,
             valueSent,
-            address(jbMultiTerminal) // msg.sender
+            address(jbMultiTerminal5_1) // msg.sender
         );
 
         // Pay the terminal to mint the NFTs.
         vm.prank(caller);
-        jbMultiTerminal.pay{value: valueSent}({
+        jbMultiTerminal5_15_1.pay{value: valueSent}({
             projectId: projectId,
             amount: 100,
             token: JBConstants.NATIVE_TOKEN,
@@ -192,7 +192,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createDiscountedData(tierStartPrice, uint8(discountPercent));
         (uint256 projectId, IJB721TiersHook5_1 _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, bytes32(0));
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController5_1, bytes32(0));
 
         // Crafting the payment metadata: add the highest tier ID.
         uint16[] memory rawMetadata = new uint16[](1);
@@ -221,7 +221,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
             highestTier,
             beneficiary,
             tierStartPrice,
-            address(jbMultiTerminal) // msg.sender
+            address(jbMultiTerminal5_1) // msg.sender
         ); */
 
         if (totalSupplyAfterPay > type(uint208).max) {
@@ -233,7 +233,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
         // Pay the terminal to mint the NFTs.
         vm.deal(caller, type(uint256).max);
         vm.prank(caller);
-        jbMultiTerminal.pay{value: tierStartPrice}({
+        jbMultiTerminal5_1.pay{value: tierStartPrice}({
             projectId: projectId,
             amount: tierStartPrice,
             token: JBConstants.NATIVE_TOKEN,
@@ -285,7 +285,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         (uint256 projectId, IJB721TiersHook5_1 _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, salt);
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController5_1, salt);
 
         // Prices of the first 5 tiers (10 * `tierId`)
         uint256 amountNeeded = 50 + 40 + 30 + 20 + 10;
@@ -301,7 +301,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
                 i + 1,
                 beneficiary,
                 amountNeeded,
-                address(jbMultiTerminal) // `msg.sender`
+                address(jbMultiTerminal5_1) // `msg.sender`
             );
         }
 
@@ -321,7 +321,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
 
         // Pay the terminal to mint the NFTs.
         vm.prank(caller);
-        jbMultiTerminal.pay{value: amountNeeded}({
+        jbMultiTerminal5_1.pay{value: amountNeeded}({
             projectId: projectId,
             amount: amountNeeded,
             token: JBConstants.NATIVE_TOKEN,
@@ -349,7 +349,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         (uint256 projectId, IJB721TiersHook5_1 _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, salt);
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController5_1, salt);
 
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
         assertEq(address(_hook), dataHook);
@@ -362,7 +362,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
 
         // Pay the terminal and pass the metadata.
         vm.prank(caller);
-        jbMultiTerminal.pay{value: valueSent}({
+        jbMultiTerminal5_1.pay{value: valueSent}({
             projectId: projectId,
             amount: 100,
             token: JBConstants.NATIVE_TOKEN,
@@ -384,14 +384,14 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         (uint256 projectId, IJB721TiersHook5_1 _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, salt);
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController5_1, salt);
 
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
         assertEq(address(_hook), dataHook);
 
         // Pay the terminal with empty metadata (`bytes(0)`).
         vm.prank(caller);
-        jbMultiTerminal.pay{value: valueSent}({
+        jbMultiTerminal5_1.pay{value: valueSent}({
             projectId: projectId,
             amount: 100,
             token: JBConstants.NATIVE_TOKEN,
@@ -418,7 +418,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
         (JBDeploy721TiersHookConfig memory tiersHookConfig, JBLaunchProjectConfig memory launchProjectConfig) =
             createData();
         (uint256 projectId, IJB721TiersHook5_1 _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, salt);
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController5_1, salt);
         address dataHook = jbRulesets.currentOf(projectId).dataHook();
         assertEq(address(_hook), dataHook);
 
@@ -454,12 +454,12 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
             highestTier,
             beneficiary,
             valueSent,
-            address(jbMultiTerminal) // msg.sender
+            address(jbMultiTerminal5_1) // msg.sender
         );
 
         // Pay the terminal to mint the NFTs.
         vm.prank(caller);
-        jbMultiTerminal.pay{value: valueSent}({
+        jbMultiTerminal5_1.pay{value: valueSent}({
             projectId: projectId,
             amount: 100,
             token: JBConstants.NATIVE_TOKEN,
@@ -514,7 +514,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
         tiersHookConfig.tiersConfig.tiers[highestTier - 1].reserveFrequency = 1;
 
         (uint256 projectId, IJB721TiersHook5_1 _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, salt);
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController5_1, salt);
 
         // Craft the metadata: buy 1 NFT from the highest tier.
         bytes memory hookMetadata;
@@ -540,7 +540,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
 
         // Pay the terminal to mint the NFTs.
         vm.prank(caller);
-        jbMultiTerminal.pay{value: valueSent}({
+        jbMultiTerminal5_1.pay{value: valueSent}({
             projectId: projectId,
             amount: 100,
             token: JBConstants.NATIVE_TOKEN,
@@ -573,7 +573,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
 
         // Cash out the NFT.
         vm.prank(beneficiary);
-        jbMultiTerminal.cashOutTokensOf({
+        jbMultiTerminal5_1.cashOutTokensOf({
             holder: beneficiary,
             projectId: projectId,
             tokenToReclaim: JBConstants.NATIVE_TOKEN,
@@ -610,7 +610,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
 
         // Pay the terminal to mint one more NFT.
         vm.prank(caller);
-        jbMultiTerminal.pay{value: valueSent}({
+        jbMultiTerminal5_1.pay{value: valueSent}({
             projectId: projectId,
             amount: 100,
             token: JBConstants.NATIVE_TOKEN,
@@ -636,7 +636,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
         uint256 tier = 10;
         uint256 tierPrice = tiersHookConfig.tiersConfig.tiers[tier - 1].price;
         (uint256 projectId, IJB721TiersHook5_1 _hook) =
-            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController, salt);
+            deployer.launchProjectFor(projectOwner, tiersHookConfig, launchProjectConfig, jbController5_1, salt);
 
         // Craft the metadata: buy 5 NFTs from tier 10.
         uint16[] memory rawMetadata = new uint16[](5);
@@ -660,7 +660,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
 
         // Pay the terminal to mint the NFTs.
         vm.prank(caller);
-        jbMultiTerminal.pay{value: tierPrice * rawMetadata.length}({
+        jbMultiTerminal5_1.pay{value: tierPrice * rawMetadata.length}({
             projectId: projectId,
             amount: 100,
             token: JBConstants.NATIVE_TOKEN,
@@ -697,7 +697,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
 
         // Cash out the NFTs.
         vm.prank(beneficiary);
-        jbMultiTerminal.cashOutTokensOf({
+        jbMultiTerminal5_1.cashOutTokensOf({
             holder: beneficiary,
             projectId: projectId,
             tokenToReclaim: JBConstants.NATIVE_TOKEN,
@@ -734,7 +734,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
 
         // Check: can more NFTs be minted (now that the previous ones were burned)?
         vm.prank(caller);
-        jbMultiTerminal.pay{value: tierPrice * rawMetadata2.length}({
+        jbMultiTerminal5_1.pay{value: tierPrice * rawMetadata2.length}({
             projectId: projectId,
             amount: 100,
             token: JBConstants.NATIVE_TOKEN,
@@ -838,7 +838,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
             decimals: 18
         });
         terminalConfigurations[0] =
-            JBTerminalConfig({terminal: jbMultiTerminal, accountingContextsToAccept: accountingContextsToAccept});
+            JBTerminalConfig({terminal: jbMultiTerminal5_1, accountingContextsToAccept: accountingContextsToAccept});
 
         launchProjectConfig = JBLaunchProjectConfig({
             projectUri: projectUri,
@@ -931,7 +931,7 @@ contract Test_TiersHook_E2E_5_1 is TestBaseWorkflow {
             decimals: 18
         });
         terminalConfigurations[0] =
-            JBTerminalConfig({terminal: jbMultiTerminal, accountingContextsToAccept: accountingContextsToAccept});
+            JBTerminalConfig({terminal: jbMultiTerminal5_1, accountingContextsToAccept: accountingContextsToAccept});
 
         launchProjectConfig = JBLaunchProjectConfig({
             projectUri: projectUri,

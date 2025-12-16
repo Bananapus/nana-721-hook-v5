@@ -58,6 +58,7 @@ contract TestBaseWorkflow is Test {
     JBPrices internal jbPrices;
     JBDirectory internal jbDirectory;
     JBRulesets internal jbRulesets;
+    JBRulesets internal jbRulesets5_1;
     JBTokens internal jbTokens;
     JBFundAccessLimits internal jbFundAccessLimits;
     JBFeelessAddresses internal jbFeelessAddresses;
@@ -65,6 +66,9 @@ contract TestBaseWorkflow is Test {
     JBController internal jbController;
     JBTerminalStore internal jbTerminalStore;
     JBMultiTerminal internal jbMultiTerminal;
+    JBController internal jbController5_1;
+    JBTerminalStore internal jbTerminalStore5_1;
+    JBMultiTerminal internal jbMultiTerminal5_1;
     string internal projectUri;
     IJBToken internal tokenV2;
 
@@ -92,6 +96,9 @@ contract TestBaseWorkflow is Test {
         jbRulesets = new JBRulesets(jbDirectory);
         vm.label(address(jbRulesets), "JBRulesets");
 
+        jbRulesets5_1 = new JBRulesets(jbDirectory);
+        vm.label(address(jbRulesets5_1), "JBRulesets5_1");
+
         jbFundAccessLimits = new JBFundAccessLimits(jbDirectory);
         vm.label(address(jbFundAccessLimits), "JBFundAccessLimits");
 
@@ -118,11 +125,30 @@ contract TestBaseWorkflow is Test {
         );
         vm.label(address(jbController), "JBController");
 
+        jbController5_1 = new JBController(
+            jbDirectory,
+            jbFundAccessLimits,
+            jbPermissions,
+            jbPrices,
+            jbProjects,
+            jbRulesets5_1,
+            jbSplits,
+            jbTokens,
+            address(0),
+            address(0)
+        );
+
+        vm.label(address(jbController5_1), "JBController5_1");
+
         vm.prank(projectOwner);
         jbDirectory.setIsAllowedToSetFirstController(address(jbController), true);
 
         jbTerminalStore = new JBTerminalStore(jbDirectory, jbPrices, jbRulesets);
         vm.label(address(jbTerminalStore), "JBTerminalStore");
+
+        jbTerminalStore5_1 = new JBTerminalStore(jbDirectory, jbPrices, jbRulesets5_1);
+        vm.label(address(jbTerminalStore5_1), "JBTerminalStore5_1");
+
 
         accessJBLib = new AccessJBLib();
 
@@ -136,7 +162,22 @@ contract TestBaseWorkflow is Test {
             IPermit2(address(0)),
             address(0)
         );
+
         vm.label(address(jbMultiTerminal), "JBMultiTerminal");
+
+        jbMultiTerminal5_1 = new JBMultiTerminal(
+            jbFeelessAddresses,
+            jbPermissions,
+            jbProjects,
+            jbSplits,
+            jbTerminalStore,
+            jbTokens,
+            IPermit2(address(0)),
+            address(0)
+        );
+
+        vm.label(address(jbMultiTerminal5_1), "JBMultiTerminal5_1");
+
 
         projectUri = "myIPFSHash";
 
