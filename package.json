@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@bananapus/address-registry-v5": "^0.0.2",
-    "@bananapus/core-v5": "^0.0.3",
+    "@bananapus/core-v5": "^0.0.5",
     "@bananapus/ownable-v5": "^0.0.2",
     "@bananapus/permission-ids-v5": "^0.0.2",
     "@openzeppelin/contracts": "^5.2.0",
