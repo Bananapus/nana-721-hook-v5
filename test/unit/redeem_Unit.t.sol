@@ -20,11 +20,12 @@ contract Test_cashOut_Unit is UnitTestSetup {
                     price: uint104(i * 10),
                     remainingSupply: uint32(10 * i - 5 * i),
                     initialSupply: uint32(10 * i),
-                    votingUnits: uint16(0),
+
                     reserveFrequency: uint16(0),
                     category: uint24(100),
                     discountPercent: uint8(0),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false, false)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false, false),
+                    splitPercent: 0
                 })
             );
             totalWeight += (10 * i - 5 * i) * i * 10;
@@ -93,11 +94,12 @@ contract Test_cashOut_Unit is UnitTestSetup {
                     price: uint104(i * 10),
                     remainingSupply: uint32(10 * i - 5 * i),
                     initialSupply: uint32(10 * i),
-                    votingUnits: uint16(0),
+
                     reserveFrequency: uint16(0),
                     category: uint24(100),
                     discountPercent: uint8(0),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false, false)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false, false),
+                    splitPercent: 0
                 })
             );
             totalWeight += (10 * i - 5 * i) * i * 10;
@@ -152,11 +154,12 @@ contract Test_cashOut_Unit is UnitTestSetup {
                     price: uint104(i * 10),
                     remainingSupply: uint32(10 * i - 5 * i),
                     initialSupply: uint32(10 * i),
-                    votingUnits: uint16(0),
+
                     reserveFrequency: uint16(0),
                     category: uint24(100),
                     discountPercent: uint8(0),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false, false)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, false, false, false),
+                    splitPercent: 0
                 })
             );
             totalWeight += (10 * i - 5 * i) * i * 10;

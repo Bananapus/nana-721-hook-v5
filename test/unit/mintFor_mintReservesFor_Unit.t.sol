@@ -28,11 +28,12 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     price: uint104((i + 1) * 10),
                     remainingSupply: uint32(initialSupply - totalMinted),
                     initialSupply: uint32(initialSupply),
-                    votingUnits: uint16(0),
+
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
                     discountPercent: uint8(0),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false, false)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false, false),
+                    splitPercent: 0
                 })
             );
             hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
@@ -74,11 +75,11 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                 price: uint104(10),
                 remainingSupply: uint32(initialSupply),
                 initialSupply: uint32(initialSupply),
-                votingUnits: uint16(0),
                 reserveFrequency: uint16(reserveFrequency),
                 category: uint24(100),
                 discountPercent: uint8(0),
-                packedBools: hook.test_store().ForTest_packBools(true, false, true, false, false)
+                packedBools: hook.test_store().ForTest_packBools(true, false, true, false, false),
+                    splitPercent: 0
             })
         );
 
@@ -176,11 +177,12 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     price: uint104((i + 1) * 10),
                     remainingSupply: uint32(initialSupply - totalMinted),
                     initialSupply: uint32(initialSupply),
-                    votingUnits: uint16(0),
+
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
                     discountPercent: uint8(0),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false, false)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false, false),
+                    splitPercent: 0
                 })
             );
 
@@ -273,11 +275,12 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     price: uint104((i + 1) * 10),
                     remainingSupply: uint32(initialSupply - totalMinted),
                     initialSupply: uint32(initialSupply),
-                    votingUnits: uint16(0),
+
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
                     discountPercent: uint8(0),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false, false)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false, false),
+                    splitPercent: 0
                 })
             );
             hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
@@ -310,11 +313,12 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     price: uint104((i + 1) * 10),
                     remainingSupply: uint32(initialSupply - totalMinted),
                     initialSupply: uint32(initialSupply),
-                    votingUnits: uint16(0),
+
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
                     discountPercent: uint8(0),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false, false)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false, false),
+                    splitPercent: 0
                 })
             );
             hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
@@ -357,11 +361,12 @@ contract Test_mintFor_mintReservesFor_Unit is UnitTestSetup {
                     price: uint104((i + 1) * 10),
                     remainingSupply: uint32(initialSupply - totalMinted),
                     initialSupply: uint32(initialSupply),
-                    votingUnits: uint16(0),
+
                     reserveFrequency: uint16(reserveFrequency),
                     category: uint24(100),
                     discountPercent: uint8(0),
-                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false, false)
+                    packedBools: hook.test_store().ForTest_packBools(false, false, true, false, false),
+                    splitPercent: 0
                 })
             );
             hook.test_store().ForTest_setReservesMintedFor(address(hook), i + 1, reservedMinted);
