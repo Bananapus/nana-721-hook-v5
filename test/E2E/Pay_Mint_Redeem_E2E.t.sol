@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@bananapus/address-registry-v5/src/JBAddressRegistry.sol";
+import "@bananapus/address-registry-v6/src/JBAddressRegistry.sol";
 
 import "../../src/JB721TiersHook.sol";
 import "../../src/JB721TiersHookProjectDeployer.sol";
@@ -11,7 +11,7 @@ import "../../src/JB721TiersHookStore.sol";
 
 import "../utils/TestBaseWorkflow.sol";
 import "../../src/interfaces/IJB721TiersHook.sol";
-import {MetadataResolverHelper} from "@bananapus/core-v5/test/helpers/MetadataResolverHelper.sol";
+import {MetadataResolverHelper} from "@bananapus/core-v6/test/helpers/MetadataResolverHelper.sol";
 
 contract Test_TiersHook_E2E is TestBaseWorkflow {
     using JBRulesetMetadataResolver for JBRuleset;
@@ -246,13 +246,13 @@ contract Test_TiersHook_E2E is TestBaseWorkflow {
         if (totalSupplyAfterPay < type(uint208).max) {
             if (tierStartPrice > type(uint104).max) {
                 uint256 expectedDiscount =
-                    mulDiv(uint104(tierStartPrice), discountPercent, JB721Constants.MAX_DISCOUNT_PERCENT);
+                    mulDiv(uint104(tierStartPrice), discountPercent, JB721Constants.DISCOUNT_DENOMINATOR);
                 uint256 paidForNft = uint104(tierStartPrice) - expectedDiscount;
 
                 // Check: should be credited tierStartPrice minus what you paid for the NFT plus the discount
                 assertEq(IJB721TiersHook(dataHook).payCreditsOf(beneficiary), tierStartPrice - paidForNft);
             } else {
-                uint256 expectedCredits = mulDiv(tierStartPrice, discountPercent, JB721Constants.MAX_DISCOUNT_PERCENT);
+                uint256 expectedCredits = mulDiv(tierStartPrice, discountPercent, JB721Constants.DISCOUNT_DENOMINATOR);
                 assertEq(IJB721TiersHook(dataHook).payCreditsOf(beneficiary), expectedCredits);
             }
 

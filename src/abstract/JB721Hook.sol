@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {IJBCashOutHook} from "@bananapus/core-v5/src/interfaces/IJBCashOutHook.sol";
-import {IJBDirectory} from "@bananapus/core-v5/src/interfaces/IJBDirectory.sol";
-import {IJBPayHook} from "@bananapus/core-v5/src/interfaces/IJBPayHook.sol";
-import {IJBRulesetDataHook} from "@bananapus/core-v5/src/interfaces/IJBRulesetDataHook.sol";
-import {IJBTerminal} from "@bananapus/core-v5/src/interfaces/IJBTerminal.sol";
-import {JBConstants} from "@bananapus/core-v5/src/libraries/JBConstants.sol";
-import {JBMetadataResolver} from "@bananapus/core-v5/src/libraries/JBMetadataResolver.sol";
-import {JBAfterPayRecordedContext} from "@bananapus/core-v5/src/structs/JBAfterPayRecordedContext.sol";
-import {JBAfterCashOutRecordedContext} from "@bananapus/core-v5/src/structs/JBAfterCashOutRecordedContext.sol";
-import {JBBeforePayRecordedContext} from "@bananapus/core-v5/src/structs/JBBeforePayRecordedContext.sol";
-import {JBBeforeCashOutRecordedContext} from "@bananapus/core-v5/src/structs/JBBeforeCashOutRecordedContext.sol";
-import {JBCashOutHookSpecification} from "@bananapus/core-v5/src/structs/JBCashOutHookSpecification.sol";
-import {JBPayHookSpecification} from "@bananapus/core-v5/src/structs/JBPayHookSpecification.sol";
-import {JBRuleset} from "@bananapus/core-v5/src/structs/JBRuleset.sol";
+import {IJBCashOutHook} from "@bananapus/core-v6/src/interfaces/IJBCashOutHook.sol";
+import {IJBDirectory} from "@bananapus/core-v6/src/interfaces/IJBDirectory.sol";
+import {IJBPayHook} from "@bananapus/core-v6/src/interfaces/IJBPayHook.sol";
+import {IJBRulesetDataHook} from "@bananapus/core-v6/src/interfaces/IJBRulesetDataHook.sol";
+import {IJBTerminal} from "@bananapus/core-v6/src/interfaces/IJBTerminal.sol";
+import {JBConstants} from "@bananapus/core-v6/src/libraries/JBConstants.sol";
+import {JBMetadataResolver} from "@bananapus/core-v6/src/libraries/JBMetadataResolver.sol";
+import {JBAfterPayRecordedContext} from "@bananapus/core-v6/src/structs/JBAfterPayRecordedContext.sol";
+import {JBAfterCashOutRecordedContext} from "@bananapus/core-v6/src/structs/JBAfterCashOutRecordedContext.sol";
+import {JBBeforePayRecordedContext} from "@bananapus/core-v6/src/structs/JBBeforePayRecordedContext.sol";
+import {JBBeforeCashOutRecordedContext} from "@bananapus/core-v6/src/structs/JBBeforeCashOutRecordedContext.sol";
+import {JBCashOutHookSpecification} from "@bananapus/core-v6/src/structs/JBCashOutHookSpecification.sol";
+import {JBPayHookSpecification} from "@bananapus/core-v6/src/structs/JBPayHookSpecification.sol";
+import {JBRuleset} from "@bananapus/core-v6/src/structs/JBRuleset.sol";
 import {IERC2981} from "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {mulDiv} from "@prb/math/src/Common.sol";
@@ -32,8 +32,8 @@ abstract contract JB721Hook is ERC721, IJB721Hook {
     // --------------------------- custom errors ------------------------- //
     //*********************************************************************//
 
-    error JB721Hook_InvalidPay();
     error JB721Hook_InvalidCashOut();
+    error JB721Hook_InvalidPay();
     error JB721Hook_UnauthorizedToken(uint256 tokenId, address holder);
     error JB721Hook_UnexpectedTokenCashedOut();
 
@@ -169,11 +169,11 @@ abstract contract JB721Hook is ERC721, IJB721Hook {
 
     /// @notice Indicates if this contract adheres to the specified interface.
     /// @dev See {IERC165-supportsInterface}.
-    /// @param _interfaceId The ID of the interface to check for adherence to.
-    function supportsInterface(bytes4 _interfaceId) public view virtual override(ERC721, IERC165) returns (bool) {
-        return _interfaceId == type(IJB721Hook).interfaceId || _interfaceId == type(IJBRulesetDataHook).interfaceId
-            || _interfaceId == type(IJBPayHook).interfaceId || _interfaceId == type(IJBCashOutHook).interfaceId
-            || _interfaceId == type(IERC2981).interfaceId || super.supportsInterface(_interfaceId);
+    /// @param interfaceId The ID of the interface to check for adherence to.
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, IERC165) returns (bool) {
+        return interfaceId == type(IJB721Hook).interfaceId || interfaceId == type(IJBRulesetDataHook).interfaceId
+            || interfaceId == type(IJBPayHook).interfaceId || interfaceId == type(IJBCashOutHook).interfaceId
+            || interfaceId == type(IERC2981).interfaceId || super.supportsInterface(interfaceId);
     }
 
     /// @notice Calculates the cumulative cash out weight of all NFT token IDs.
@@ -190,23 +190,10 @@ abstract contract JB721Hook is ERC721, IJB721Hook {
     }
 
     //*********************************************************************//
-    // ------------------------ internal views --------------------------- //
-    //*********************************************************************//
-
-    /// @notice Initializes the contract by associating it with a project and adding ERC721 details.
-    /// @param projectId The ID of the project that this contract is associated with.
-    /// @param name The name of the NFT collection.
-    /// @param symbol The symbol representing the NFT collection.
-    function _initialize(uint256 projectId, string memory name, string memory symbol) internal {
-        ERC721._initialize(name, symbol);
-        PROJECT_ID = projectId;
-    }
-
-    //*********************************************************************//
     // ---------------------- external transactions ---------------------- //
     //*********************************************************************//
 
-    /// @notice Mints one or more NFTs to the `context.benficiary` upon payment if conditions are met. Part of
+    /// @notice Mints one or more NFTs to the `context.beneficiary` upon payment if conditions are met. Part of
     /// `IJBPayHook`.
     /// @dev Reverts if the calling contract is not one of the project's terminals.
     /// @param context The payment context passed in by the terminal.
@@ -275,6 +262,15 @@ abstract contract JB721Hook is ERC721, IJB721Hook {
     //*********************************************************************//
     // ---------------------- internal transactions ---------------------- //
     //*********************************************************************//
+
+    /// @notice Initializes the contract by associating it with a project and adding ERC721 details.
+    /// @param projectId The ID of the project that this contract is associated with.
+    /// @param name The name of the NFT collection.
+    /// @param symbol The symbol representing the NFT collection.
+    function _initialize(uint256 projectId, string memory name, string memory symbol) internal {
+        ERC721._initialize(name, symbol);
+        PROJECT_ID = projectId;
+    }
 
     /// @notice Executes after NFTs have been burned via cash out.
     /// @param tokenIds The token IDs of the NFTs that were burned.

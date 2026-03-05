@@ -23,22 +23,22 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     // --------------------------- custom errors ------------------------- //
     //*********************************************************************//
 
-    error JB721TiersHookStore_CantMintManually();
-    error JB721TiersHookStore_CantRemoveTier();
+    error JB721TiersHookStore_CantMintManually(uint256 tierId);
+    error JB721TiersHookStore_CantRemoveTier(uint256 tierId);
     error JB721TiersHookStore_DiscountPercentExceedsBounds(uint256 percent, uint256 limit);
     error JB721TiersHookStore_DiscountPercentIncreaseNotAllowed(uint256 percent, uint256 storedPercent);
     error JB721TiersHookStore_InsufficientPendingReserves(uint256 count, uint256 numberOfPendingReserves);
-    error JB721TiersHookStore_InsufficientSupplyRemaining();
+    error JB721TiersHookStore_InsufficientSupplyRemaining(uint256 tierId);
     error JB721TiersHookStore_InvalidCategorySortOrder(uint256 tierCategory, uint256 previousTierCategory);
     error JB721TiersHookStore_InvalidQuantity(uint256 quantity, uint256 limit);
-    error JB721TiersHookStore_ManualMintingNotAllowed();
+    error JB721TiersHookStore_ManualMintingNotAllowed(uint256 tierId);
     error JB721TiersHookStore_MaxTiersExceeded(uint256 numberOfTiers, uint256 limit);
     error JB721TiersHookStore_PriceExceedsAmount(uint256 price, uint256 leftoverAmount);
-    error JB721TiersHookStore_ReserveFrequencyNotAllowed();
+    error JB721TiersHookStore_ReserveFrequencyNotAllowed(uint256 tierId);
     error JB721TiersHookStore_TierRemoved(uint256 tierId);
-    error JB721TiersHookStore_UnrecognizedTier();
-    error JB721TiersHookStore_VotingUnitsNotAllowed();
-    error JB721TiersHookStore_ZeroInitialSupply();
+    error JB721TiersHookStore_UnrecognizedTier(uint256 tierId);
+    error JB721TiersHookStore_VotingUnitsNotAllowed(uint256 tierId);
+    error JB721TiersHookStore_ZeroInitialSupply(uint256 tierId);
 
     //*********************************************************************//
     // -------------------- private constant properties ------------------ //
@@ -176,25 +176,6 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @return The number of pending reserved NFTs.
     function numberOfPendingReservesFor(address hook, uint256 tierId) external view override returns (uint256) {
         return _numberOfPendingReservesFor(hook, tierId, _storedTierOf[hook][tierId]);
-    }
-
-    /// @notice Get the tier with the provided ID from the provided 721 contract.
-    /// @param hook The 721 contract to get the tier from.
-    /// @param id The ID of the tier to get.
-    /// @param includeResolvedUri If set to `true`, if the contract has a token URI resolver, its content will be
-    /// resolved and included.
-    /// @return The tier.
-    function tierOf(
-        address hook,
-        uint256 id,
-        bool includeResolvedUri
-    )
-        public
-        view
-        override
-        returns (JB721Tier memory)
-    {
-        return _getTierFrom(hook, id, _storedTierOf[hook][id], includeResolvedUri);
     }
 
     /// @notice Get the tier of the 721 with the provided token ID in the provided 721 contract.
@@ -388,6 +369,25 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     // -------------------------- public views --------------------------- //
     //*********************************************************************//
 
+    /// @notice Get the tier with the provided ID from the provided 721 contract.
+    /// @param hook The 721 contract to get the tier from.
+    /// @param id The ID of the tier to get.
+    /// @param includeResolvedUri If set to `true`, if the contract has a token URI resolver, its content will be
+    /// resolved and included.
+    /// @return The tier.
+    function tierOf(
+        address hook,
+        uint256 id,
+        bool includeResolvedUri
+    )
+        public
+        view
+        override
+        returns (JB721Tier memory)
+    {
+        return _getTierFrom(hook, id, _storedTierOf[hook][id], includeResolvedUri);
+    }
+
     /// @notice Get the number of NFTs that the specified address has from the specified 721 contract (across all
     /// tiers).
     /// @param hook The 721 contract to get the balance within.
@@ -412,7 +412,10 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @param tokenIds The token IDs of the NFTs to get the cash out weight of.
     /// @return weight The cash out weight.
     function cashOutWeightOf(address hook, uint256[] calldata tokenIds) public view override returns (uint256 weight) {
-        // Add each 721's price (from its tier) to the weight.
+        // Add each 721's original price (from its tier) to the weight.
+        // Uses the full tier price, not the discounted price — by design. Discounts are transient incentives
+        // that affect the purchase price, but the NFT's weight in the cash out curve is always based on its
+        // tier's original price. This prevents discount changes from altering the cash out value of already-minted NFTs.
         for (uint256 i; i < tokenIds.length; i++) {
             weight += _storedTierOf[hook][tierIdOfToken(tokenIds[i])].price;
         }
@@ -431,7 +434,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             return storedReserveBeneficiaryOfTier;
         }
 
-        // Otherwise, return the contract's default reserve benficiary.
+        // Otherwise, return the contract's default reserve beneficiary.
         return defaultReserveBeneficiaryOf[hook];
     }
 
@@ -450,12 +453,17 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
         // Keep a reference to the greatest tier ID.
         uint256 maxTierId = maxTierIdOf[hook];
 
-        // Add each 721's price (from its tier) to the weight.
+        // Add each 721's original price (from its tier) to the weight.
+        // Uses the full tier price, not the discounted price — by design. See `cashOutWeightOf` for rationale.
         for (uint256 i = 1; i <= maxTierId; i++) {
             // Keep a reference to the stored tier.
             JBStored721Tier memory storedTier = _storedTierOf[hook][i];
 
-            // Add the tier's price multiplied by the number of NFTs minted from the tier.
+            // Add the tier's price multiplied by the number of minted NFTs plus pending reserves.
+            // Pending reserves are included by design — they represent committed obligations that will be
+            // minted to the reserve beneficiary. Including them in the denominator ensures cash-out values
+            // account for the full diluted supply, preventing early cashers from extracting more than their
+            // fair share before reserves are minted.
             weight += storedTier.price
                 * (
                     (storedTier.initialSupply - (storedTier.remainingSupply + numberOfBurnedFor[hook][i]))
@@ -589,6 +597,14 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     }
 
     /// @notice Get the number of pending reserve NFTs for the specified tier ID.
+    /// @dev The reserve frequency is immutable once a tier is created (set in `recordAddTiers`) and cannot be modified
+    /// afterward. The pending reserve count is derived from the ratio of non-reserve mints to the reserve frequency,
+    /// rounded up. This means each batch of `reserveFrequency` non-reserve mints entitles exactly one reserve mint,
+    /// plus one additional reserve mint if there is any remainder. Because the reserve frequency is fixed per tier,
+    /// the accounting remains consistent: the total available reserve mints always equals
+    /// `ceil(numberOfNonReserveMints / reserveFrequency)`. If a project wishes to use a different reserve frequency,
+    /// it must create a new tier — the existing tier's pending reserves will continue to be calculated using its
+    /// original frequency. Removing a tier does not affect already-pending reserves; they can still be minted.
     /// @param hook The 721 contract that the tier belongs to.
     /// @param tierId The ID of the tier to get the number of pending reserve NFTs for.
     /// @param storedTier The stored tier to get the number of pending reserve NFTs for.
@@ -793,6 +809,9 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
                 }
             }
 
+            // Get a reference to the ID for the new tier.
+            uint256 tierId = currentMaxTierIdOf + i + 1;
+
             // Make sure the new tier doesn't have voting units if the 721 contract's flags don't allow it to.
             if (
                 flags.noNewTiersWithVotes
@@ -801,32 +820,29 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
                             || (!tierToAdd.useVotingUnits && tierToAdd.price != 0)
                     )
             ) {
-                revert JB721TiersHookStore_VotingUnitsNotAllowed();
+                revert JB721TiersHookStore_VotingUnitsNotAllowed(tierId);
             }
 
             // Make sure the new tier doesn't have a reserve frequency if the 721 contract's flags don't allow it to,
             // OR if manual minting is allowed.
             if ((flags.noNewTiersWithReserves || tierToAdd.allowOwnerMint) && tierToAdd.reserveFrequency != 0) {
-                revert JB721TiersHookStore_ReserveFrequencyNotAllowed();
+                revert JB721TiersHookStore_ReserveFrequencyNotAllowed(tierId);
             }
 
             // Make sure the new tier doesn't have owner minting enabled if the 721 contract's flags don't allow it to.
             if (flags.noNewTiersWithOwnerMinting && tierToAdd.allowOwnerMint) {
-                revert JB721TiersHookStore_ManualMintingNotAllowed();
+                revert JB721TiersHookStore_ManualMintingNotAllowed(tierId);
             }
 
             // Make sure the discount percent is within the bound.
-            if (tierToAdd.discountPercent > JB721Constants.MAX_DISCOUNT_PERCENT) {
+            if (tierToAdd.discountPercent > JB721Constants.DISCOUNT_DENOMINATOR) {
                 revert JB721TiersHookStore_DiscountPercentExceedsBounds(
-                    tierToAdd.discountPercent, JB721Constants.MAX_DISCOUNT_PERCENT
+                    tierToAdd.discountPercent, JB721Constants.DISCOUNT_DENOMINATOR
                 );
             }
 
             // Make sure the tier has a non-zero supply.
-            if (tierToAdd.initialSupply == 0) revert JB721TiersHookStore_ZeroInitialSupply();
-
-            // Get a reference to the ID for the new tier.
-            uint256 tierId = currentMaxTierIdOf + i + 1;
+            if (tierToAdd.initialSupply == 0) revert JB721TiersHookStore_ZeroInitialSupply(tierId);
 
             // Store the tier with that ID.
             _storedTierOf[msg.sender][tierId] = JBStored721Tier({
@@ -951,6 +967,9 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     }
 
     /// @notice Records 721 burns.
+    /// @dev This function trusts `msg.sender` (the hook contract) to only call it after actually burning the
+    /// tokens. It does not verify ownership or existence of the token IDs — the hook is responsible for
+    /// performing those checks before calling this function.
     /// @param tokenIds The token IDs of the NFTs to burn.
     function recordBurn(uint256[] calldata tokenIds) external override {
         // Iterate through all token IDs to increment the burn count.
@@ -1017,32 +1036,36 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             (bool allowOwnerMint,,,,) = _unpackBools(storedTier.packedBools);
 
             // If this is an owner mint, make sure owner minting is allowed.
-            if (isOwnerMint && !allowOwnerMint) revert JB721TiersHookStore_CantMintManually();
+            if (isOwnerMint && !allowOwnerMint) revert JB721TiersHookStore_CantMintManually(tierId);
 
             // Make sure the provided tier exists (tiers cannot have a supply of 0).
-            if (storedTier.initialSupply == 0) revert JB721TiersHookStore_UnrecognizedTier();
+            if (storedTier.initialSupply == 0) revert JB721TiersHookStore_UnrecognizedTier(tierId);
 
             // Get a reference to the price.
             uint256 price = storedTier.price;
 
             // Apply a discount if needed.
             if (storedTier.discountPercent > 0) {
-                price -= mulDiv(price, storedTier.discountPercent, JB721Constants.MAX_DISCOUNT_PERCENT);
+                price -= mulDiv(price, storedTier.discountPercent, JB721Constants.DISCOUNT_DENOMINATOR);
             }
 
             // Make sure the `amount` is greater than or equal to the tier's price.
             if (price > leftoverAmount) revert JB721TiersHookStore_PriceExceedsAmount(price, leftoverAmount);
 
-            // Make sure there are enough NFTs available to mint.
-            if (storedTier.remainingSupply <= _numberOfPendingReservesFor(msg.sender, tierId, storedTier)) {
-                revert JB721TiersHookStore_InsufficientSupplyRemaining();
-            }
+            // Make sure there's at least one NFT remaining to mint.
+            if (storedTier.remainingSupply == 0) revert JB721TiersHookStore_InsufficientSupplyRemaining(tierId);
 
-            // Mint the 721.
+            // Mint the 721 — decrement remaining supply first so the reserve check below
+            // sees the post-mint state (this non-reserve mint may increase pending reserves).
             unchecked {
                 // Keep a reference to its token ID.
                 tokenIds[i] = _generateTokenId(tierId, storedTier.initialSupply - --storedTier.remainingSupply);
                 leftoverAmount = leftoverAmount - price;
+            }
+
+            // Make sure there are still enough NFTs remaining to satisfy pending reserves.
+            if (storedTier.remainingSupply < _numberOfPendingReservesFor(msg.sender, tierId, storedTier)) {
+                revert JB721TiersHookStore_InsufficientSupplyRemaining(tierId);
             }
         }
     }
@@ -1084,6 +1107,8 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     }
 
     /// @notice Record tiers being removed.
+    /// @dev Removing a tier only marks it in a bitmap — it does not update the sorted tier linked list.
+    /// Call `cleanTiers()` after removing tiers to update the sorting sequence and prevent stale tier iteration.
     /// @param tierIds The IDs of the tiers being removed.
     function recordRemoveTierIds(uint256[] calldata tierIds) external override {
         for (uint256 i; i < tierIds.length; i++) {
@@ -1097,7 +1122,7 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
             (,,, bool cannotBeRemoved,) = _unpackBools(storedTier.packedBools);
 
             // Make sure the tier can be removed.
-            if (cannotBeRemoved) revert JB721TiersHookStore_CantRemoveTier();
+            if (cannotBeRemoved) revert JB721TiersHookStore_CantRemoveTier(tierId);
 
             // Remove the tier by marking it as removed in the bitmap.
             _removedTiersBitmapWordOf[msg.sender].removeTier(tierId);
@@ -1109,9 +1134,9 @@ contract JB721TiersHookStore is IJB721TiersHookStore {
     /// @param discountPercent The new discount percent being applied.
     function recordSetDiscountPercentOf(uint256 tierId, uint256 discountPercent) external override {
         // Make sure the discount percent is within the bound.
-        if (discountPercent > JB721Constants.MAX_DISCOUNT_PERCENT) {
+        if (discountPercent > JB721Constants.DISCOUNT_DENOMINATOR) {
             revert JB721TiersHookStore_DiscountPercentExceedsBounds(
-                discountPercent, JB721Constants.MAX_DISCOUNT_PERCENT
+                discountPercent, JB721Constants.DISCOUNT_DENOMINATOR
             );
         }
 

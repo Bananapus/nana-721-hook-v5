@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {IJBDirectory} from "@bananapus/core-v5/src/interfaces/IJBDirectory.sol";
-import {IJBPermissions} from "@bananapus/core-v5/src/interfaces/IJBPermissions.sol";
-import {IJBPrices} from "@bananapus/core-v5/src/interfaces/IJBPrices.sol";
-import {IJBRulesets} from "@bananapus/core-v5/src/interfaces/IJBRulesets.sol";
-import {JBMetadataResolver} from "@bananapus/core-v5/src/libraries/JBMetadataResolver.sol";
-import {JBRulesetMetadataResolver} from "@bananapus/core-v5/src/libraries/JBRulesetMetadataResolver.sol";
-import {JBAfterPayRecordedContext} from "@bananapus/core-v5/src/structs/JBAfterPayRecordedContext.sol";
-import {JBBeforeCashOutRecordedContext} from "@bananapus/core-v5/src/structs/JBBeforeCashOutRecordedContext.sol";
-import {JBRuleset} from "@bananapus/core-v5/src/structs/JBRuleset.sol";
-import {JBOwnable} from "@bananapus/ownable-v5/src/JBOwnable.sol";
-import {JBPermissionIds} from "@bananapus/permission-ids-v5/src/JBPermissionIds.sol";
+import {IJBDirectory} from "@bananapus/core-v6/src/interfaces/IJBDirectory.sol";
+import {IJBPermissions} from "@bananapus/core-v6/src/interfaces/IJBPermissions.sol";
+import {IJBPrices} from "@bananapus/core-v6/src/interfaces/IJBPrices.sol";
+import {IJBRulesets} from "@bananapus/core-v6/src/interfaces/IJBRulesets.sol";
+import {JBMetadataResolver} from "@bananapus/core-v6/src/libraries/JBMetadataResolver.sol";
+import {JBRulesetMetadataResolver} from "@bananapus/core-v6/src/libraries/JBRulesetMetadataResolver.sol";
+import {JBAfterPayRecordedContext} from "@bananapus/core-v6/src/structs/JBAfterPayRecordedContext.sol";
+import {JBBeforeCashOutRecordedContext} from "@bananapus/core-v6/src/structs/JBBeforeCashOutRecordedContext.sol";
+import {JBRuleset} from "@bananapus/core-v6/src/structs/JBRuleset.sol";
+import {JBOwnable} from "@bananapus/ownable-v6/src/JBOwnable.sol";
+import {JBPermissionIds} from "@bananapus/permission-ids-v6/src/JBPermissionIds.sol";
 import {ERC2771Context} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
@@ -41,9 +41,11 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     //*********************************************************************//
 
     error JB721TiersHook_AlreadyInitialized(uint256 projectId);
+    error JB721TiersHook_CurrencyMismatch(uint256 paymentCurrency, uint256 tierCurrency);
+    error JB721TiersHook_InvalidPricingDecimals(uint256 decimals);
+    error JB721TiersHook_MintReserveNftsPaused();
     error JB721TiersHook_NoProjectId();
     error JB721TiersHook_Overspending(uint256 leftoverAmount);
-    error JB721TiersHook_MintReserveNftsPaused();
     error JB721TiersHook_TierTransfersPaused();
 
     //*********************************************************************//
@@ -188,6 +190,9 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         // Initialize the superclass.
         JB721Hook._initialize(projectId, name, symbol);
 
+        // Validate pricing decimals are within a reasonable range.
+        if (tiersConfig.decimals > 18) revert JB721TiersHook_InvalidPricingDecimals(tiersConfig.decimals);
+
         // Pack pricing context from the `tiersConfig`.
         uint256 packed;
         // pack the currency in bits 0-31 (32 bits).
@@ -297,13 +302,13 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
         return RULESETS.currentOf(projectId);
     }
 
-    /// @notice Returns the calldata, prefered to use over `msg.data`
+    /// @notice Returns the calldata, preferred to use over `msg.data`
     /// @return calldata the `msg.data` of this call
     function _msgData() internal view override(ERC2771Context, Context) returns (bytes calldata) {
         return ERC2771Context._msgData();
     }
 
-    /// @notice Returns the sender, prefered to use over `msg.sender`
+    /// @notice Returns the sender, preferred to use over `msg.sender`
     /// @return sender the sender address of this call.
     function _msgSender() internal view override(ERC2771Context, Context) returns (address sender) {
         return ERC2771Context._msgSender();
@@ -439,13 +444,13 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     /// @param baseUri The new base URI.
     /// @param contractUri The new contract URI.
     /// @param tokenUriResolver The new URI resolver.
-    /// @param encodedIPFSTUriTierId The ID of the tier to set the encoded IPFS URI of.
+    /// @param encodedIPFSUriTierId The ID of the tier to set the encoded IPFS URI of.
     /// @param encodedIPFSUri The encoded IPFS URI to set.
     function setMetadata(
         string calldata baseUri,
         string calldata contractUri,
         IJB721TokenUriResolver tokenUriResolver,
-        uint256 encodedIPFSTUriTierId,
+        uint256 encodedIPFSUriTierId,
         bytes32 encodedIPFSUri
     )
         external
@@ -470,11 +475,11 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             // slither-disable-next-line reentrancy-events
             _recordSetTokenUriResolver(tokenUriResolver);
         }
-        if (encodedIPFSTUriTierId != 0 && encodedIPFSUri != bytes32(0)) {
-            emit SetEncodedIPFSUri({tierId: encodedIPFSTUriTierId, encodedUri: encodedIPFSUri, caller: _msgSender()});
+        if (encodedIPFSUriTierId != 0 && encodedIPFSUri != bytes32(0)) {
+            emit SetEncodedIPFSUri({tierId: encodedIPFSUriTierId, encodedUri: encodedIPFSUri, caller: _msgSender()});
 
             // Store the new encoded IPFS URI.
-            STORE.recordSetEncodedIPFSUriOf(encodedIPFSTUriTierId, encodedIPFSUri);
+            STORE.recordSetEncodedIPFSUriOf(encodedIPFSUriTierId, encodedIPFSUri);
         }
     }
 
@@ -577,6 +582,9 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
     }
 
     /// @notice Process a payment, minting NFTs and updating credits as necessary.
+    /// @dev Pay credits are tracked per beneficiary, not per payer. When the payer differs from the beneficiary,
+    /// the payer's existing credits are NOT applied to the mint. Only the beneficiary's credits are combined with
+    /// the incoming payment value. Leftover funds after minting are stored as credits for the beneficiary.
     /// @param context Payment context provided by the terminal after it has recorded the payment in the terminal store.
     function _processPayment(JBAfterPayRecordedContext calldata context) internal virtual override {
         // Normalize the payment value based on the pricing context.
@@ -605,7 +613,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
                         })
                     );
                 } else {
-                    return;
+                    revert JB721TiersHook_CurrencyMismatch(context.amount.currency, pricingCurrency);
                 }
             }
         }
@@ -663,7 +671,7 @@ contract JB721TiersHook is JBOwnable, ERC2771Context, JB721Hook, IJB721TiersHook
             // If overspending isn't allowed, revert.
             if (!allowOverspending) revert JB721TiersHook_Overspending(leftoverAmount);
 
-            // Increment the leftover amount.
+            // Store the leftover amount as NFT credits.
             unchecked {
                 // Keep a reference to the amount of new NFT credits.
                 uint256 newPayCredits = leftoverAmount + unusedPayCredits;
